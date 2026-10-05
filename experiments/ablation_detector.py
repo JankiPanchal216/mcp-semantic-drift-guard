@@ -1,6 +1,6 @@
 """
 Multi-Tier Architectural Ablation Runner (Configs A through H)
-Evaluates configurations A–H on the test split and streams per-item traces.
+Evaluates configurations A–H on the test split and streams per-item traces with unified schema.
 """
 
 import os
@@ -61,41 +61,42 @@ def run_ablation(
                 t_start = time.perf_counter()
                 eid = ex.get("example_id", f"ablation_{idx}")
                 server_id = ex.get("server_id", "unknown_server")
+                tool_name = ex.get("tool_name", "unknown_tool")
                 gold = ex.get("expected_label", "BENIGN")
 
                 pred = "BENIGN"
-                deciding_tier = "Tier 0 (Hash Fast-Path)"
+                deciding_tier = "none"
                 llm_called = False
                 lat_llm = None
 
                 if cfg_id == "config_a":
                     res = evaluate_hash_pinning_example(ex)
                     pred = res["prediction"]
-                    deciding_tier = "Tier 0 (Hash Pinning)"
+                    deciding_tier = 0
 
                 elif cfg_id == "config_b":
                     res = evaluate_static_rules(ex.get("new_definition", {}), str(ex.get("structured_diff", "")))
                     pred = "MALICIOUS" if res["flagged"] else "BENIGN"
-                    deciding_tier = "Tier 2 (Static Rules)"
+                    deciding_tier = 2 if res["flagged"] else "none"
 
                 elif cfg_id == "config_h":
                     res = evaluate_static_rules(ex.get("new_definition", {}), str(ex.get("structured_diff", "")))
                     if res["flagged"] and res["severity"] == "high":
                         pred = "MALICIOUS"
-                        deciding_tier = "Tier 2 (Static Rules)"
+                        deciding_tier = 2
                     else:
                         pred = "BENIGN"
-                        deciding_tier = "Fast Path (Pass-Through)"
+                        deciding_tier = "none"
 
                 elif cfg_id in ("config_e", "config_f"):
                     static_res = evaluate_static_rules(ex.get("new_definition", {}), str(ex.get("structured_diff", "")))
                     if static_res["flagged"] and static_res["severity"] == "high":
                         pred = "MALICIOUS"
-                        deciding_tier = "Tier 2 (Static Rules)"
+                        deciding_tier = 2
                     else:
                         res = evaluate_semantic_judge_example(ex, mode="diff", model_name=model)
                         pred = "MALICIOUS" if res["is_flagged"] else "BENIGN"
-                        deciding_tier = "Tier 3 (Semantic Judge Mode B)"
+                        deciding_tier = 3
                         llm_called = True
                         lat_llm = res.get("latency_ms_llm")
 
@@ -105,8 +106,9 @@ def run_ablation(
                     writer.write_item(
                         item_id=eid,
                         server_id=server_id,
-                        gold=gold,
-                        predicted=pred,
+                        tool_name=tool_name,
+                        gold_label=gold,
+                        predicted_label=pred,
                         deciding_tier=deciding_tier,
                         llm_called=llm_called,
                         latency_ms_total=tot_lat,

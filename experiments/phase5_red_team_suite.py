@@ -467,26 +467,27 @@ def run_red_team_evaluation(
             t_start = time.perf_counter()
             eid = ex.get("example_id", f"rt_{idx}")
             server_id = ex.get("server_id", "unknown_server")
+            tool_name = ex.get("tool_name", "unknown_tool")
             gold = ex.get("expected_label", "MALICIOUS")
 
             # Check static
             s_res = evaluate_static_rules(ex.get("new_definition", {}), "")
             if s_res["flagged"] and s_res["severity"] == "high":
                 pred = "MALICIOUS"
-                deciding_tier = "Tier 2 (Static Rules)"
+                deciding_tier = 2
                 llm_called = False
                 lat_llm = None
             else:
                 schema_res = evaluate_schema_security_example(ex)
                 if schema_res.get("is_flagged"):
                     pred = "MALICIOUS"
-                    deciding_tier = "Tier 1.5 (Schema Rules)"
+                    deciding_tier = 1.5
                     llm_called = False
                     lat_llm = None
                 else:
                     res = evaluate_semantic_judge_example(ex, mode="diff", model_name=model)
                     pred = "MALICIOUS" if res["is_flagged"] else "BENIGN"
-                    deciding_tier = "Tier 3 (Semantic Judge Mode B)"
+                    deciding_tier = 3
                     llm_called = True
                     lat_llm = res.get("latency_ms_llm")
 
@@ -498,8 +499,9 @@ def run_red_team_evaluation(
                 writer.write_item(
                     item_id=eid,
                     server_id=server_id,
-                    gold=gold,
-                    predicted=pred,
+                    tool_name=tool_name,
+                    gold_label=gold,
+                    predicted_label=pred,
                     deciding_tier=deciding_tier,
                     llm_called=llm_called,
                     latency_ms_total=tot_lat,

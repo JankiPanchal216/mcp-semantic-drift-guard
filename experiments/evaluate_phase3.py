@@ -3,16 +3,17 @@ Phase 3 Evaluation Suite & Policy Optimizer
 Evaluates:
 - Mode A: Semantic Judge (Full Description)
 - Mode B: Semantic Judge (Diff Only)
-- Integrated: Multi-Tier Guard Middleware
+- Integrated: Multi-Tier MCP Guard Middleware (BALANCED Policy)
 - Baseline Hash & Static Rules
 
-Supports per-item trace export with real execution timings and git commit hash.
+Supports per-item trace export with unified schema, real execution timings, and git commit hash.
 """
 
 import os
 import sys
 import json
 import time
+import tempfile
 import argparse
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
@@ -22,6 +23,8 @@ DATA_DIR = ROOT_DIR / "data"
 RESULTS_DIR = ROOT_DIR / "results"
 
 sys.path.insert(0, str(ROOT_DIR))
+from guard.config import GuardConfig
+from guard.middleware import MCPGuardMiddleware
 from guard.static_rules import evaluate_static_rules_example, evaluate_static_rules
 from guard.schema_security_rules import evaluate_schema_security_example
 from guard.semantic_judge import evaluate_semantic_judge_example
@@ -50,7 +53,14 @@ def run_evaluation(
 
     writer = TraceWriter(Path(export_traces), str(split_path)) if export_traces else None
 
-    records = []
+    # For integrated mode, set up real MCPGuardMiddleware with temporary baseline DB
+    middleware = None
+    if mode == "integrated":
+        tmp_db = Path(tempfile.mktemp(suffix=".db"))
+        tmp_log = Path(tempfile.mktemp(suffix=".jsonl"))
+        cfg = GuardConfig(policy_mode="BALANCED", baseline_db_path=tmp_db, audit_log_path=tmp_log)
+        middleware = MCPGuardMiddleware(cfg)
+
     tp, fp, tn, fn = 0, 0, 0, 0
 
     try:
@@ -58,54 +68,71 @@ def run_evaluation(
             t_total_start = time.perf_counter()
             eid = ex.get("example_id", f"item_{idx}")
             server_id = ex.get("server_id", "unknown_server")
+            tool_name = ex.get("tool_name", "unknown_tool")
             gold = ex.get("expected_label", "BENIGN")
 
             pred = "BENIGN"
-            deciding_tier = "Tier 0 (Hash Fast-Path)"
+            deciding_tier = "none"
             llm_called = False
             lat_llm_ms = None
 
             if mode == "hash":
                 res = evaluate_hash_pinning_example(ex)
                 pred = res["prediction"]
-                deciding_tier = "Tier 0 (Hash Pinning)"
+                deciding_tier = 0
 
             elif mode == "static":
                 res = evaluate_static_rules_example(ex)
                 pred = res["prediction"]
-                deciding_tier = "Tier 2 (Static Rules)"
+                deciding_tier = 2 if res["is_flagged"] else "none"
 
             elif mode == "mode_a":
                 res = evaluate_semantic_judge_example(ex, mode="full", model_name=model)
                 pred = "MALICIOUS" if res["is_flagged"] else "BENIGN"
-                deciding_tier = "Tier 3 (Semantic Judge Mode A)"
+                deciding_tier = 3
                 llm_called = True
                 lat_llm_ms = res.get("latency_ms_llm")
 
             elif mode == "mode_b":
                 res = evaluate_semantic_judge_example(ex, mode="diff", model_name=model)
                 pred = "MALICIOUS" if res["is_flagged"] else "BENIGN"
-                deciding_tier = "Tier 3 (Semantic Judge Mode B)"
+                deciding_tier = 3
                 llm_called = True
                 lat_llm_ms = res.get("latency_ms_llm")
 
             elif mode == "integrated":
-                # Multi-tier pipeline execution
-                static_res = evaluate_static_rules(ex.get("new_definition", {}), str(ex.get("structured_diff", "")))
-                if static_res["flagged"] and static_res["severity"] == "high":
-                    pred = "MALICIOUS"
-                    deciding_tier = "Tier 2 (Static Rules)"
+                # Real MCPGuardMiddleware execution with baseline pre-population
+                old_def = ex.get("old_definition")
+                new_def = ex.get("new_definition")
+
+                if old_def is not None:
+                    middleware.baseline_store.update_trusted_baseline(
+                        server_id, tool_name, old_def, reason="EVAL_PREPOPULATION"
+                    )
+
+                eval_res = middleware.evaluate_tool_update(server_id, new_def)
+                action = eval_res["action"]
+                verdict = eval_res["verdict"]
+
+                audit = eval_res.get("audit_record", {})
+                if not audit.get("semantic_judge_result", {}).get("skipped", True):
+                    llm_called = True
+                    lat_llm_ms = audit.get("timing_breakdown_ms", {}).get("tier3_judge")
+
+                is_alarm = (action in ("BLOCK", "QUARANTINE") or verdict in ("MALICIOUS", "SUSPICIOUS"))
+                pred = "MALICIOUS" if is_alarm else "BENIGN"
+
+                # Extract deciding tier
+                if audit.get("hash_result", {}).get("is_identical"):
+                    deciding_tier = 0
+                elif audit.get("static_rules_result", {}).get("flagged") and audit.get("static_rules_result", {}).get("severity") == "high":
+                    deciding_tier = 2
+                elif audit.get("schema_security_result", {}).get("flagged"):
+                    deciding_tier = 1.5
+                elif llm_called:
+                    deciding_tier = 3
                 else:
-                    schema_res = evaluate_schema_security_example(ex)
-                    if schema_res.get("is_flagged"):
-                        pred = "MALICIOUS"
-                        deciding_tier = "Tier 1.5 (Schema Rules)"
-                    else:
-                        res = evaluate_semantic_judge_example(ex, mode="diff", model_name=model)
-                        pred = "MALICIOUS" if res["is_flagged"] else "BENIGN"
-                        deciding_tier = "Tier 3 (Semantic Judge Mode B)"
-                        llm_called = True
-                        lat_llm_ms = res.get("latency_ms_llm")
+                    deciding_tier = "none"
 
             tot_lat_ms = (time.perf_counter() - t_total_start) * 1000.0
 
@@ -122,8 +149,9 @@ def run_evaluation(
                 writer.write_item(
                     item_id=eid,
                     server_id=server_id,
-                    gold=gold,
-                    predicted=pred,
+                    tool_name=tool_name,
+                    gold_label=gold,
+                    predicted_label=pred,
                     deciding_tier=deciding_tier,
                     llm_called=llm_called,
                     latency_ms_total=tot_lat_ms,
