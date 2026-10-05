@@ -1,0 +1,23 @@
+{
+  "server_id": "mcp-server-postgres",
+  "server_name": "PostgreSQL Server",
+  "version": "2025.4.28",
+  "commit_sha": "bdd5229ed93164ebec21dfe93a194662695f52e0",
+  "date": "2025-04-28 20:13:16 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "query",
+      "description": "Run a read-only SQL query",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "sql": {
+            "type": "string"
+          }
+        },
+        "required": []
+      }
+    }
+  ]
+}

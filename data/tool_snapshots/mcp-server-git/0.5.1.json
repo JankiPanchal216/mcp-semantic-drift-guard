@@ -1,0 +1,66 @@
+{
+  "server_id": "mcp-server-git",
+  "server_name": "Git Server",
+  "version": "0.5.1",
+  "commit_sha": "0da25bea8720c8162895f3222b46abb0c96c7a81",
+  "date": "2024-11-25 13:56:36 -0600",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "git_status",
+      "description": "Shows the working tree status",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "git_diff_unstaged",
+      "description": "Shows changes in the working directory that are not yet staged",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "git_diff_staged",
+      "description": "Shows changes that are staged for commit",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "git_commit",
+      "description": "Records changes to the repository",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "git_add",
+      "description": "Adds file contents to the staging area",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "git_reset",
+      "description": "Unstages all staged changes",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "git_log",
+      "description": "Shows the commit logs",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ]
+}

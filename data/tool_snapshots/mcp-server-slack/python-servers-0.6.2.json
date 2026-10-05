@@ -1,0 +1,122 @@
+{
+  "server_id": "mcp-server-slack",
+  "server_name": "Slack Server",
+  "version": "python-servers-0.6.2",
+  "commit_sha": "32c100f191852f2cd837581e019e6cd49bea801a",
+  "date": "2024-12-04 15:57:54 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "slack_list_channels",
+      "description": "List public channels in the workspace with pagination",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "number",
+            "description": "Maximum number of channels to return (default 100, max 200)"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "slack_post_message",
+      "description": "Post a new message to a Slack channel",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "channel_id": {
+            "type": "string",
+            "description": "The ID of the channel to post to"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "slack_reply_to_thread",
+      "description": "Reply to a specific message thread in Slack",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "channel_id": {
+            "type": "string",
+            "description": "The ID of the channel containing the thread"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "slack_add_reaction",
+      "description": "Add a reaction emoji to a message",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "channel_id": {
+            "type": "string",
+            "description": "The ID of the channel containing the message"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "slack_get_channel_history",
+      "description": "Get recent messages from a channel",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "channel_id": {
+            "type": "string",
+            "description": "The ID of the channel"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "slack_get_thread_replies",
+      "description": "Get all replies in a message thread",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "channel_id": {
+            "type": "string",
+            "description": "The ID of the channel containing the thread"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "slack_get_users",
+      "description": "Get a list of all users in the workspace with their basic profile information",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string",
+            "description": "Pagination cursor for next page of results"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "slack_get_user_profile",
+      "description": "Get detailed profile information for a specific user",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "The ID of the user"
+          }
+        },
+        "required": []
+      }
+    }
+  ]
+}

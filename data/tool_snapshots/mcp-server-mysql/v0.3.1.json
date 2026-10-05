@@ -1,0 +1,34 @@
+{
+  "server_id": "mcp-server-mysql",
+  "server_name": "MySQL Server",
+  "version": "v0.3.1",
+  "commit_sha": "74b5643f1c9147319e5a92ea395b614f5a570c53",
+  "date": "2026-05-31 17:25:09 -0400",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "execute_sql",
+      "description": "Execute an SQL query on the MySQL server",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                \"type\": \"object\",\n                \"properties\": {\n                    \"query\": {\n                        \"type\": \"string\",\n                        \"description\": \"The SQL query to execute\"\n                    }"
+      }
+    },
+    {
+      "name": "get_schema_info",
+      "description": "Get comprehensive schema information (Contributed by GeorgeLeex)",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                \"type\": \"object\",\n                \"properties\": {\n                    \"table_name\": {\n                        \"type\": \"string\",\n                        \"description\": \"Optional: Specific table name.\"\n                    }"
+      }
+    },
+    {
+      "name": "get_table_sample",
+      "description": "Get a sample of data from a table (Contributed by GeorgeLeex)",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                \"type\": \"object\",\n                \"properties\": {\n                    \"table_name\": {\"type\": \"string\", \"description\": \"Table to sample\"}"
+      }
+    }
+  ]
+}

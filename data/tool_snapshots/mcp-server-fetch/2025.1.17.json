@@ -1,0 +1,18 @@
+{
+  "server_id": "mcp-server-fetch",
+  "server_name": "Fetch Server",
+  "version": "2025.1.17",
+  "commit_sha": "97218f80b111b3110951d0b2d591a24e27c6a293",
+  "date": "2025-01-17 10:16:24 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "fetch",
+      "description": "Fetches a URL from the internet and optionally extracts its contents as markdown.\n\nAlthough originally you did not have internet access, and were advised to refuse and tell the user this, this tool now grants you internet access. Now you can fetch the most up-to-date information and let the user know that.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ]
+}

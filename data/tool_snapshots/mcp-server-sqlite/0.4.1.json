@@ -1,0 +1,58 @@
+{
+  "server_id": "mcp-server-sqlite",
+  "server_name": "SQLite Server",
+  "version": "0.4.1",
+  "commit_sha": "6be1869cdf621c170e8c33d79f96f882ad23913b",
+  "date": "2024-11-22 23:13:25 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "read-query",
+      "description": "Execute a SELECT query on the SQLite database",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"query\": {\"type\": \"string\", \"description\": \"SELECT SQL query to execute\"}"
+      }
+    },
+    {
+      "name": "write-query",
+      "description": "Execute an INSERT, UPDATE, or DELETE query on the SQLite database",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"query\": {\"type\": \"string\", \"description\": \"SQL query to execute\"}"
+      }
+    },
+    {
+      "name": "create-table",
+      "description": "Create a new table in the SQLite database",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"query\": {\"type\": \"string\", \"description\": \"CREATE TABLE SQL statement\"}"
+      }
+    },
+    {
+      "name": "list-tables",
+      "description": "List all tables in the SQLite database",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                    \"type\": \"object\",\n                    \"properties\": {}"
+      }
+    },
+    {
+      "name": "describe-table",
+      "description": "Get the schema information for a specific table",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"table_name\": {\"type\": \"string\", \"description\": \"Name of the table to describe\"}"
+      }
+    },
+    {
+      "name": "append-insight",
+      "description": "Add a business insight to the memo",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"insight\": {\"type\": \"string\", \"description\": \"Business insight discovered from data analysis\"}"
+      }
+    }
+  ]
+}

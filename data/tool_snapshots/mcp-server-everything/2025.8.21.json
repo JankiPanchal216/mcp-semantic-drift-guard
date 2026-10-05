@@ -1,0 +1,37 @@
+{
+  "server_id": "mcp-server-everything",
+  "server_name": "Everything Reference Server",
+  "version": "2025.8.21",
+  "commit_sha": "23377c553ce50a58ceb096b1904349211daae639",
+  "date": "2025-08-21 14:30:48 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "temperature",
+      "description": "Temperature setting",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "style",
+      "description": "Output style",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "resourceId",
+      "description": "Resource ID to include (1-100)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  ]
+}

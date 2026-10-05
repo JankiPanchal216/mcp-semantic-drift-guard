@@ -1,0 +1,276 @@
+{
+  "server_id": "mcp-server-kubernetes",
+  "server_name": "Kubernetes Server",
+  "version": "4.1.2",
+  "commit_sha": "f35b6c4db7ba0788edc111ca3c44111fcbf44413",
+  "date": "2026-07-29 00:02:09 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "cleanup",
+      "description": "Cleanup all managed resources",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "create_deployment",
+      "description": "Create a new Kubernetes deployment",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "template": {
+            "type": "string"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "list_namespaces",
+      "description": "List all namespaces",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "k8s-diagnose",
+      "description": "Diagnose Kubernetes Resources.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "keyword",
+      "description": "A keyword to search pod/node names.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "namespace",
+      "description": "Optional: Specify a namespace to narrow down the search.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "exec_in_pod",
+      "description": "Execute a command in a Kubernetes pod or container and return the output. Command must be an array of strings where the first element is the executable and remaining elements are arguments. This executes directly without shell interpretation for security.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "install_helm_chart",
+      "description": "Install a Helm chart with support for both standard and template-based installation",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "upgrade_helm_chart",
+      "description": "Upgrade an existing Helm chart release",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "uninstall_helm_chart",
+      "description": "Uninstall a Helm chart release",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "kubectl_apply",
+      "description": "Apply a Kubernetes YAML manifest from a string or file",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "kubectl_context",
+      "description": "Manage Kubernetes contexts - list, get, or set the current context",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "kubectl_create",
+      "description": "Create Kubernetes resources using various methods (from file or using subcommands)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "output": {
+            "type": "string"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "kubectl_delete",
+      "description": "Delete Kubernetes resources by resource type, name, labels, or from a manifest file",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "kubectl_describe",
+      "description": "Describe Kubernetes resources by resource type, name, and optionally namespace",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "kubectl_generic",
+      "description": "Execute any kubectl command with the provided arguments and flags",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "kubectl_get",
+      "description": "Get or list Kubernetes resources by resource type, name, and optionally namespace",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "kubectl_logs",
+      "description": "Get logs from Kubernetes resources like pods, deployments, or jobs",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "explain_resource",
+      "description": "Get documentation for a Kubernetes resource or field",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "list_api_resources",
+      "description": "List the API resources available in the cluster",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "kubectl_patch",
+      "description": "Update field(s) of a resource using strategic merge patch, JSON merge patch, or JSON patch",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "kubectl_reconnect",
+      "description": "Reconnect to the Kubernetes API server by recreating all API clients. Use this after cluster upgrades (e.g., EKS control plane upgrades that rotate ENIs/IPs) to force fresh DNS resolution and new TCP connections.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "kubectl_rollout",
+      "description": "Manage the rollout of a resource (e.g., deployment, daemonset, statefulset)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "kubectl_scale",
+      "description": "Scale a Kubernetes deployment",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "node_management",
+      "description": "Manage Kubernetes nodes with cordon, drain, and uncordon operations",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "ping",
+      "description": "Verify that the counterpart is still responsive and the connection is alive.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "port_forward",
+      "description": "Forward a local port to a port on a Kubernetes resource",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "stop_port_forward",
+      "description": "Stop a port-forward process",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "server_id": "mcp-server-sqlite",
+  "server_name": "SQLite Server",
+  "version": "0.2.0",
+  "commit_sha": "3d6de8673069bbb5d0418cd0db9b2fd81a53769d",
+  "date": "2024-11-21 19:10:05 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "add-note-to-local-db",
+      "description": "This tool is used to add a note to the local SQLite database, the SQLite database is stored locally. Only use this tool if the user specifically asks to store a note.",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                        \"type\": \"object\",\n                        \"properties\": {\n                            \"name\": {\"type\": \"string\"}"
+      }
+    }
+  ]
+}

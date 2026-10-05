@@ -1,0 +1,18 @@
+{
+  "server_id": "mcp-server-mysql",
+  "server_name": "MySQL Server",
+  "version": "v0.2.2",
+  "commit_sha": "c86e3d9d44da28ae76dbd7eb859dc51b0b29e734",
+  "date": "2025-04-18 16:25:56 -0400",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "execute_sql",
+      "description": "Execute an SQL query on the MySQL server",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                \"type\": \"object\",\n                \"properties\": {\n                    \"query\": {\n                        \"type\": \"string\",\n                        \"description\": \"The SQL query to execute\"\n                    }"
+      }
+    }
+  ]
+}

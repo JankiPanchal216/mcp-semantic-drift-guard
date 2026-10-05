@@ -1,0 +1,91 @@
+{
+  "server_id": "mcp-server-github",
+  "server_name": "GitHub Server",
+  "version": "0.2.0",
+  "commit_sha": "3d6de8673069bbb5d0418cd0db9b2fd81a53769d",
+  "date": "2024-11-21 19:10:05 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "create_or_update_file",
+      "description": "Create or update a single file in a GitHub repository",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "search_repositories",
+      "description": "Search for GitHub repositories",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "create_repository",
+      "description": "Create a new GitHub repository in your account",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "get_file_contents",
+      "description": "Get the contents of a file or directory from a GitHub repository",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "push_files",
+      "description": "Push multiple files to a GitHub repository in a single commit",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "create_issue",
+      "description": "Create a new issue in a GitHub repository",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "create_pull_request",
+      "description": "Create a new pull request in a GitHub repository",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "fork_repository",
+      "description": "Fork a GitHub repository to your account or specified organization",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "create_branch",
+      "description": "Create a new branch in a GitHub repository",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  ]
+}

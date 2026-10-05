@@ -1,0 +1,26 @@
+{
+  "server_id": "mcp-server-time",
+  "server_name": "Time Server",
+  "version": "2026.1.14",
+  "commit_sha": "0695f24ffed8ace24432fc27ba168fe31f8a1bc6",
+  "date": "2026-01-14 11:41:22 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "timetools.get_current_time.value",
+      "description": "Get current time in a specific timezones",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"timezone\": {\n                            \"type\": \"string\",\n                            \"description\": f\"IANA timezone name (e.g., 'America/New_York', 'Europe/London'). Use '{local_tz}"
+      }
+    },
+    {
+      "name": "timetools.convert_time.value",
+      "description": "Convert time between timezones",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"source_timezone\": {\n                            \"type\": \"string\",\n                            \"description\": f\"Source IANA timezone name (e.g., 'America/New_York', 'Europe/London'). Use '{local_tz}"
+      }
+    }
+  ]
+}

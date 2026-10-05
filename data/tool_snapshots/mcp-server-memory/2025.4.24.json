@@ -1,0 +1,194 @@
+{
+  "server_id": "mcp-server-memory",
+  "server_name": "Memory Knowledge Graph Server",
+  "version": "2025.4.24",
+  "commit_sha": "83dd224982252e34100d454c34fa27fe38f71e20",
+  "date": "2025-04-25 08:22:29 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "create_entities",
+      "description": "Create multiple new entities in the knowledge graph",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "entities": {
+            "type": "array"
+          },
+          "items": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the entity"
+          },
+          "entityType": {
+            "type": "string",
+            "description": "The type of the entity"
+          },
+          "observations": {
+            "type": "array"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "create_relations",
+      "description": "Create multiple new relations between entities in the knowledge graph. Relations should be in active voice",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "relations": {
+            "type": "array"
+          },
+          "items": {
+            "type": "object"
+          },
+          "from": {
+            "type": "string",
+            "description": "The name of the entity where the relation starts"
+          },
+          "to": {
+            "type": "string",
+            "description": "The name of the entity where the relation ends"
+          },
+          "relationType": {
+            "type": "string",
+            "description": "The type of the relation"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "add_observations",
+      "description": "Add new observations to existing entities in the knowledge graph",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "observations": {
+            "type": "array"
+          },
+          "items": {
+            "type": "string"
+          },
+          "entityName": {
+            "type": "string",
+            "description": "The name of the entity to add the observations to"
+          },
+          "contents": {
+            "type": "array"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "delete_entities",
+      "description": "Delete multiple entities and their associated relations from the knowledge graph",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "entityNames": {
+            "type": "array"
+          },
+          "items": {
+            "type": "string"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "delete_observations",
+      "description": "Delete specific observations from entities in the knowledge graph",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "deletions": {
+            "type": "array"
+          },
+          "items": {
+            "type": "string"
+          },
+          "entityName": {
+            "type": "string",
+            "description": "The name of the entity containing the observations"
+          },
+          "observations": {
+            "type": "array"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "delete_relations",
+      "description": "Delete multiple relations from the knowledge graph",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "relations": {
+            "type": "array"
+          },
+          "items": {
+            "type": "object"
+          },
+          "from": {
+            "type": "string",
+            "description": "The name of the entity where the relation starts"
+          },
+          "to": {
+            "type": "string",
+            "description": "The name of the entity where the relation ends"
+          },
+          "relationType": {
+            "type": "string",
+            "description": "The type of the relation"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "read_graph",
+      "description": "Read the entire knowledge graph",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "search_nodes",
+      "description": "Search for nodes in the knowledge graph based on a query",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "The search query to match against entity names, types, and observation content"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "open_nodes",
+      "description": "Open specific nodes in the knowledge graph by their names",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "names": {
+            "type": "array"
+          },
+          "items": {
+            "type": "string"
+          }
+        },
+        "required": []
+      }
+    }
+  ]
+}

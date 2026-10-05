@@ -1,0 +1,19 @@
+{
+  "server_id": "mcp-server-everart",
+  "server_name": "EverArt AI Server",
+  "version": "2025.1.14",
+  "commit_sha": "85e5cc13b0b67e2dac008ae4ac700e96d3698ccc",
+  "date": "2025-01-14 03:03:30 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "generate_image",
+      "description": "Generate images using EverArt Models and returns a clickable link to view the generated image.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  ]
+}

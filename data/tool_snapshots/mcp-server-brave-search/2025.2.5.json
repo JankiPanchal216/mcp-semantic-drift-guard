@@ -1,0 +1,28 @@
+{
+  "server_id": "mcp-server-brave-search",
+  "server_name": "Brave Search Server",
+  "version": "2025.2.5",
+  "commit_sha": "bc00bd9714467445c1d7e5e98af0b01d2c497a86",
+  "date": "2025-02-05 15:50:54 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "brave_web_search",
+      "description": "Performs a web search using the Brave Search API, ideal for general queries, news, articles, and online content.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "brave_local_search",
+      "description": "Searches for local businesses and places using Brave",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  ]
+}

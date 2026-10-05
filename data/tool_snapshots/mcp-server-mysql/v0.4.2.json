@@ -1,0 +1,34 @@
+{
+  "server_id": "mcp-server-mysql",
+  "server_name": "MySQL Server",
+  "version": "v0.4.2",
+  "commit_sha": "e25be7fc4e9e79d7efc52eb69d776129429a837f",
+  "date": "2026-06-20 11:24:32 -0400",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "execute_sql",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "get_schema_info",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "get_table_sample",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "server_id": "mcp-server-filesystem",
+  "server_name": "Filesystem Server",
+  "version": "2026.7.4",
+  "commit_sha": "5482a98612144854f8966bf31215f2c42c89e959",
+  "date": "2026-07-04 23:04:26 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "secure-filesystem-server",
+      "description": "Read the complete contents of a file as text. DEPRECATED: Use read_text_file instead.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ]
+}

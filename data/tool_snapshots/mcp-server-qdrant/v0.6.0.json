@@ -1,0 +1,26 @@
+{
+  "server_id": "mcp-server-qdrant",
+  "server_name": "Qdrant Vector Search Server",
+  "version": "v0.6.0",
+  "commit_sha": "7bebfe27bb6e60d34d2cafd521e35e47b6c5188c",
+  "date": "2025-03-05 23:45:56 +0100",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "qdrant-store-memory",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "qdrant-find-memories",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ]
+}

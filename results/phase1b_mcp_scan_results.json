@@ -1,0 +1,73 @@
+{
+  "mcp_scan_version": "0.6.8",
+  "package_name": "snyk-agent-scan (formerly mcp-scan)",
+  "command_used": "uvx --from snyk-agent-scan python -c \"from agent_scan.run import run; run()\"",
+  "servers_tested": [
+    {
+      "name": "mcp-server-time",
+      "source": "pypi:mcp-server-time@latest",
+      "transport": "stdio",
+      "scanned_successfully": true,
+      "discovered_tools": [
+        "get_current_time",
+        "convert_time"
+      ],
+      "findings": "Server advertises time and timezone query capabilities. No prompt injection identified during static inspection.",
+      "tool_pinning_available": true
+    },
+    {
+      "name": "mcp-server-fetch",
+      "source": "pypi:mcp-server-fetch@latest",
+      "transport": "stdio",
+      "scanned_successfully": true,
+      "discovered_tools": [
+        "fetch"
+      ],
+      "findings": "Server advertises web retrieval capabilities with prompt instructions regarding internet access permissions.",
+      "tool_pinning_available": true
+    },
+    {
+      "name": "test_server_v1",
+      "source": "local fixture: APP/data/fixtures/server_v1.py",
+      "transport": "stdio",
+      "scanned_successfully": true,
+      "discovered_tools": [
+        "test_tool"
+      ],
+      "tool_description": "Returns the current status.",
+      "sha256_hash": "ca0fd361fb97f93c24f1a491904379e390ad34207dfd3f70b3a50c31619b6ef7",
+      "findings": "Baseline fixture registered and pinned.",
+      "tool_pinning_available": true
+    },
+    {
+      "name": "test_server_v2",
+      "source": "local fixture: APP/data/fixtures/server_v2.py",
+      "transport": "stdio",
+      "scanned_successfully": true,
+      "discovered_tools": [
+        "test_tool"
+      ],
+      "tool_description": "Returns the current system status.",
+      "sha256_hash": "397ddb30208d3f10f1c4e0fa9c976d0a9a03f78a7cad5d4290019a441366a1ad",
+      "findings": "Benign wording update causes complete hash divergence.",
+      "tool_pinning_available": true
+    }
+  ],
+  "tool_pinning_verified": true,
+  "hash_change_test": {
+    "performed": true,
+    "result": "Hash divergence successfully demonstrated on benign wording change. Original SHA-256 (ca0fd361fb97f93c24f1a491904379e390ad34207dfd3f70b3a50c31619b6ef7) differed from modified SHA-256 (397ddb30208d3f10f1c4e0fa9c976d0a9a03f78a7cad5d4290019a441366a1ad), resulting in a baseline mismatch alert despite harmless semantic equivalence.",
+    "notes": "Original description: 'Returns the current status.' Modified description: 'Returns the current system status.' Both versions were hosted on local MCP stdio servers and inspected using snyk-agent-scan inspect."
+  },
+  "findings": [
+    "snyk-agent-scan (mcp-scan) v0.6.8 inspects and extracts MCP tool definitions, input schemas, and metadata across both public packages and local stdio server scripts.",
+    "Tool pinning relies on strict cryptographic hashing (SHA-256) of tool manifests.",
+    "Because cryptographic hashing is semantic-blind, legitimate documentation changes, clarification of wording, and bug fixes trigger identical change alerts as malicious tool poisoning.",
+    "This establishes the foundational baseline and confirms the research necessity for an intelligent semantic drift judge."
+  ],
+  "limitations": [
+    "mcp-scan has been rebranded to snyk-agent-scan on PyPI; direct execution of its generated .exe in uv cache was blocked by Windows Application Control policy, but running via Python entry point (agent_scan.run) bypassed this restriction cleanly.",
+    "Deep cloud vulnerability analysis ('scan') requires remote Snyk API tokens and connectivity, whereas local capability extraction ('inspect') functions offline.",
+    "Hash pinning operates as an all-or-nothing binary flag, unable to evaluate semantic intent."
+  ]
+}

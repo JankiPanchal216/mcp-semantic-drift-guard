@@ -1,0 +1,31 @@
+{
+  "server_id": "mcp-server-aws-kb",
+  "server_name": "AWS Knowledge Base Retrieval Server",
+  "version": "2025.4.6",
+  "commit_sha": "6bc2aa65034edd8f47844bfc988149d6b1061159",
+  "date": "2025-04-07 09:06:32 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "retrieve_from_aws_kb",
+      "description": "Performs retrieval from the AWS Knowledge Base using the provided query and Knowledge Base ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "The query to perform retrieval on"
+          },
+          "knowledgeBaseId": {
+            "type": "string",
+            "description": "The ID of the AWS Knowledge Base"
+          },
+          "n": {
+            "type": "number"
+          }
+        },
+        "required": []
+      }
+    }
+  ]
+}

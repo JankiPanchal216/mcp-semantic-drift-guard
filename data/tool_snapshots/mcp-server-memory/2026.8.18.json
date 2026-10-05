@@ -1,0 +1,18 @@
+{
+  "server_id": "mcp-server-memory",
+  "server_name": "Memory Knowledge Graph Server",
+  "version": "2026.8.18",
+  "commit_sha": "65249247ac4746baba8d406d9c146a3d7ac03b54",
+  "date": "2026-08-18 16:04:55 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "memory-server",
+      "description": "Create multiple new entities in the knowledge graph",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ]
+}

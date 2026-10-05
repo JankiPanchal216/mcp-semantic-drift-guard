@@ -1,0 +1,95 @@
+{
+  "server_id": "mcp-server-puppeteer",
+  "server_name": "Puppeteer Server",
+  "version": "0.5.1",
+  "commit_sha": "0da25bea8720c8162895f3222b46abb0c96c7a81",
+  "date": "2024-11-25 13:56:36 -0600",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "puppeteer_navigate",
+      "description": "Navigate to a URL",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "puppeteer_screenshot",
+      "description": "Take a screenshot of the current page or a specific element",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name for the screenshot"
+          },
+          "selector": {
+            "type": "string",
+            "description": "CSS selector for element to screenshot"
+          },
+          "width": {
+            "type": "number",
+            "description": "Width in pixels (default: 800)"
+          },
+          "height": {
+            "type": "number",
+            "description": "Height in pixels (default: 600)"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "puppeteer_click",
+      "description": "Click an element on the page",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "selector": {
+            "type": "string",
+            "description": "CSS selector for element to click"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "puppeteer_fill",
+      "description": "Fill out an input field",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "selector": {
+            "type": "string",
+            "description": "CSS selector for input field"
+          },
+          "value": {
+            "type": "string",
+            "description": "Value to fill"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "puppeteer_evaluate",
+      "description": "Execute JavaScript in the browser console",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "script": {
+            "type": "string",
+            "description": "JavaScript code to execute"
+          }
+        },
+        "required": []
+      }
+    }
+  ]
+}

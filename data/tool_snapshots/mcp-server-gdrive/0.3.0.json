@@ -1,0 +1,24 @@
+{
+  "server_id": "mcp-server-gdrive",
+  "server_name": "Google Drive Server",
+  "version": "0.3.0",
+  "commit_sha": "fe4f568fd011f9cbc8b7501e10117b7106bea84f",
+  "date": "2024-11-21 22:33:31 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "search",
+      "description": "Search for files in Google Drive",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query"
+          }
+        },
+        "required": []
+      }
+    }
+  ]
+}

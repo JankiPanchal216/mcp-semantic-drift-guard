@@ -1,0 +1,109 @@
+{
+  "server_id": "mcp-server-filesystem",
+  "server_name": "Filesystem Server",
+  "version": "2025.1.23",
+  "commit_sha": "f2f54914f81715077e40894753602091f4bf2ffb",
+  "date": "2025-01-23 11:22:14 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Read the complete contents of a file from the file system.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "read_multiple_files",
+      "description": "Read the contents of multiple files simultaneously. This is more",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "write_file",
+      "description": "Create a new file or completely overwrite an existing file with new content.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "edit_file",
+      "description": "Make line-based edits to a text file. Each edit replaces exact line sequences",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "create_directory",
+      "description": "Create a new directory or ensure a directory exists. Can create multiple",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "list_directory",
+      "description": "Get a detailed listing of all files and directories in a specified path.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "directory_tree",
+      "description": "Get a recursive tree view of files and directories as a JSON structure.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "move_file",
+      "description": "Move or rename files and directories. Can move files between directories",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "search_files",
+      "description": "Recursively search for files and directories matching a pattern.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "get_file_info",
+      "description": "Retrieve detailed metadata about a file or directory. Returns comprehensive",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "list_allowed_directories",
+      "description": "Returns the list of directories that this server is allowed to access.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  ]
+}

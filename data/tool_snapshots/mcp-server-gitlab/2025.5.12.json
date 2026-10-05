@@ -1,0 +1,91 @@
+{
+  "server_id": "mcp-server-gitlab",
+  "server_name": "GitLab Server",
+  "version": "2025.5.12",
+  "commit_sha": "d4016536744b76e8958295511f1144acbbc4aaab",
+  "date": "2025-05-12 18:05:40 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "create_or_update_file",
+      "description": "Create or update a single file in a GitLab project",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "search_repositories",
+      "description": "Search for GitLab projects",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "create_repository",
+      "description": "Create a new GitLab project",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "get_file_contents",
+      "description": "Get the contents of a file or directory from a GitLab project",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "push_files",
+      "description": "Push multiple files to a GitLab project in a single commit",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "create_issue",
+      "description": "Create a new issue in a GitLab project",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "create_merge_request",
+      "description": "Create a new merge request in a GitLab project",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "fork_repository",
+      "description": "Fork a GitLab project to your account or specified namespace",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "create_branch",
+      "description": "Create a new branch in a GitLab project",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  ]
+}

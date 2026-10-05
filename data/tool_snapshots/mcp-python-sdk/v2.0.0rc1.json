@@ -1,0 +1,929 @@
+{
+  "server_id": "mcp-python-sdk",
+  "server_name": "Python SDK Reference Examples",
+  "version": "v2.0.0rc1",
+  "commit_sha": "45f2a88a9aaeee5019d0fd4541693757ace5bbc3",
+  "date": "2026-07-27 14:23:57 +0100",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "name_shrimp",
+      "description": "List all shrimp names in the tank",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "tank": {
+            "type": "string"
+          },
+          "extra_names": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tank",
+          "extra_names"
+        ]
+      }
+    },
+    {
+      "name": "sum",
+      "description": "Add two numbers",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "a": {
+            "type": "number"
+          },
+          "b": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "a",
+          "b"
+        ]
+      }
+    },
+    {
+      "name": "echo",
+      "description": "A simple echo tool",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      }
+    },
+    {
+      "name": "echo_tool",
+      "description": "Echo the input text",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ]
+      }
+    },
+    {
+      "name": "demo_tool",
+      "description": "A demo tool with an icon.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      }
+    },
+    {
+      "name": "multi_icon_tool",
+      "description": "A tool demonstrating multiple icons.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "action"
+        ]
+      }
+    },
+    {
+      "name": "greet_user",
+      "description": "Greet a user with optional title and repetition",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "times": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "title",
+          "times"
+        ]
+      }
+    },
+    {
+      "name": "take_screenshot",
+      "description": "Take a screenshot of the user's screen and return it as an image. Use\nthis tool anytime the user wants you to look at something they're doing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "text_me",
+      "description": "Send a text message to a phone number via https://surgemsg.com/",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text_content": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text_content"
+        ]
+      }
+    },
+    {
+      "name": "hello_unicode",
+      "description": "A simple tool that demonstrates Unicode handling in:\n- Tool description (emojis, accents, CJK characters)\n- Parameter defaults (CJK characters)\n- Return values (Spanish punctuation, emojis)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "greeting": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "greeting"
+        ]
+      }
+    },
+    {
+      "name": "list_emoji_categories",
+      "description": "Returns a list of emoji categories with emoji examples.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "multilingual_hello",
+      "description": "Returns hello in different scripts and writing systems.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "get_weather",
+      "description": "Get weather for a city.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "city",
+          "unit"
+        ]
+      }
+    },
+    {
+      "name": "get_weather_summary",
+      "description": "Get a brief weather summary for a city",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "city"
+        ]
+      }
+    },
+    {
+      "name": "get_weather_metrics",
+      "description": "Get weather metrics for multiple cities\n\nReturns a dictionary mapping city names to their metrics",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "cities": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cities"
+        ]
+      }
+    },
+    {
+      "name": "get_weather_alerts",
+      "description": "Get active weather alerts for a region",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "region": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "region"
+        ]
+      }
+    },
+    {
+      "name": "get_temperature",
+      "description": "Get just the temperature for a city\n\nWhen returning primitives as structured output,\nthe result is wrapped in {\"result\": value}",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "city",
+          "unit"
+        ]
+      }
+    },
+    {
+      "name": "get_weather_stats",
+      "description": "Get weather statistics for the past N days",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string"
+          },
+          "days": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "city",
+          "days"
+        ]
+      }
+    },
+    {
+      "name": "test_simple_text",
+      "description": "Tests simple text content response",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "test_image_content",
+      "description": "Tests image content response",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "test_audio_content",
+      "description": "Tests audio content response",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "test_embedded_resource",
+      "description": "Tests embedded resource content response",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "test_multiple_content_types",
+      "description": "Tests response with multiple content types (text, image, resource)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "test_error_handling",
+      "description": "Tests error response handling",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "test_x_mcp_header",
+      "description": "Tests SEP-2243 Mcp-Param-* server-side validation.\n\nArms the http-custom-header-server-validation conformance scenario, which\nskips when no tool with an `x-mcp-header` annotation is found.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "region": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "region"
+        ]
+      }
+    },
+    {
+      "name": "json_schema_2020_12_tool",
+      "description": "Tests JSON Schema 2020-12 keyword preservation in tools/list (inputSchema installed below).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "f",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "start-notification-stream",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "fetch",
+      "description": "Fetches a website and returns its content",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "process_batch",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "advanced_tool",
+      "description": "Return CallToolResult directly for full control including _meta field.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "validated_tool",
+      "description": "Return CallToolResult with structured output validation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "empty_result_tool",
+      "description": "For empty results, return CallToolResult with empty content.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "hello",
+      "description": "Say hello to someone.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    {
+      "name": "create_thumbnail",
+      "description": "Create a thumbnail from an image",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "image_path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "image_path"
+        ]
+      }
+    },
+    {
+      "name": "query_db",
+      "description": "Tool that uses initialized resources.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "add",
+      "description": "Add two numbers",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "a": {
+            "type": "number"
+          },
+          "b": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "a",
+          "b"
+        ]
+      }
+    },
+    {
+      "name": "greet",
+      "description": "Greet someone by name.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    {
+      "name": "domain_info",
+      "description": "Get domain-specific information",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "api_status",
+      "description": "Get API status",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "send_message",
+      "description": "Send a chat message",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      }
+    },
+    {
+      "name": "process_data",
+      "description": "Process some data",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      }
+    },
+    {
+      "name": "add_two",
+      "description": "Tool to add two to the input",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "n": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "n"
+        ]
+      }
+    },
+    {
+      "name": "get_location",
+      "description": "Get location coordinates",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "address"
+        ]
+      }
+    },
+    {
+      "name": "get_statistics",
+      "description": "Get various statistics",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "data_type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "data_type"
+        ]
+      }
+    },
+    {
+      "name": "get_user",
+      "description": "Get user profile - returns structured data",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id"
+        ]
+      }
+    },
+    {
+      "name": "get_config",
+      "description": "This returns unstructured output - no schema generated",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "list_cities",
+      "description": "Get a list of cities",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "get_time",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "whoami",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "divide",
+      "description": "Divide a by b. Division by zero is an execution error the LLM should see.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "a": {
+            "type": "number"
+          },
+          "b": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "a",
+          "b"
+        ]
+      }
+    },
+    {
+      "name": "restricted",
+      "description": "A tool that always rejects the caller at the protocol level.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "register_user",
+      "description": "Register a new account.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "link_account",
+      "description": "Link a third-party account.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "which_arm",
+      "description": "Report which era the built-in router dispatched this request to.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "lookup",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key"
+        ]
+      }
+    },
+    {
+      "name": "audit_log",
+      "description": "Return every method the middleware has observed so far.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "deploy",
+      "description": "Deploy to an environment, asking the user to confirm first.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "meet",
+      "description": "Rendezvous with peers.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "refund_order",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "cents": {
+            "type": "string"
+          },
+          "restock": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id",
+          "reason",
+          "cents",
+          "restock"
+        ]
+      }
+    },
+    {
+      "name": "show_roots",
+      "description": "Return the filesystem roots the client has exposed.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "summarize",
+      "description": "Summarize text by asking the host",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "greet_pydantic",
+      "description": "`who` arrives as a validated PersonModel instance.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "who": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "who"
+        ]
+      }
+    },
+    {
+      "name": "greet_typeddict",
+      "description": "`who` arrives as a plain dict; TypedDict drives the schema and editor hints.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "who": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "who"
+        ]
+      }
+    },
+    {
+      "name": "greet_dataclass",
+      "description": "`who` arrives as a PersonDC instance (pydantic coerces the wire dict).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "who": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "who"
+        ]
+      }
+    },
+    {
+      "name": "greet_dict",
+      "description": "`who` is a free-form object \u2014 any dict passes; the handler must check it.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "who": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "who"
+        ]
+      }
+    },
+    {
+      "name": "long_operation",
+      "description": "Emit progress, close the SSE stream, emit more, return.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "add_note",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "remove_note",
+      "description": "Remove one sticky note.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "remove_all",
+      "description": "Remove every note after confirmation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "countdown",
+      "description": "Emit one progress + one log notification per step; observes cancellation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "edit_note",
+      "description": "Replace a note",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "enable_search",
+      "description": "Register the search tool.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "search",
+      "description": "Find notes.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "calc",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "op": {
+            "type": "string"
+          },
+          "a": {
+            "type": "number"
+          },
+          "b": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "op",
+          "a",
+          "b"
+        ]
+      }
+    }
+  ]
+}

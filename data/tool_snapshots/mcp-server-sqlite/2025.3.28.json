@@ -1,0 +1,58 @@
+{
+  "server_id": "mcp-server-sqlite",
+  "server_name": "SQLite Server",
+  "version": "2025.3.28",
+  "commit_sha": "6eaf7dc175b887ebc601175409741fc2b097052f",
+  "date": "2025-03-28 10:39:50 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "read_query",
+      "description": "Execute a SELECT query on the SQLite database",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"query\": {\"type\": \"string\", \"description\": \"SELECT SQL query to execute\"}"
+      }
+    },
+    {
+      "name": "write_query",
+      "description": "Execute an INSERT, UPDATE, or DELETE query on the SQLite database",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"query\": {\"type\": \"string\", \"description\": \"SQL query to execute\"}"
+      }
+    },
+    {
+      "name": "create_table",
+      "description": "Create a new table in the SQLite database",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"query\": {\"type\": \"string\", \"description\": \"CREATE TABLE SQL statement\"}"
+      }
+    },
+    {
+      "name": "list_tables",
+      "description": "List all tables in the SQLite database",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                    \"type\": \"object\",\n                    \"properties\": {}"
+      }
+    },
+    {
+      "name": "describe_table",
+      "description": "Get the schema information for a specific table",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"table_name\": {\"type\": \"string\", \"description\": \"Name of the table to describe\"}"
+      }
+    },
+    {
+      "name": "append_insight",
+      "description": "Add a business insight to the memo",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"insight\": {\"type\": \"string\", \"description\": \"Business insight discovered from data analysis\"}"
+      }
+    }
+  ]
+}

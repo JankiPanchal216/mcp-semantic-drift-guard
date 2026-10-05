@@ -1,0 +1,7 @@
+{
+  "project": "MCP Semantic Drift Research",
+  "python_version": "3.11.9",
+  "temperature": 0,
+  "local_model": "qwen3:8b",
+  "api_model": "TO_BE_SELECTED"
+}

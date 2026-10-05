@@ -1,0 +1,18 @@
+{
+  "server_id": "mcp-server-sentry",
+  "server_name": "Sentry Server",
+  "version": "typescript-servers-0.6.0",
+  "commit_sha": "ba3b9944d44428a31570225391598bc7eee0e5a1",
+  "date": "2024-12-03 14:10:53 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "get-sentry-issue",
+      "description": "Retrieve and analyze a Sentry issue by ID or URL. Use this tool when you need to:\n                - Investigate production errors and crashes\n                - Access detailed stacktraces from Sentry\n                - Analyze error patterns and frequencies\n                - Get information about when issues first/last occurred\n                - Review error counts and status",
+      "inputSchema": {
+        "type": "object",
+        "raw": "{\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"issue_id_or_url\": {\n                            \"type\": \"string\",\n                            \"description\": \"Sentry issue ID or URL to analyze\"\n                        }"
+      }
+    }
+  ]
+}

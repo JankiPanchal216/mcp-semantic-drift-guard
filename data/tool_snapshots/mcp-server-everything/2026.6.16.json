@@ -1,0 +1,18 @@
+{
+  "server_id": "mcp-server-everything",
+  "server_name": "Everything Reference Server",
+  "version": "2026.6.16",
+  "commit_sha": "0d8193f82d7eb43949b047d96dc5627ff829274a",
+  "date": "2026-06-16 14:53:11 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "test-file",
+      "description": "A test file",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ]
+}

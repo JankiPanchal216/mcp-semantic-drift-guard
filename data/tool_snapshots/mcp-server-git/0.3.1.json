@@ -1,0 +1,98 @@
+{
+  "server_id": "mcp-server-git",
+  "server_name": "Git Server",
+  "version": "0.3.1",
+  "commit_sha": "51ac8f006f02301d535ad71248cdeb67e7accb4e",
+  "date": "2024-11-21 22:42:41 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "git_read_file",
+      "description": "Retrieves and returns the content of a specified file from",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "git_list_files",
+      "description": "Enumerates all files in a Git repository or a specific",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "git_file_history",
+      "description": "Retrieves the commit history for a specific file, showing",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "git_commit",
+      "description": "Commits changes to the repository. You can",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "git_search_code",
+      "description": "Searches for specific patterns or text across all files in",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "git_get_diff",
+      "description": "Computes and displays the differences between two Git",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "git_get_repo_structure",
+      "description": "Generates a representation of the repository",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "git_list_repos",
+      "description": "Enumerates all available Git repositories from the",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "git_log",
+      "description": "Retrieves the commit log for the repository, showing the",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "git_list_branches",
+      "description": "Lists all branches in the Git repository. This tool",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "git_list_tags",
+      "description": "Lists all tags in the Git repository. This tool",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ]
+}

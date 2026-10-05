@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "test_server_v1": {
+      "command": "C:\\Users\\Janki Panchal\\Downloads\\New folder\\Desktop\\Research\\APP\\.venv\\Scripts\\python.exe",
+      "args": [
+        "C:\\Users\\Janki Panchal\\Downloads\\New folder\\Desktop\\Research\\APP\\data\\fixtures\\server_v1.py"
+      ]
+    },
+    "test_server_v2": {
+      "command": "C:\\Users\\Janki Panchal\\Downloads\\New folder\\Desktop\\Research\\APP\\.venv\\Scripts\\python.exe",
+      "args": [
+        "C:\\Users\\Janki Panchal\\Downloads\\New folder\\Desktop\\Research\\APP\\data\\fixtures\\server_v2.py"
+      ]
+    }
+  }
+}

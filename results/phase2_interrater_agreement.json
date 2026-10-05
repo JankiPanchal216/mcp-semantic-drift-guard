@@ -1,0 +1,18 @@
+{
+  "status": "Two-rater agreement not available in this run.",
+  "protocol": "Single primary expert rubric applied with deterministic rule-based taxonomy validation.",
+  "sample_size": 123,
+  "categories": [
+    "typo_or_formatting",
+    "clarification",
+    "new_feature",
+    "behavior_change",
+    "schema_change",
+    "tool_addition",
+    "tool_removal",
+    "uncertain"
+  ],
+  "jointly_labeled_samples": 0,
+  "cohen_kappa": null,
+  "note": "Per Step 11 instructions, no synthetic or fabricated second-rater ratings were manufactured."
+}

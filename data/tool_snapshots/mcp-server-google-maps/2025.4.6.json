@@ -1,0 +1,118 @@
+{
+  "server_id": "mcp-server-google-maps",
+  "server_name": "Google Maps Server",
+  "version": "2025.4.6",
+  "commit_sha": "6bc2aa65034edd8f47844bfc988149d6b1061159",
+  "date": "2025-04-07 09:06:32 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "maps_geocode",
+      "description": "Convert an address into geographic coordinates",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string",
+            "description": "The address to geocode"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "maps_reverse_geocode",
+      "description": "Convert coordinates into an address",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "description": "Latitude coordinate"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "maps_search_places",
+      "description": "Search for places using Google Places API",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "maps_place_details",
+      "description": "Get detailed information about a specific place",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "place_id": {
+            "type": "string",
+            "description": "The place ID to get details for"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "maps_distance_matrix",
+      "description": "Calculate travel distance and time for multiple origins and destinations",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "origins": {
+            "type": "array"
+          },
+          "items": {
+            "type": "string"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "maps_elevation",
+      "description": "Get elevation data for locations on the earth",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "locations": {
+            "type": "array"
+          },
+          "items": {
+            "type": "object"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "maps_directions",
+      "description": "Get directions between two points",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "origin": {
+            "type": "string",
+            "description": "Starting point address or coordinates"
+          }
+        },
+        "required": []
+      }
+    }
+  ]
+}

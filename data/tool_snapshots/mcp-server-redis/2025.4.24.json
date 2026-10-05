@@ -1,0 +1,65 @@
+{
+  "server_id": "mcp-server-redis",
+  "server_name": "Redis Server",
+  "version": "2025.4.24",
+  "commit_sha": "83dd224982252e34100d454c34fa27fe38f71e20",
+  "date": "2025-04-25 08:22:29 +0000",
+  "extraction_method": "static_source",
+  "tools": [
+    {
+      "name": "set",
+      "description": "Set a Redis key-value pair with optional expiration",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Redis key"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "get",
+      "description": "Get value by key from Redis",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Redis key to retrieve"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "delete",
+      "description": "Delete one or more keys from Redis",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "string"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "list",
+      "description": "List Redis keys matching a pattern",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "pattern": {
+            "type": "string",
+            "description": "Pattern to match keys (default: *)"
+          }
+        },
+        "required": []
+      }
+    }
+  ]
+}
