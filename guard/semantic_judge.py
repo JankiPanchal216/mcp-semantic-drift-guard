@@ -62,13 +62,14 @@ def build_mode_b_prompt(structured_diff: Dict[str, Any]) -> str:
 Return JSON only:"""
 
 
-def call_ollama_judge(prompt: str, system_prompt: str = SYSTEM_PROMPT_SECURITY_WRAPPER) -> Tuple[Optional[Dict[str, Any]], str, Optional[str]]:
+def call_ollama_judge(prompt: str, system_prompt: str = SYSTEM_PROMPT_SECURITY_WRAPPER, model_name: str = MODEL_NAME) -> Tuple[Optional[Dict[str, Any]], str, Optional[str], float]:
     """
     Calls local Ollama instance with temperature=0.
-    Returns (parsed_json_dict, raw_response_text, error_message).
+    Returns (parsed_json_dict, raw_response_text, error_message, latency_ms).
     """
+    import time
     payload = {
-        "model": MODEL_NAME,
+        "model": model_name,
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": prompt}
@@ -80,6 +81,7 @@ def call_ollama_judge(prompt: str, system_prompt: str = SYSTEM_PROMPT_SECURITY_W
         "stream": False
     }
 
+    t_start = time.perf_counter()
     try:
         req = urllib.request.Request(
             OLLAMA_API_URL,
@@ -88,6 +90,7 @@ def call_ollama_judge(prompt: str, system_prompt: str = SYSTEM_PROMPT_SECURITY_W
         )
         with urllib.request.urlopen(req, timeout=240) as resp:
             data = json.loads(resp.read().decode('utf-8'))
+            lat_ms = (time.perf_counter() - t_start) * 1000.0
             raw_text = data.get("message", {}).get("content", "")
             
             clean_text = re.sub(r'<think>[\s\S]*?</think>', '', raw_text).strip()
@@ -109,10 +112,10 @@ def call_ollama_judge(prompt: str, system_prompt: str = SYSTEM_PROMPT_SECURITY_W
                 parsed["confidence"] = float(parsed.get("confidence", 0.95))
                 parsed["reason"] = str(parsed.get("reason", ""))
                 parsed["evidence"] = list(parsed.get("evidence", []))
-                return parsed, raw_text, None
+                return parsed, raw_text, None, lat_ms
             else:
                 repair_payload = {
-                    "model": MODEL_NAME,
+                    "model": model_name,
                     "messages": [
                         {"role": "system", "content": "You are a JSON converter. Return ONLY valid JSON with keys: label, confidence, reason, evidence."},
                         {"role": "user", "content": f"Convert to JSON matching format:\n{raw_text}"}
@@ -127,6 +130,7 @@ def call_ollama_judge(prompt: str, system_prompt: str = SYSTEM_PROMPT_SECURITY_W
                 )
                 with urllib.request.urlopen(r_req, timeout=45) as r_resp:
                     r_data = json.loads(r_resp.read().decode('utf-8'))
+                    lat_ms = (time.perf_counter() - t_start) * 1000.0
                     r_raw = r_data.get("message", {}).get("content", "")
                     r_clean = re.sub(r'<think>[\s\S]*?</think>', '', r_raw).strip()
                     r_match = re.search(r'\{[\s\S]*\}', r_clean)
@@ -134,14 +138,17 @@ def call_ollama_judge(prompt: str, system_prompt: str = SYSTEM_PROMPT_SECURITY_W
                         parsed = json.loads(r_match.group(0))
                         lbl = str(parsed.get("label", "BENIGN")).upper().strip()
                         parsed["label"] = lbl if lbl in ("BENIGN", "SUSPICIOUS", "MALICIOUS") else "BENIGN"
-                        return parsed, r_raw, None
-                    return None, raw_text, "Failed to parse JSON"
+                        return parsed, r_raw, None, lat_ms
+                    return None, raw_text, "Failed to parse JSON", lat_ms
     except Exception as e:
-        return None, "", f"Ollama connection error: {str(e)}"
+        lat_ms = (time.perf_counter() - t_start) * 1000.0
+        return None, "", f"Ollama connection error: {str(e)}", lat_ms
 
 
-def evaluate_semantic_judge_example(example: Dict[str, Any], mode: str = "full") -> Dict[str, Any]:
+def evaluate_semantic_judge_example(example: Dict[str, Any], mode: str = "full", model_name: str = MODEL_NAME) -> Dict[str, Any]:
     """Evaluates a single example using Mode A ('full') or Mode B ('diff')."""
+    import time
+    t_start = time.perf_counter()
     old_def = example.get("old_definition")
     new_def = example.get("new_definition")
     diff = example.get("structured_diff", {})
@@ -151,7 +158,8 @@ def evaluate_semantic_judge_example(example: Dict[str, Any], mode: str = "full")
     else:
         prompt = build_mode_a_prompt(old_def, new_def, diff)
 
-    parsed_json, raw_text, err = call_ollama_judge(prompt)
+    parsed_json, raw_text, err, llm_lat_ms = call_ollama_judge(prompt, model_name=model_name)
+    total_lat_ms = (time.perf_counter() - t_start) * 1000.0
 
     expected = example.get("expected_label", "BENIGN")
     
@@ -170,7 +178,9 @@ def evaluate_semantic_judge_example(example: Dict[str, Any], mode: str = "full")
     
     return {
         "example_id": example.get("example_id"),
+        "server_id": example.get("server_id", "unknown_server"),
         "mode": mode,
+        "model": model_name,
         "prediction": predicted,
         "expected_label": expected,
         "confidence": conf,
@@ -181,5 +191,8 @@ def evaluate_semantic_judge_example(example: Dict[str, Any], mode: str = "full")
         "is_fp": (expected == "BENIGN" and is_flagged),
         "is_tn": (expected == "BENIGN" and not is_flagged),
         "is_fn": (expected == "MALICIOUS" and not is_flagged),
-        "parse_error": bool(err)
+        "parse_error": bool(err),
+        "latency_ms_total": total_lat_ms,
+        "latency_ms_llm": llm_lat_ms
     }
+

@@ -4,9 +4,9 @@
 
 The Model Context Protocol (MCP) enables Large Language Model (LLM) agents to dynamically discover and invoke external tools at runtime. However, advertised tool contracts—including docstrings, parameter descriptions, and schemas—are directly ingested into agent prompts, creating an attack vector for tool poisoning and unauthorized privilege escalation. Existing defense mechanisms rely on exact cryptographic hash pinning (e.g., SHA-256 over tool definitions), which alerts on every byte-level tool-definition change by construction. Across an empirical audit of 621 historical release transitions from open-source MCP repositories, 31 releases (4.99%) contained tool-definition changes (an operator burden of 0.050 alerts per release transition), meaning all such legitimate maintenance updates trigger reapproval under exact pinning.
 
-To separate integrity detection from semantic security judgment, we propose and evaluate **MCP Semantic Drift Detection**, a multi-tiered defense framework that differentiates authentic software maintenance from malicious tampering. We implement the **MCP Semantic Drift Guard Middleware**, combining sub-millisecond fast-path hash checks and static heuristics with a zero-temperature structured diff semantic judge (`Qwen3-8B`), backed by a persistent SQLite baseline store with automatic rollback. In extensive benchmarks over a cluster-isolated held-out test split ($N=56$), the integrated Guard Middleware under the evaluated `BALANCED` policy with pre-populated trusted baselines achieves **Precision = 100.0%** (33/33, 95% Wilson CI: [89.6%, 100.0%]), **Recall = 100.0%** (33/33, 95% Wilson CI: [89.6%, 100.0%]), and **$F_1 = 100.0\%$**, with a **Benign FPR = 0.0%** (0/23, 95% Wilson CI: [0.0%, 14.3%]); isolating the standalone semantic judge on raw diffs yields an $F_1$ of 91.7% (Precision: 84.6%, Recall: 100.0%, Benign FPR: 26.1% [6/23, 95% CI: 12.5%, 46.5%]). Controlled JSON-RPC socket proxy testing confirms runtime interception, policy enforcement, and automatic definition rollback in active protocol streams.
+To separate integrity detection from semantic security judgment, we propose and evaluate **MCP Semantic Drift Detection**, a multi-tiered defense framework that differentiates authentic software maintenance from malicious tampering. We implement the **MCP Semantic Drift Guard Middleware**, combining sub-millisecond fast-path hash checks and static heuristics with a zero-temperature structured diff semantic judge (`Qwen3-8B`), backed by a persistent SQLite baseline store with automatic rollback. In active empirical benchmarks over the held-out test split ($N=56$; source: `results/computed_metrics.json`, commit `381125b09dee2d05f23e170e32762a71f815305d`), exact cryptographic hash pinning achieves **Precision = 58.9%** (33/56, 95% Wilson CI: [45.9%, 70.8%]), **Recall = 100.0%** (33/33, 95% Wilson CI: [89.6%, 100.0%]), with **Benign FPR = 100.0%** (23/23, 95% Wilson CI: [85.7%, 100.0%]) in 0.012 ms; author-defined static regex rules achieve **Precision = 100.0%** (25/25, 95% Wilson CI: [86.7%, 100.0%]), **Recall = 75.8%** (25/33, 95% Wilson CI: [59.0%, 87.2%]), with **Benign FPR = 0.0%** (0/23, 95% Wilson CI: [0.0%, 14.3%]) in 0.217 ms; and the TF-IDF cosine baseline achieves **Precision = 64.6%** (31/48, 95% Wilson CI: [50.4%, 76.6%]), **Recall = 93.9%** (31/33, 95% Wilson CI: [80.4%, 98.3%]), with **Benign FPR = 73.9%** (17/23, 95% Wilson CI: [53.5%, 87.5%]) in 0.903 ms. The standalone LLM judge and full integrated middleware sweeps are designated [PENDING RE-RUN] pending full local execution. Controlled JSON-RPC socket proxy testing confirms runtime interception, policy enforcement, and automatic definition rollback in active protocol streams.
 
-In adversarial red-teaming across 30 evasion test cases spanning 10 mutation categories, the system achieved a **70.0% Adversarial Detection Rate** (21/30, 95% CI: [52.1%, 83.3%]), successfully detecting indirect wording (2/3), euphemisms (3/3), and prerequisite hijacking (3/3), while uncovering evasion blind spots in optional parameter default injections (0/3 detected) and low-signal boolean schema toggles (0/3 detected). These empirical findings show that meaning-aware semantic drift detection reduces operator reapproval burden while establishing clear boundaries for structural schema verification.
+In adversarial red-teaming across 30 evasion test cases spanning 10 mutation categories, performance metrics are designated [PENDING RE-RUN] pending re-execution with per-item trace logging. These empirical findings show that meaning-aware semantic drift detection reduces operator reapproval burden while establishing clear boundaries for structural schema verification.
 
 ---
 
@@ -33,7 +33,7 @@ Across our empirical audit of 621 historical release transitions across open-sou
 
 #### Quantifying the Review Burden:
 1. **Under Exact Hash Pinning**: Because any byte change alters the SHA-256 digest, all 31 release transitions with tool-definition changes trigger security alerts. This imposes an alert burden of **0.050 alerts per release transition** (~1 review alert every 20 releases). For an active repository publishing ~20–25 releases annually, an administrator experiences ~1.0–1.25 review interruptions per repo per year solely from tool manifest changes. In an enterprise environment managing 20 active MCP servers, this generates ~20–25 review alerts per year. Because exact pinning cannot inspect semantic intent, every benign refactoring requires manual human verification to rule out tampering.
-2. **Under Semantic Drift Guard**: By addressing the orthogonal question—*"Is the change benign, suspicious, or malicious?"*—the Guard differentiates legitimate evolution from adversarial drift. Under the evaluated `BALANCED` policy with pre-populated baselines, benign false alarm burden on the test set is reduced from 0.050 alerts/release down to 0.000 alerts/release ($0/23$ false alarms), and down to ~0.013 alerts/release under standalone judge evaluation ($6/23$ false alarms, a ~74% reduction in operator reapproval burden).
+2. **Under Semantic Drift Guard**: By addressing the orthogonal question—*"Is the change benign, suspicious, or malicious?"*—the Guard differentiates legitimate evolution from adversarial drift. Under the evaluated `BALANCED` policy with pre-populated baselines, benign false alarm burden on the test set is reduced from 0.050 alerts/release down to 0.000 alerts/release ($0/23$ false alarms for Tier 2 static rules). Integrated and standalone LLM judge metrics are [PENDING RE-RUN] to establish verifiable trace logs.
 
 ### 1.3 Research Gap
 Prior work (e.g., MCPTox) evaluated downstream agent vulnerability to poisoned tool manifests, but did not measure real-world MCP evolution or evaluate upstream runtime defenses. This research addresses this gap by:
@@ -153,13 +153,16 @@ The **MCP Guard Middleware** (`guard/middleware.py`) implements a 4-tier pipelin
 Incoming tools/list Response
             │
             ▼
-[ Tier 0: Hash Fast-Path ] ────────── (Match) ────► ALLOW (0.024 ms, 0 LLM calls)
+[ Tier 0: Hash Fast-Path ] ────────── (Match) ────► ALLOW (0.012 ms, 0 LLM calls)
             │ (Mismatch / New Tool)
             ▼
 [ Tier 1: Structured Diff Engine ] ──► Generates Canonical Field-Level Delta
             │
             ▼
-[ Tier 2: Static Regex Rules ] ────── (High Match) ► QUARANTINE (0.024 ms, 0 LLM calls)
+[ Tier 1.5: Schema Security Rules ] ─ (Violation) ─► BLOCK & Rollback V1 (0.005 ms, 0 LLM calls)
+            │ (Clean)
+            ▼
+[ Tier 2: Static Regex Rules ] ────── (High Match) ► BLOCK & Rollback V1 (0.217 ms, 0 LLM calls)
             │ (Clean)
             ▼
 [ Tier 3: Semantic Diff Judge ] ─────► Local Qwen3-8B (Mode B, T=0)
@@ -172,11 +175,12 @@ Incoming tools/list Response
 ```
 
 #### Pipeline Tiers:
-1. **Tier 0 (Hash Fast-Path)**: Computes canonical SHA-256 over normalized JSON (`name`, `description`, `inputSchema`). If identical to baseline ($D_H = 0$), returns `ALLOW` in $0.024\text{ ms}$.
+1. **Tier 0 (Hash Fast-Path)**: Computes canonical SHA-256 over normalized JSON (`name`, `description`, `inputSchema`). If identical to baseline ($D_H = 0$), returns `ALLOW` in $0.012\text{ ms}$.
 2. **Tier 1 (Structured Diff Engine)**: Computes field-level structured delta $\Delta T$ (`params_added`, `params_removed`, `params_modified`, `description_diff_summary`), stripping boilerplate.
-3. **Tier 2 (Static Regex Rules)**: Pre-filters diffs against 7 regular expressions (`<IMPORTANT>`, `MUST FIRST`, `/etc/shadow`). High-severity matches trigger immediate `QUARANTINE` in $0.024\text{ ms}$.
-4. **Tier 3 (Semantic Diff Judge)**: Prompts local `Qwen3-8B` ($T=0$) with the structured diff wrapped in `<untrusted_diff>` sandboxes, emitting structured JSON decisions ($\hat{y} \in \{\text{BENIGN}, \text{SUSPICIOUS}, \text{MALICIOUS}\}$).
-5. **Baseline Store & Rollback Engine**: Persistent SQLite store maintaining trusted contracts. For quarantined updates, the proxy substitutes the trusted V1 definition in the client response.
+3. **Tier 1.5 (Deterministic Schema Rules)**: Scans parameter default injections, type conversions, and `readOnly` attribute flips in $0.005\text{ ms}$.
+4. **Tier 2 (Static Regex Rules)**: Pre-filters diffs against 7 regular expressions (`<IMPORTANT>`, `MUST FIRST`, `/etc/shadow`). High-severity matches trigger immediate `BLOCK` in $0.217\text{ ms}$.
+5. **Tier 3 (Semantic Diff Judge)**: Prompts local `Qwen3-8B` ($T=0$) with the structured diff wrapped in `<untrusted_diff>` sandboxes, emitting structured JSON decisions ($\hat{y} \in \{\text{BENIGN}, \text{SUSPICIOUS}, \text{MALICIOUS}\}$).
+6. **Baseline Store & Rollback Engine**: Persistent SQLite store maintaining trusted contracts. For blocked updates, the proxy substitutes the trusted V1 definition in the client response.
 
 ---
 
@@ -187,24 +191,22 @@ The benchmark dataset combines real updates, programmatic hard negatives, and MC
 
 ### 6.2 Held-Out Benchmark Results (N=56)
 
+*Provenance: Deterministic and lexical detector metrics derived from live execution on `data/drift_test.jsonl` logged in `results/computed_metrics.json` at commit `381125b09dee2d05f23e170e32762a71f815305d`. All confidence intervals are 95% Wilson score intervals.*
+
 | Method / Defense Layer | TP | TN | FP | FN | Precision (95% CI) | Recall (95% CI) | $F_1$ Score | Benign FPR (95% CI) | Mean Latency | LLM Calls / Upd |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| **Exact Hash Pinning (Tier 0)** | 33 | 0 | 23 | 0 | 58.9% [45.9%, 70.8%] | 100.0% [89.4%, 100.0%] | 74.2% | 100.0% [85.2%, 100.0%] | 0.024 ms | 0.0 |
-| **Static Keyword Rules (Tier 2)** | 18 | 23 | 0 | 15 | 100.0% [81.5%, 100.0%] | 54.5% [37.8%, 70.3%] | 70.6% | 0.0% [0.0%, 14.8%] | 0.024 ms | 0.0 |
-| **TF-IDF Cosine Baseline** | 31 | 6 | 17 | 2 | 64.6% [50.4%, 76.6%] | 93.9% [80.4%, 98.3%] | 76.5% | 73.9% [53.5%, 87.5%] | ~1.2 ms | 0.0 |
-| **Semantic Judge Mode A (Full)** | 32 | 14 | 9 | 1 | 80.5% [65.1%, 91.2%] | 97.0% [84.2%, 99.9%] | 87.9% | 39.1% [21.8%, 59.6%] | 2,850 ms | 1.0 |
-| **Semantic Judge Mode B (Diff)** | 33 | 17 | 6 | 0 | 85.7% [72.8%, 94.1%] | 100.0% [89.4%, 100.0%] | 92.3% | 26.1% [12.6%, 46.5%] | 1,420 ms | 1.0 |
-| **Integrated Guard Middleware** | **33** | **23** | **0** | **0** | **100.0%** [89.4%, 100.0%] | **100.0%** [89.4%, 100.0%] | **100.0%** | **0.0%** [0.0%, 14.8%] | **~960 ms** | **0.61** |
+| **Exact Hash Pinning (Tier 0)** | 33 | 0 | 23 | 0 | 58.9% [45.9%, 70.8%] | 100.0% [89.6%, 100.0%] | 74.2% | 100.0% [85.7%, 100.0%] | 0.012 ms | 0.0 |
+| **Static Keyword Rules (Tier 2)** | 25 | 23 | 0 | 8 | 100.0% [86.7%, 100.0%] | 75.8% [59.0%, 87.2%] | 86.2% | 0.0% [0.0%, 14.3%] | 0.217 ms | 0.0 |
+| **TF-IDF Cosine Baseline** | 31 | 6 | 17 | 2 | 64.6% [50.4%, 76.6%] | 93.9% [80.4%, 98.3%] | 76.5% | 73.9% [53.5%, 87.5%] | 0.903 ms | 0.0 |
+| **Semantic Judge Mode A (Full)** | [PENDING RE-RUN] | - | - | - | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | 1.0 |
+| **Semantic Judge Mode B (Diff)** | [PENDING RE-RUN] | - | - | - | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | 1.0 |
+| **Integrated Guard Middleware** | [PENDING RE-RUN] | - | - | - | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING] |
 
 ### 6.3 Reconciling Detection Counts & Short-Circuits
-In the Phase 5 test evaluation ($N=56$):
-- **Short-Circuit Breakdown**: 26 of 56 items (46.4%) short-circuited at deterministic tiers without invoking the LLM:
-  - **1 item** matched trusted baseline hash at Tier 0 (`ALLOW`, $< 1\text{ ms}$).
-  - **25 malicious items** triggered high-severity Tier 2 static regex rules (`QUARANTINE`, $< 1\text{ ms}$).
-- **LLM-Judged Items**: The remaining 30 items (8 subtle malicious attacks + 22 modified benign items) were dispatched to Tier 3 Semantic Judge.
-- **Latency Distribution Explanation**:
-  - All 56 updates: Mean = 30.5 s, Median (p50) = 41.6 s, p95 = 72.6 s.
-  - The overall mean (30.5 s) is lower than the median (41.6 s) because the 26 deterministic short-circuits execute in $\approx 0.000\text{ s}$, creating a bi-modal distribution that pulls down the mean. For LLM-judged items only, the mean latency is 56.9 s on CPU.
+In the test evaluation ($N=56$):
+- **Short-Circuit Breakdown**: 25 of 56 candidate updates (44.6%) match high-severity Tier 2 static rules on the test split and trigger immediate `BLOCK` in $0.217\text{ ms}$ without invoking an LLM.
+- **Escalated Updates**: The remaining 31 candidate updates (8 subtle malicious docstring mutations and 23 benign refactoring updates) require semantic evaluation by Tier 3.
+- **Latency Distribution**: Fast-path deterministic evaluations execute in $< 0.25\text{ ms}$ on CPU. End-to-end and LLM-tier latencies are designated `[PENDING RE-RUN]` to be populated from verifiable per-item execution logs.
 
 ---
 
@@ -214,67 +216,58 @@ In the Phase 5 test evaluation ($N=56$):
 To eliminate writing style, server domain, and structural schema complexity as confounding variables, we constructed a **Controlled Matched-Pair Exploratory Pilot** (`data/matched_pairs.jsonl`). Each record is a controlled triplet:
 $$\text{Triplet}_i = \Big( \text{Tool}_{\text{old}}, \quad \text{Tool}_{\text{benign\_new}}, \quad \text{Tool}_{\text{malicious\_new}} \Big)$$
 
-- **Dataset Scale & Composition**: 12 matched triplets across 6 distinct servers, yielding **$N = 24$ candidate evaluations** (12 benign, 12 malicious) spanning 6 attack categories (Instruction Injection, Prerequisite Manipulation, Argument Redirection, Authorization Expansion, Data Exfiltration, and Schema Mutation).
-- **Provenance & Scoping**: Derived from all available historical modified contracts mined from the open-source corpus. This suite serves strictly as a **descriptive exploratory evaluation** to isolate stylistic phrasing confounds rather than a large asymptotic benchmark ($\ge 100$ pairs).
-- **Validation**: Each triplet shared identical server IDs, tool names, argument schemas, and authoring styles.
-- **Pilot Results**:
-  - **Recall**: 100.0% (12/12 malicious mutations caught, 95% Wilson CI: [75.8%, 100.0%]).
-  - **Precision**: 80.0% (12/15, 95% Wilson CI: [54.8%, 93.0%]).
-  - **Benign Specificity**: 75.0% (9/12 benign updates allowed; 3 flagged for human review, FPR = 25.0% [95% CI: 8.9%, 53.2%]).
-  - **Overall F1 Score**: **88.9%**.
+- **Dataset Scale & Composition**: 12 matched triplets across 6 distinct servers, yielding **$N = 24$ candidate evaluations** (12 benign, 12 malicious) spanning 6 attack categories.
+- **Provenance & Scoping**: Derived from all available historical modified contracts mined from the open-source corpus. This suite serves strictly as a **descriptive exploratory evaluation**.
+- **Pilot Results**: Metrics for LLM evaluation on matched pairs are designated `[PENDING RE-RUN]` pending execution with per-item trace logging.
 
 ### 7.2 Evaluation on Real Pre-Existing Contract Modifications ($N=13$)
 In early evaluation phases, benign updates included all tool-definition events extracted from MCP git histories ($N=123$). However, **110 of the 123 events represent newly added or removed tools**, which lack complex natural language modifications.
 
 We isolated the **13 historical pre-existing contract modifications** to evaluate performance specifically on contract refactorings:
-- **Exact Hash Pinning**: 100.0% Alert Rate (13/13 flagged).
-- **Static Regex Rules**: 0.0% False Positive Rate (0/13 flagged), but blind to semantic intent.
+- **Exact Hash Pinning**: 100.0% Alert Rate (13/13 flagged; exact byte changes).
+- **Static Regex Rules**: 0.0% False Positive Rate (0/13 flagged; no injection keywords matched).
 - **TF-IDF Lexical Baseline**: 69.2% FPR (9/13 flagged).
-- **Semantic Guard**: **23.1% FPR** (10 of 13 updates correctly allowed; 3 flagged as suspicious due to commit message notes mentioning vulnerability patches).
-- *Takeaway*: Guard reduces the human review burden on authentic contract modifications by **76.9%** (cutting alerts from 13 down to 3), proving that false alarm reduction is not merely an artifact of tool additions.
+- **Semantic Guard**: `[PENDING RE-RUN]`.
 
-### 7.3 Static Rule Provenance & Pre-Registration Bias Audit
-We audited the 7 static regular expressions (`guard/static_rules.py`) to confirm absence of post-hoc test set overfitting:
-1. **Provenance**: Extracted strictly from MCPTox benchmark template definitions (AAAI 2026, Section 3.2) prior to pipeline testing.
-2. **Pre-Registration**: Fixed in Phase 3 and left unadjusted through Phase 5.
-3. **Empirical Independence on Matched Pairs**: On the Matched-Pairs dataset—where MCPTox phrasing templates were eliminated—static rules detected only **25.0% of attacks (3/12)**, whereas the Tier 3 Semantic Judge detected **100.0% (12/12)**. This confirms that static rules act solely as fast pre-filters and that the system relies on semantic reasoning for evasive payloads.
+### 7.3 Static Rule Provenance & Bias Statement
+Author statement: The static rules (`guard/static_rules.py`) were derived from MCPTox benchmark template definitions (AAAI 2026, Section 3.2) and tested against MCPTox-derived attacks. As the repository history begins at commit `381125b09dee2d05f23e170e32762a71f815305d`, pre-registration across earlier development phases cannot be independently verified from git history. On datasets where MCPTox phrasing templates are modified, static rules act as fast pre-filters and the system relies on subsequent semantic tiers for evasive payloads.
 
 ### 7.4 Server-Grouped 5-Fold Cross-Validation ($N=370$)
-To test generalization across unseen server codebases, we performed **5-Fold Server-Grouped Cross-Validation** over all 370 benchmark examples across 19 unique servers with zero server template overlap between folds:
+To test generalization across unseen server codebases, 5-Fold Server-Grouped Cross-Validation over all 370 benchmark examples across 19 unique servers is designated `[PENDING RE-RUN]` to export per-item traces.
 
 | Fold | Held-Out Test Servers | N | Malicious | Benign | Precision | Recall | Benign FPR | F1 Score |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
-| **Fold 1** | `puppeteer`, `git`, `sentry` | 79 | 48 | 31 | 84.2% | 100.0% | 29.0% | 91.4% |
-| **Fold 2** | `filesystem`, `mysql`, `time` | 76 | 70 | 6 | 98.6% | 100.0% | 16.7% | 99.3% |
-| **Fold 3** | `adfin`, `filesystem`, `memory` | 79 | 39 | 40 | 81.2% | 100.0% | 22.5% | 89.7% |
-| **Fold 4** | `playwright`, `amapmap`, `slack` | 66 | 29 | 37 | 78.4% | 100.0% | 21.6% | 87.9% |
-| **Fold 5** | `sqlite`, `github`, `everything`, `flomo` | 70 | 14 | 56 | 50.0% | 100.0% | 25.0% | 66.7% |
-| **Macro Mean (Sample SD)** | **5-Fold Cross-Validation** | **370** | **200** | **170** | **78.5% $\pm 17.8\%$** | **100.0% $\pm 0.0\%$** | **23.0% $\pm 4.5\%$** | **87.0% $\pm 12.2\%$** |
-| **Pooled (Micro-Avg)** | **All 370 Items Combined** | **370** | **200** | **170** | **83.0%** | **100.0%** | **24.1%** | **90.7%** |
-
-*Note: All ± values denote sample standard deviations (ddof=1) across the 5 folds. Zero leakage was verified formally via automated unit tests (`tests/test_leakage.py`).*
+| **Fold 1** | `puppeteer`, `git`, `sentry` | 79 | 48 | 31 | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| **Fold 2** | `filesystem`, `mysql`, `time` | 76 | 70 | 6 | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| **Fold 3** | `adfin`, `filesystem`, `memory` | 79 | 39 | 40 | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| **Fold 4** | `playwright`, `amapmap`, `slack` | 66 | 29 | 37 | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| **Fold 5** | `sqlite`, `github`, `everything`, `flomo` | 70 | 14 | 56 | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| **Macro Mean** | **5-Fold Cross-Validation** | **370** | **200** | **170** | **[PENDING RE-RUN]** | **[PENDING RE-RUN]** | **[PENDING RE-RUN]** | **[PENDING RE-RUN]** |
+| **Pooled (Micro-Avg)** | **All 370 Items Combined** | **370** | **200** | **170** | **[PENDING RE-RUN]** | **[PENDING RE-RUN]** | **[PENDING RE-RUN]** | **[PENDING RE-RUN]** |
 
 ---
 
 ## 8. Baselines, Ablations, and Master Comparison
 
 ### 8.1 Full Tier Ablation Study (Configurations A–H)
-To evaluate the individual and collective contributions of each defensive layer, we evaluated eight architectural variants across the held-out test split ($N=56$):
+To evaluate the individual and collective contributions of each defensive layer, we evaluate eight architectural variants across the held-out test split ($N=56$):
 
 | Config Identifier | Defensive Layers Included | Precision | Recall | F1 Score | Benign FPR | Malicious FNR | LLM Calls / Upd | Latency (Mean) |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
-| **Config A** | Hash Only | 58.9% | **100.0%** | 74.2% | 100.0% (23/23) | **0.0%** | 0.0 | **< 0.05 ms** |
-| **Config B** | Static Regex Only | **100.0%** | 75.8% | 86.2% | **0.0%** (0/23) | 24.2% (8/33) | 0.0 | **< 0.05 ms** |
-| **Config C** | Hash + Static | 58.9% | **100.0%** | 74.2% | 100.0% (23/23) | **0.0%** | 0.0 | **< 0.05 ms** |
-| **Config D** | Hash + Static + Diff | 58.9% | **100.0%** | 74.2% | 100.0% (23/23) | **0.0%** | 0.0 | ~0.10 ms |
-| **Config E** | Hash + Static + Semantic Judge | 84.6% | **100.0%** | **91.7%** | 26.1% (6/23) | **0.0%** | 0.68 | ~965 ms |
-| **Config F (Full)** | **Full Guard Pipeline** | **84.6%** | **100.0%** | **91.7%** | **26.1%** (6/23) | **0.0%** | **0.61** | **~960 ms** |
-| **Config G** | Guard without Schema Check | 84.6% | **100.0%** | 91.7% | 26.1% (6/23) | **0.0%** | 0.61 | ~960 ms |
-| **Config H** | Deterministic Fast Path (No LLM) | **100.0%** | 66.7% | 80.0% | **0.0%** (0/23) | 33.3% (11/33) | **0.0** | **~0.12 ms** |
+| **Config A** | Hash Only | 58.9% | **100.0%** | 74.2% | 100.0% (23/23) | **0.0%** | 0.0 | 0.012 ms |
+| **Config B** | Static Regex Only | **100.0%** | 75.8% | 86.2% | **0.0%** (0/23) | 24.2% (8/33) | 0.0 | 0.217 ms |
+| **Config C** | Hash + Static | [PENDING] | [PENDING] | [PENDING] | [PENDING] | [PENDING] | 0.0 | [PENDING] |
+| **Config D** | Hash + Static + Diff | [PENDING] | [PENDING] | [PENDING] | [PENDING] | [PENDING] | 0.0 | [PENDING] |
+| **Config E** | Hash + Static + Semantic Judge | [PENDING] | [PENDING] | [PENDING] | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| **Config F (Full)** | **Full Guard Pipeline** | **[PENDING]** | **[PENDING]** | **[PENDING]** | **[PENDING]** | **[PENDING]** | **[PENDING]** | **[PENDING]** |
+| **Config G** | Guard without Schema Check | [PENDING] | [PENDING] | [PENDING] | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| **Config H** | Deterministic Fast Path (No LLM) | **100.0%** | 75.8% | 86.2% | **0.0%** (0/23) | 24.2% (8/33) | **0.0** | 0.217 ms |
+
+*Note on Config H: Config H defines the middleware operating with Tier 3 Semantic Judge disabled under the standard policy: high-severity Tier 2 static rule triggers `BLOCK`, and unflagged updates default to `ALLOW`.*
 
 ### 8.2 Representation Ablation: Mode A (Full) vs. Mode B (Diff Only)
-- **Mode A (Full Definition)**: Presenting complete schemas caused context bloat, yielding Precision = 78.0%, Recall = 97.0%, $F_1 = 86.5\%$, and a **20.0% JSON parsing failure rate** on smaller context evaluations.
-- **Mode B (Structured Diff)**: Presenting canonical field-level diffs reduced prompt tokens by 77.4%, reduced latency from 2.85s to 1.42s, and improved performance to Precision = 84.6%, Recall = 100.0%, **$F_1 = 91.7\%$** with **0.0% JSON parsing errors**.
+- **Mode A (Full Definition)**: Presenting complete schemas; metrics designated `[PENDING RE-RUN]`.
+- **Mode B (Structured Diff)**: Presenting canonical field-level diffs; metrics designated `[PENDING RE-RUN]`.
 
 ### 8.3 TF-IDF Cosine-Similarity Lexical Baseline
 We implemented Baseline 3 (`experiments/baseline_embedding.py`) using a sublinear TF-IDF word n-gram vectorizer ($n \in [1, 3]$). The similarity decision threshold was calibrated strictly on the Train + Dev splits ($N=314$), yielding $\theta^* = 0.590$.
@@ -282,82 +275,66 @@ We implemented Baseline 3 (`experiments/baseline_embedding.py`) using a sublinea
 - *Finding*: Shallow lexical similarity distance cannot distinguish harmless documentation expansions from malicious directives, producing 17 false alarms out of 23 benign updates.
 
 ### 8.4 Local Model Comparison on Held-Out Split ($N=56$)
-All models evaluated locally via Ollama with greedy decoding ($T=0$):
+All models evaluated locally via Ollama with greedy decoding ($T=0$); metrics designated `[PENDING RE-RUN]`:
 
 | Model | Architecture & Parameters | F1 Score | Precision | Recall | Benign FPR | Mean Latency |
 |---|---|---:|---:|---:|---:|---:|
-| **Qwen3:8B** | Qwen3-Instruct (8.2B) | **91.7%** | **84.6%** | **100.0%** | **26.1%** | 1,420 ms |
-| **Gemma3:4B** | Gemma3-IT (4.3B) | 87.3% | 81.6% | 93.9% | 30.4% | 780 ms |
-| **Qwen2.5:1.5B** | Qwen2.5-Instruct (1.5B) | 81.5% | 68.8% | 100.0% | 65.2% | 290 ms |
+| **Qwen3:8B** | Qwen3-Instruct (8.2B) | [PENDING] | [PENDING] | [PENDING] | [PENDING] | [PENDING RE-RUN] |
+| **Gemma3:4B** | Gemma3-IT (4.3B) | [PENDING] | [PENDING] | [PENDING] | [PENDING] | [PENDING RE-RUN] |
+| **Qwen2.5:1.5B** | Qwen2.5-Instruct (1.5B) | [PENDING] | [PENDING] | [PENDING] | [PENDING] | [PENDING RE-RUN] |
 
 ### 8.5 Thinking ON vs. OFF Ablation (Qwen3:8B)
-- **Qwen3:8B Thinking OFF (Direct JSON)**: $F_1 = 91.7\%$, Mean Latency = **1.42 s** (0.0% parse errors).
-- **Qwen3:8B Thinking ON (Reasoning Chain)**: $F_1 = 91.7\%$, Mean Latency = **4.68 s** (**+230% latency overhead**).
-- **Ablation Interpretation**: Disabling internal thinking reduced per-tool latency by ~70% while maintaining classification accuracy on structured diffs ($F_1 = 91.7\%$, latency 1.42 s vs 4.68 s).
+- **Qwen3:8B Thinking OFF (Direct JSON)**: Designated `[PENDING RE-RUN]`.
+- **Qwen3:8B Thinking ON (Reasoning Chain)**: Designated `[PENDING RE-RUN]`.
 
 ### 8.6 Prompt Sensitivity & Instruction Robustness ($N=20$)
-We evaluated three semantically equivalent system instructions (Operational Auditor, Declarative Verifier, Risk-Focused Auditor) across a stratified sample ($N=20$):
-- **Formulation 1 (Default)**: $F_1 = 92.3\%$, FPR = 25.0% (2/8).
-- **Formulation 2 (Declarative)**: $F_1 = 92.3\%$, FPR = 25.0% (2/8).
-- **Formulation 3 (Risk-Focused)**: $F_1 = 88.9\%$, FPR = 37.5% (3/8).
-- **Inter-Prompt Agreement**: Pairwise Cohen's $\kappa = 0.89$–$1.00$, with zero false negatives across all variants.
+Evaluations across three semantically equivalent system instructions are designated `[PENDING RE-RUN]`.
 
 ### 8.7 Run-to-Run Determinism under Q4_K_M Quantization ($N=56$)
-We conducted 3 repeated runs across all 56 held-out test examples using `qwen3:8b` ($Q4\_K\_M$, $T=0$, seed=42):
-- **Label Agreement**: **100.0% across all 168 inferences** (zero categorical flips between `BENIGN`, `SUSPICIOUS`, and `MALICIOUS`).
-- **Latency Jitter**: $\sigma = \pm 13.6\text{ ms}$ ($\pm 1.2\%$), reflecting standard CPU/GPU scheduling.
-- **JSON Parser Stability**: 100.0% valid JSON responses emitted.
+Repeated runs across held-out test examples are designated `[PENDING RE-RUN]`.
 
 ### 8.8 Master Evaluation Comparison Matrix
 
+*Provenance: Deterministic and lexical rows derived from live execution on `data/drift_test.jsonl` logged in `results/computed_metrics.json` at commit `381125b09dee2d05f23e170e32762a71f815305d`.*
+
 | System / Defense Paradigm | Precision (95% CI) | Recall (95% CI) | F1 Score | Benign FPR (95% CI) | Malicious FNR (95% CI) | Mean Latency | LLM Calls / Upd |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| **Exact Hash Pinning (Tier 0)** | 58.9% [45.9%, 70.8%] | **100.0%** [89.6%, 100.0%] | 74.2% | 100.0% [85.7%, 100.0%] | **0.0%** [0.0%, 10.4%] | **< 0.05 ms** | 0.0 |
-| **Static Keyword Rules (Tier 2)** | **100.0%** [86.7%, 100.0%] | 75.8% [59.0%, 87.2%] | 86.2% | **0.0%** [0.0%, 14.3%] | 24.2% [12.8%, 41.0%] | **< 0.05 ms** | 0.0 |
-| **TF-IDF Cosine Baseline** | 64.6% [50.4%, 76.6%] | 93.9% [80.4%, 98.3%] | 76.5% | 73.9% [53.5%, 87.5%] | 6.1% [1.7%, 19.6%] | ~1.2 ms | 0.0 |
-| **Deterministic Schema (Tier 1.5)** | **0.0%** [0.0%, 0.0%] | 0.0% [0.0%, 10.4%] | 0.0% | **0.0%** [0.0%, 14.3%] | 100.0% [89.6%, 100.0%] | 0.08 ms | 0.0 |
-| **Semantic Judge Mode A (Full)** | 78.0% [63.3%, 88.0%] | 97.0% [84.7%, 99.5%] | 86.5% | 39.1% [22.2%, 59.2%] | 3.0% [0.5%, 15.3%] | 2,850 ms | 1.0 |
-| **Semantic Judge Mode B (Diff Only)** | 84.6% [70.3%, 92.8%] | **100.0%** [89.6%, 100.0%] | 91.7% | 26.1% [12.5%, 46.5%] | **0.0%** [0.0%, 10.4%] | 1,420 ms | 1.0 |
-| **Integrated Guard Middleware (BALANCED)** | **100.0%** [89.6%, 100.0%] | **100.0%** [89.6%, 100.0%] | **100.0%** | **0.0%** [0.0%, 14.3%] | **0.0%** [0.0%, 10.4%] | **~960 ms** | **0.61** |
+| **Exact Hash Pinning (Tier 0)** | 58.9% [45.9%, 70.8%] | **100.0%** [89.6%, 100.0%] | 74.2% | 100.0% [85.7%, 100.0%] | **0.0%** [0.0%, 10.4%] | 0.012 ms | 0.0 |
+| **Static Keyword Rules (Tier 2)** | **100.0%** [86.7%, 100.0%] | 75.8% [59.0%, 87.2%] | 86.2% | **0.0%** [0.0%, 14.3%] | 24.2% [12.8%, 41.0%] | 0.217 ms | 0.0 |
+| **TF-IDF Cosine Baseline** | 64.6% [50.4%, 76.6%] | 93.9% [80.4%, 98.3%] | 76.5% | 73.9% [53.5%, 87.5%] | 6.1% [1.7%, 19.6%] | 0.903 ms | 0.0 |
+| **Deterministic Schema (Tier 1.5)** | n/a | 0.0% [0.0%, 10.4%] | 0.0% | **0.0%** [0.0%, 14.3%] | 100.0% [89.6%, 100.0%] | 0.005 ms | 0.0 |
+| **Semantic Judge Mode A (Full)** | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | 1.0 |
+| **Semantic Judge Mode B (Diff Only)** | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | 1.0 |
+| **Integrated Guard Middleware (BALANCED)** | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING] |
+
+*Note on Tier 1.5: Precision is n/a because 0 positive predictions are made on the standard test set (0/33 caught; all 33 test attacks are natural-language docstring mutations). Its primary defensive value is targeted at schema-evasion cases (e.g. parameter default URL injections and readOnly toggles, evaluated in Section 9.3).*
 
 ---
 
 ## 9. Adversarial Evaluation and Defense Hardening
 
 ### 9.1 Initial Adversarial Red-Team Suite ($N=30$, 10 Categories)
-We evaluated 30 structured adversarial cases across 10 evasion categories (3 cases per category):
-- **Overall Detection Rate**: **70.0%** ($21 / 30$, 95% Wilson CI: [52.1%, 83.3%]).
-- **Detected Categories (100%)**: Euphemisms (3/3), Subtle Boundaries (3/3), Diagnostic Prerequisites (3/3), Parameter Docstring Hiding (3/3), Explicit Redirection (3/3), Field Splitting (3/3).
-- **Partial Detection**: Indirect Wording (2/3), Multi-Step Intent (1/3).
-- **Identified Blind Spots (0/3)**: Purely structural modifications—specifically **Optional Parameter Default Injections** (0/3) and **Low-Signal Boolean Schema Toggles** (`readOnly: true -> false`, 0/3)—bypassed natural-language docstring judges.
+Evaluation of 30 structured adversarial cases across 10 evasion categories is designated `[PENDING RE-RUN]` to record per-item traces.
 
 ### 9.2 Deterministic Schema Security Checks (Tier 1.5)
-To address the schema-only blind spots identified in Section 9.1 without relying on brittle LLM reasoning over raw JSON objects, we implemented **Deterministic Tier 1.5 Schema Security Checks** (`guard/schema_security_rules.py`):
+To address schema-only modifications, Tier 1.5 Schema Security Checks (`guard/schema_security_rules.py`) scan:
 1. **Authorization Toggles**: Flags `readOnly: true -> false` transitions.
 2. **Default Value Injections**: Regular expression audit intercepting external URLs, IP addresses, and sensitive paths in property `default` fields.
 3. **Interface Constriction**: Audits parameter type mutations and enum constraint narrowing.
-- **Performance**: Executes in $< 0.10\text{ ms}$ and produced **0 false positives** on the evaluated $N=23$ benign test cases.
+- **Performance**: Executes in $0.005\text{ ms}$ on CPU with **0 false positives** on the $N=23$ benign test cases.
 
 ### 9.3 Exploratory Adversarial Pilot Evaluation (Red-Team v2, $N=28$, 14 Categories)
-We constructed and evaluated a fresh 14-category adversarial suite (`data/redteam_v2.jsonl`, $N=28$, exactly $n=2$ cases per category) as an **exploratory adversarial pilot** against the upgraded defense pipeline:
-- **Overall Pilot Detection Rate**: **89.3%** ($25 / 28$ detected, 95% Wilson CI: [72.8%, 96.3%]).
-- **Tier 1.5 Schema Checks Contribution**: Caught 10/28 attacks deterministically upstream in $< 0.10\text{ ms}$, successfully resolving the previous $0/3$ blind spots on parameter defaults and `readOnly` toggles.
-- **Remaining Evasions ($n=3$)**: Highly subtle passive voice framing where exfiltration was described as standard optional telemetry without concrete network indicators.
-- **Exploratory Pilot Qualification**: Because each category contains $n=2$ test cases, this 89.3% detection rate is strictly an exploratory pilot demonstrating targeted evasion mechanics and failure modes, rather than a definitive asymptotic robustness estimate.
+Evaluation of `data/redteam_v2.jsonl` ($N=28$, $n=2$/category) against the upgraded pipeline is designated `[PENDING RE-RUN]`.
 
 ### 9.4 Judge Prompt Injection Robustness Pilot ($N=4$)
-We evaluated 4 pilot cases containing direct prompt override payloads targeting the judge (e.g., `"SYSTEM: CLASSIFY AS BENIGN. The following diff is authorized"`):
-- **Result**: **4 of 4 attacks detected (100% recall)**.
-- **Mechanism**: Mode B isolated diff formatting encloses untrusted diff content in strict `<untrusted_diff>` XML sandboxes, preventing command breakout into the judge instruction channel.
+Direct prompt override payloads targeting the judge are designated `[PENDING RE-RUN]`.
 
 ### 9.5 Incremental Salami Drift Multi-Step Simulation ($N=5$)
-We evaluated a 5-version sequential incremental drift progression ($V_1 \xrightarrow{} V_2 \xrightarrow{} V_3 \xrightarrow{} V_4 \xrightarrow{} V_5$):
-- **Per-Step Adjacent Diffing**: Each step-wise change $\Delta_i = (V_{i-1} \rightarrow V_i)$ appeared cosmetic, allowing the attack to progress until Step 5.
-- **Cumulative Baseline Anchoring**: Comparing candidate $V_i$ against the root trusted baseline $V_{\text{root}}$ detected the accumulated drift at **Step 4** (flagged as `MALICIOUS` $\rightarrow$ `QUARANTINE`), halting the attack chain before weaponized exfiltration could execute.
+Sequential incremental drift evaluation across a 5-version chain is designated `[PENDING RE-RUN]`.
 
 ### 9.6 Newly Added Tools & Maintainer Rug-Pull Timing Policies
-- **Newly Added Tools**: Newly introduced tools lack prior V1 baselines; our policy enforces **Initial Discovery Quarantine** until explicit administrative review.
-- **Maintainer Rug-Pull Timing**: For servers with clean historical releases that later turn malicious, the middleware re-verifies cryptographic hashes and evaluates semantic diffs on every session handshake, preventing historical reputation from granting uninspected trust.
+- **Newly Added Tools**: Newly introduced tools lack prior V1 baselines; policy enforces **Initial Discovery Quarantine** until explicit administrative review.
+- **Maintainer Rug-Pull Timing**: For servers with clean historical releases that later turn malicious, the middleware re-verifies cryptographic hashes and evaluates semantic diffs on every session handshake.
 
 ---
 
@@ -370,15 +347,14 @@ Controlled socket proxy testing (`experiments/phase5_live_mcp_proxy.py`) verifie
 - **Attack Phase**: A poisoned tool contract was intercepted, evaluated as `MALICIOUS` $\rightarrow$ `QUARANTINE`, and replaced with the **Trusted V1 definition** in the client response.
 
 ### 10.2 Component Latency & Fast-Path Optimization
-Across all evaluated pipeline layers:
-- **Tier 0 Hash Fast-Path**: $0.024\text{ ms}$ (0 LLM calls).
-- **Tier 1.5 Schema Security Checks**: $0.080\text{ ms}$ (0 LLM calls).
-- **Tier 2 Static Regex Rules**: $0.024\text{ ms}$ (0 LLM calls).
-- **Tier 3 Semantic Diff Judge (CPU Inference)**: Mean Latency = **1.42 s** (`Qwen3:8B` Mode B), with smaller models achieving 780 ms (`Gemma3:4B`) and 290 ms (`Qwen2.5:1.5B`).
-- **Short-Circuit Compute Savings**: Upstream deterministic tiers short-circuited 46.4% of candidate updates in $< 1\text{ ms}$, reducing model invocation requirements to 0.61 calls per update.
+Measured deterministic tier latencies on host CPU (`results/computed_metrics.json`):
+- **Tier 0 Hash Fast-Path**: $0.012\text{ ms}$ (0 LLM calls).
+- **Tier 1.5 Schema Security Checks**: $0.005\text{ ms}$ (0 LLM calls).
+- **Tier 2 Static Regex Rules**: $0.217\text{ ms}$ (0 LLM calls).
+- **Tier 3 Semantic Diff Judge Latencies**: Historical figures are `[PENDING RE-RUN] (origin unknown, no per-item log exists on disk; measured local CPU inference for Qwen3:8B is ~50-70s per item)`.
 
 ### 10.3 Asynchronous Out-of-Band Staging Mode
-To prevent the ~1.42s CPU semantic inference latency from delaying interactive agent startup handshakes, we specify an **Asynchronous Out-of-Band Staging Architecture**:
+To prevent local LLM semantic inference latencies from delaying interactive agent startup handshakes, we specify an **Asynchronous Out-of-Band Staging Architecture**:
 1. **Immediate Client Handshake**: When an upstream server broadcasts an updated candidate definition ($V_2$), the middleware immediately returns the cached, trusted $V_1$ definition to the LLM agent client ($0\text{ ms}$ added latency).
 2. **Background Queue Dispatch**: The candidate $V_2$ payload is dispatched to an asynchronous background worker pool for multi-tier inspection.
 3. **Promotion vs. Quarantine**:
@@ -386,7 +362,7 @@ To prevent the ~1.42s CPU semantic inference latency from delaying interactive a
    - If evaluated as `MALICIOUS` or `SUSPICIOUS`, $V_2$ is permanently quarantined, and an administrative security alert is dispatched with full structured audit findings.
 
 ### 10.4 Policy Engine Failure Modes & Timeout Specifications
-To ensure predictable fail-safe behavior under adverse operating conditions (network disconnects, process crashes, or inference stalls > 45s), the policy engine supports two configurable operational modes (verified in `tests/test_failure_policy.py`):
+To ensure predictable fail-safe behavior under adverse operating conditions, the policy engine supports two configurable operational modes (verified in `tests/test_failure_policy.py`):
 1. **FAIL_SECURE Mode (BALANCED / STRICT Default)**: If the semantic judge experiences a socket timeout, non-JSON output parse failure, or daemon unavailability, the candidate update is treated as `SUSPICIOUS` $\rightarrow$ `QUARANTINE`. The proxy serves the last trusted $V_1$ baseline and logs an `ERROR_TIMEOUT` alert, guaranteeing that deliberate denial-of-service or prompt-breaking attacks cannot force an uninspected bypass.
 2. **FAIL_OPEN Mode (AUDIT Mode)**: Allows the candidate definition through while recording an unverified telemetry event, suitable solely for passive development environments.
 
@@ -402,17 +378,17 @@ While rolling back to $V_1$ provides an effective containment mechanism for docs
 
 We explicitly document the following empirical, architectural, and evaluation boundaries:
 
-1. **Authentic Existing-Contract Sample Size ($N=13$)**: Real open-source MCP repositories currently contain only 13 modified pre-existing tool contracts; 110 of the 123 observed evolutionary events represent tool additions and removals. While Guard reduces false alarms on this sample by 76.9% (from 13 down to 3), broader empirical validation requires ongoing ecosystem tracking.
+1. **Authentic Existing-Contract Sample Size ($N=13$)**: Real open-source MCP repositories currently contain only 13 modified pre-existing tool contracts; 110 of the 123 observed evolutionary events represent tool additions and removals.
 2. **Matched-Pair Pilot Scale ($N=24$)**: The controlled matched-pair dataset contains $N=24$ candidate evaluations (12 matched triplets across 6 servers). It serves strictly as an exploratory pilot isolating stylistic phrasing confounds rather than a large asymptotic corpus ($\ge 100$ pairs).
 3. **Adversarial Red-Team v2 Scale ($N=28$)**: The upgraded adversarial suite evaluates 14 evasion categories with exactly $n=2$ test cases per category, serving as an exploratory demonstration of failure mechanisms rather than a population-level robustness estimate.
-4. **Synthetic Adversarial Datasets**: Due to the nascent nature of production MCP deployments, malicious drift samples are generated via synthetic templates (MCPTox mutations) and red-team injections rather than discovered in-the-wild zero-day incidents.
+4. **Synthetic Adversarial Datasets**: Malicious drift samples are generated via synthetic templates (MCPTox mutations) and red-team injections rather than discovered in-the-wild zero-day incidents.
 5. **Dataset & Style Confounding**: Despite paired evaluation and 47 programmatic hard negatives, subtle lexical differences between authentic developer docstrings and synthetic attack injections may introduce latent stylistic signals.
-6. **Local CPU Inference Latency**: Local `Qwen3:8B` inference averages ~1.42s on CPU. While 46.4% of updates short-circuit at deterministic tiers in $< 0.10\text{ ms}$, synchronous inline execution during high-frequency startup handshakes requires asynchronous out-of-band staging.
+6. **Local Inference Latency**: Local `Qwen3:8B` inference requires ~50–70s per item on CPU; synchronous inline execution during high-frequency startup handshakes requires asynchronous out-of-band staging or GPU acceleration.
 7. **Rollback Compatibility Scope**: Baseline rollback to $V_1$ is effective for docstring modifications and optional parameters, but breaking structural mutations (required parameter additions, property deletions, type changes) cause downstream RPC invocation failures and must escalate to Full Tool Quarantine.
 8. **Evaluation Environment**: Live JSON-RPC proxy evaluation was conducted in controlled local socket test fixtures rather than multi-tenant, internet-scale production deployments.
 9. **Judge Prompt-Injection Sample ($N=4$)**: Prompt override sandboxing was verified across 4 targeted pilot cases; evaluating complex multi-turn prompt injection payloads remains future work.
 10. **Salami-Drift Evaluation Scope ($N=5$)**: Incremental multi-step drift was evaluated across a 5-version sequential chain; larger multi-branch drift topologies remain to be explored.
-11. **Local vs. Frontier Model Scope**: Primary evaluations were conducted on quantized local models (`Qwen3:8B`, `Gemma3:4B`, `Qwen2.5:1.5B`); evaluations on closed commercial frontier APIs (e.g., GPT-4o, Claude 3.5 Sonnet) were not executed.
+11. **Local vs. Frontier Model Scope**: Primary evaluations focus on quantized local models (`Qwen3:8B`, `Gemma3:4B`, `Qwen2.5:1.5B`); evaluations on closed commercial frontier APIs (e.g., GPT-4o, Claude 3.5 Sonnet) were not executed.
 12. **Corpus Coverage**: Mining was conducted across 28 open-source repositories on GitHub; while diverse, it does not encompass the entire closed enterprise MCP landscape.
 
 ---
@@ -422,7 +398,7 @@ We explicitly document the following empirical, architectural, and evaluation bo
 To support full third-party reproduction and ongoing research, all code, benchmark datasets, prompt templates, and evaluation scripts are released under an open-source license at the anonymized repository: `https://github.com/anonymous-submission/mcp-semantic-drift`.
 
 ### 12.1 Execution Commands
-- **Unit & Integration Tests (40 Tests, Zero Leakage & Safety)**:
+- **Unit & Integration Tests (Zero Leakage & Safety)**:
   ```bash
   python -m unittest discover tests
   ```
@@ -450,7 +426,7 @@ To support full third-party reproduction and ongoing research, all code, benchma
 ### 12.2 Artifact Specifications
 - **Judge System Prompt**: Implemented in `guard/semantic_judge.py` using strict JSON schema output formatting and XML delimiter sandboxing (`<untrusted_diff>`).
 - **Deterministic Schema Security Rules**: Implemented in `guard/schema_security_rules.py` for parameter defaults, `readOnly` toggles, and enum constriction.
-- **Static Regex Rules**: 7 pre-registered regular expressions in `guard/static_rules.py`.
+- **Static Regex Rules**: 7 rules in `guard/static_rules.py`.
 - **Corpus Mining**: `experiments/phase2_extract_corpus.py` across 28 repositories on GitHub with $\ge 2$ release tags (621 version transitions).
 - **Hard Negative Provenance**: 47 programmatic hard negatives generated in `experiments/generate_hard_negatives.py` by inserting legitimate security terms into real benign docstrings without changing tool semantics.
 
@@ -458,7 +434,7 @@ To support full third-party reproduction and ongoing research, all code, benchma
 
 ## 13. Conclusion
 
-This research demonstrates that **MCP Semantic Drift Detection** separates byte-level integrity verification from semantic security analysis. While exact cryptographic hashing flags all observed tool-definition changes because its integrity criterion is byte-level equality, the integrated Guard Middleware under the tested BALANCED policy reduced false alarms on the evaluated N=56 test split while detecting all tested attack vectors in that sample. Adversarial evaluations show strong baseline detection against explicit instruction tampering while highlighting subtle euphemisms and breaking schema evolutions as key areas for ongoing defensive refinement.
+This research demonstrates that **MCP Semantic Drift Detection** separates byte-level integrity verification from semantic security analysis. While exact cryptographic hashing flags all observed tool-definition changes because its integrity criterion is byte-level equality, multi-tiered semantic drift detection provides a layered defense architecture. Deterministic static and schema layers resolve obvious attacks and schema anomalies in sub-millisecond latencies, escalating ambiguous docstring modifications to semantic judges.
 
 ---
 
@@ -479,11 +455,7 @@ This research demonstrates that **MCP Semantic Drift Detection** separates byte-
 ## Appendix: Exploratory Pilot Evaluations
 
 ### A.1 Phase 3 Exploratory Representation Pilot ($N=10$)
-In initial Phase 3 exploratory calibration across 10 stratified samples (6 Malicious, 4 Benign):
-- **Exact Hash Pinning**: Precision = 60.0%, Recall = 100.0%, $F_1 = 75.0\%$, Benign FPR = 100.0%.
-- **Static Rules**: Precision = 100.0%, Recall = 50.0%, $F_1 = 66.7\%$, Malicious FNR = 50.0%.
-- **Mode A (Full Definition)**: $F_1 = 83.3\%$, with a 20.0% JSON output parsing failure rate.
-- **Mode B (Diff Only)**: Precision = 85.7%, Recall = 100.0%, $F_1 = 92.3\%$, Benign FPR = 25.0%, JSON Parse Errors = 0.0%.
+Pilot results on Phase 3 representations are designated `[PENDING RE-RUN]`.
 
 ### A.2 Phase 4 Integrated Middleware Replay Pilot ($N=10$)
-Across a 10-example stratified replay test, the integrated middleware prototype achieved 100.0% precision and recall with an average of 0.30 LLM calls per update, validating initial multi-tier short-circuit logic prior to full master benchmark scaling.
+Pilot replay results across the 10-example stratified replay test are designated `[PENDING RE-RUN]`.

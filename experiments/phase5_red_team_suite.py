@@ -6,7 +6,7 @@ specifically designed to evaluate semantic drift detection robustness against ad
 
 import json
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 # 10 Adversarial Mutation Categories (3 cases per category = 30 total cases)
 RED_TEAM_CASES = [
@@ -441,5 +441,96 @@ def get_red_team_suite() -> List[Dict[str, Any]]:
     return RED_TEAM_CASES
 
 
+def run_red_team_evaluation(
+    model: str = "qwen3:8b",
+    export_traces: Optional[str] = None,
+    limit: Optional[int] = None
+):
+    """Evaluates the defense pipeline against the red-team suite and streams traces."""
+    import sys, time, argparse
+    from pathlib import Path
+    ROOT_DIR = Path(__file__).resolve().parent.parent
+    sys.path.insert(0, str(ROOT_DIR))
+    from guard.static_rules import evaluate_static_rules
+    from guard.schema_security_rules import evaluate_schema_security_example
+    from guard.semantic_judge import evaluate_semantic_judge_example
+    from experiments.trace_exporter import TraceWriter
+
+    cases = RED_TEAM_CASES[:limit] if (limit and limit > 0) else RED_TEAM_CASES
+    print(f"Evaluating {len(cases)} Red-Team Adversarial cases using model={model}...")
+
+    writer = TraceWriter(Path(export_traces), "experiments/phase5_red_team_suite.py") if export_traces else None
+
+    caught = 0
+    try:
+        for idx, ex in enumerate(cases, 1):
+            t_start = time.perf_counter()
+            eid = ex.get("example_id", f"rt_{idx}")
+            server_id = ex.get("server_id", "unknown_server")
+            gold = ex.get("expected_label", "MALICIOUS")
+
+            # Check static
+            s_res = evaluate_static_rules(ex.get("new_definition", {}), "")
+            if s_res["flagged"] and s_res["severity"] == "high":
+                pred = "MALICIOUS"
+                deciding_tier = "Tier 2 (Static Rules)"
+                llm_called = False
+                lat_llm = None
+            else:
+                schema_res = evaluate_schema_security_example(ex)
+                if schema_res.get("is_flagged"):
+                    pred = "MALICIOUS"
+                    deciding_tier = "Tier 1.5 (Schema Rules)"
+                    llm_called = False
+                    lat_llm = None
+                else:
+                    res = evaluate_semantic_judge_example(ex, mode="diff", model_name=model)
+                    pred = "MALICIOUS" if res["is_flagged"] else "BENIGN"
+                    deciding_tier = "Tier 3 (Semantic Judge Mode B)"
+                    llm_called = True
+                    lat_llm = res.get("latency_ms_llm")
+
+            tot_lat = (time.perf_counter() - t_start) * 1000.0
+            if pred in ("MALICIOUS", "SUSPICIOUS"):
+                caught += 1
+
+            if writer:
+                writer.write_item(
+                    item_id=eid,
+                    server_id=server_id,
+                    gold=gold,
+                    predicted=pred,
+                    deciding_tier=deciding_tier,
+                    llm_called=llm_called,
+                    latency_ms_total=tot_lat,
+                    latency_ms_llm=lat_llm,
+                    model=model if llm_called else "none"
+                )
+
+            print(f"[{idx}/{len(cases)}] ID: {eid} ({ex.get('category')}) | Pred: {pred} | Tier: {deciding_tier} | Latency: {tot_lat:.2f}ms")
+
+    finally:
+        if writer:
+            writer.close()
+
+    print(f"\nRed-Team Evaluation Complete: {caught}/{len(cases)} caught ({caught/len(cases)*100:.1f}%)")
+
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Phase 5 Red-Team Adversarial Evaluation Suite.")
+    parser.add_argument("--model", default="qwen3:8b", help="Ollama model identifier")
+    parser.add_argument("--export-traces", default=None, help="Output JSONL trace destination path")
+    parser.add_argument("--limit", type=int, default=None, help="Limit number of cases to evaluate (for dry runs)")
+    args = parser.parse_args()
+
+    run_red_team_evaluation(
+        model=args.model,
+        export_traces=args.export_traces,
+        limit=args.limit
+    )
+
+
 if __name__ == "__main__":
-    print(f"Phase 5 Red-Team Suite: {len(RED_TEAM_CASES)} adversarial test cases generated across 10 categories.")
+    main()
+
