@@ -19,6 +19,7 @@ from guard.baseline_store import BaselineStore, normalize_tool_def, compute_sha2
 from guard.audit_logger import AuditLogger
 from guard.policy_engine import PolicyEngine
 from guard.static_rules import evaluate_static_rules
+from guard.schema_security_rules import inspect_schema_security_diff
 from experiments.phase3_structured_diff import compute_structured_diff
 from guard.semantic_judge import (
     build_mode_b_prompt,
@@ -92,12 +93,57 @@ class MCPGuardMiddleware:
         change_detected = True
 
         # -------------------------------------------------------------------
-        # TIER 2: Compute Structured Diff
+        # TIER 1: Compute Structured Diff
         # -------------------------------------------------------------------
         diff_res = compute_structured_diff(old_tool_def, new_tool_def)
 
         # -------------------------------------------------------------------
-        # TIER 1: Static Rules Scan
+        # TIER 1.5: Deterministic Schema Security Rules
+        # -------------------------------------------------------------------
+        old_schema = old_tool_def.get("inputSchema") if isinstance(old_tool_def, dict) else None
+        new_schema = new_tool_def.get("inputSchema") if isinstance(new_tool_def, dict) else None
+        schema_findings = inspect_schema_security_diff(old_schema, new_schema)
+        schema_flagged = any(f.get("severity") in ("CRITICAL", "HIGH") for f in schema_findings)
+
+        if schema_flagged:
+            action, rationale = self.policy_engine.evaluate_policy(
+                verdict="MALICIOUS",
+                confidence=1.0,
+                static_flagged=True
+            )
+            self.baseline_store.record_blocked_update(
+                server_id, tool_name, new_tool_def, status="QUARANTINED", reason="SCHEMA_SECURITY_RULE_TRIGGERED"
+            )
+            latency_ms = (time.time() - start_time) * 1000
+            audit_rec = self.audit_logger.log_event(
+                server_id=server_id,
+                tool_name=tool_name,
+                previous_hash=trusted_hash,
+                new_hash=new_hash,
+                change_detected=True,
+                structured_diff=diff_res,
+                static_rule_result={"flagged": False},
+                semantic_judge_result={"skipped": True, "reason": "Schema security violation triggered"},
+                final_verdict="MALICIOUS",
+                action_taken=action,
+                policy_mode=self.config.policy_mode,
+                latency_ms=latency_ms
+            )
+            active_def = old_tool_def if old_tool_def is not None else new_tool_def
+            return {
+                "server_id": server_id,
+                "tool_name": tool_name,
+                "change_detected": True,
+                "verdict": "MALICIOUS",
+                "action": action,
+                "rationale": rationale,
+                "active_tool_definition": active_def,
+                "latency_ms": latency_ms,
+                "audit_record": audit_rec
+            }
+
+        # -------------------------------------------------------------------
+        # TIER 2: Static Rules Scan
         # -------------------------------------------------------------------
         diff_summary = diff_res.get("description_diff_summary", "")
         static_res = evaluate_static_rules(new_tool_def, diff_summary)
@@ -159,12 +205,12 @@ class MCPGuardMiddleware:
         else:
             try:
                 mode_b_prompt = build_mode_b_prompt(diff_res)
-                parsed_json, raw_text, err = call_ollama_judge(mode_b_prompt)
-                
+                parsed_json, raw_text, err, judge_lat_ms = call_ollama_judge(mode_b_prompt)
+
                 if err or not parsed_json:
                     error_info = err or "JSON parsing failed"
                     verdict = "ERROR"
-                    semantic_res = {"error": error_info, "raw_text": raw_text}
+                    semantic_res = {"error": error_info, "raw_text": raw_text, "skipped": False}
                 else:
                     semantic_res = parsed_json
                     verdict = parsed_json.get("label", "BENIGN")
@@ -172,7 +218,7 @@ class MCPGuardMiddleware:
             except Exception as e:
                 error_info = str(e)
                 verdict = "ERROR"
-                semantic_res = {"error": error_info}
+                semantic_res = {"error": error_info, "skipped": False}
 
         # -------------------------------------------------------------------
         # Policy Engine Decision

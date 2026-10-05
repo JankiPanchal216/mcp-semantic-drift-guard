@@ -18,34 +18,11 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT_DIR / "data"
 
 sys.path.insert(0, str(ROOT_DIR))
+from sklearn.model_selection import GroupKFold
 from guard.static_rules import evaluate_static_rules
 from guard.schema_security_rules import evaluate_schema_security_example
 from guard.semantic_judge import evaluate_semantic_judge_example
 from experiments.trace_exporter import TraceWriter
-
-# 5 Disjoint Server Folds covering all 19 unique servers in the 370-item benchmark
-SERVER_FOLDS = [
-    {
-        "fold": 1,
-        "servers": ["mcp-server-puppeteer", "mcp-server-git", "mcp-server-sentry", "mcptox-puppeteer"]
-    },
-    {
-        "fold": 2,
-        "servers": ["mcp-server-filesystem", "mcp-server-mysql", "mcp-server-time", "mcptox-filesystem"]
-    },
-    {
-        "fold": 3,
-        "servers": ["mcptox-adfin", "mcp-server-memory", "mcp-server-sequentialthinking"]
-    },
-    {
-        "fold": 4,
-        "servers": ["mcp-playwright", "mcptox-amapmap", "mcp-server-slack"]
-    },
-    {
-        "fold": 5,
-        "servers": ["mcp-server-sqlite", "mcp-server-github", "mcp-server-everything", "mcptox-flomo", "mcptox-github"]
-    }
-]
 
 
 def load_all_benchmark_data(data_dir: Path) -> List[Dict[str, Any]]:
@@ -67,6 +44,30 @@ def load_all_benchmark_data(data_dir: Path) -> List[Dict[str, Any]]:
     return all_items
 
 
+def compute_server_group_kfolds(items: List[Dict[str, Any]], n_splits: int = 5) -> List[Dict[str, Any]]:
+    """Partitions benchmark items into n_splits disjoint folds grouped strictly by server_id."""
+    from collections import Counter
+    groups = [x.get("server_id", "unknown_server") for x in items]
+    labels = [x.get("expected_label", "BENIGN") for x in items]
+
+    gkf = GroupKFold(n_splits=n_splits)
+    folds = []
+    for fold_idx, (train_idx, val_idx) in enumerate(gkf.split(items, labels, groups=groups), 1):
+        val_items = [items[i] for i in val_idx]
+        val_servers = sorted(list(set(x.get("server_id") for x in val_items)))
+        val_labels = Counter(x.get("expected_label") for x in val_items)
+        folds.append({
+            "fold": fold_idx,
+            "servers": val_servers,
+            "items": val_items,
+            "val_indices": val_idx,
+            "n_total": len(val_items),
+            "n_malicious": val_labels.get("MALICIOUS", 0),
+            "n_benign": val_labels.get("BENIGN", 0)
+        })
+    return folds
+
+
 def run_cross_validation(
     data_dir: Path,
     model: str = "qwen3:8b",
@@ -77,40 +78,55 @@ def run_cross_validation(
     items = load_all_benchmark_data(data_dir)
     print(f"Loaded {len(items)} total items across all dataset splits for Server-Grouped 5-Fold CV.")
 
-    out_dir = Path(export_traces_dir) if export_traces_dir else None
-    if out_dir:
-        out_dir.mkdir(parents=True, exist_ok=True)
+    folds = compute_server_group_kfolds(items, n_splits=5)
 
-    print(f"Starting 5-Fold Cross-Validation on {len(items)} items using model={model}...")
+    all_servers = sorted(list(set(x.get("server_id") for x in items)))
+    print(f"Unique server count: {len(all_servers)}")
+    print(f"Unique servers: {all_servers}")
 
     # Validate zero server overlap between folds
     assigned_servers = set()
-    for f in SERVER_FOLDS:
+    for f in folds:
         f_servers = set(f["servers"])
         overlap = assigned_servers.intersection(f_servers)
         assert len(overlap) == 0, f"Server leakage detected across folds: {overlap}"
         assigned_servers.update(f_servers)
+        print(f"Fold {f['fold']}: N={f['n_total']} (Malicious={f['n_malicious']}, Benign={f['n_benign']}) | Servers ({len(f['servers'])}): {f['servers']}")
 
-    for fold_info in SERVER_FOLDS:
+    out_dir = Path(export_traces_dir) if export_traces_dir else None
+    if out_dir:
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"\nStarting 5-Fold Cross-Validation on {len(items)} items using model={model}...")
+
+    for fold_info in folds:
         f_idx = fold_info["fold"]
         servers = set(fold_info["servers"])
-        fold_items = [x for x in items if x.get("server_id") in servers]
+        fold_items = fold_info["items"]
 
         if limit_per_fold and limit_per_fold > 0:
             fold_items = fold_items[:limit_per_fold]
 
         trace_file = out_dir / f"fold_{f_idx}_predictions.jsonl" if out_dir else None
         writer = TraceWriter(trace_file, "data/drift_[train|dev|test].jsonl") if trace_file else None
+        existing_ids = writer.get_existing_item_ids() if writer else set()
 
         print(f"\n--- Fold {f_idx}: {len(fold_items)} test items (Servers: {', '.join(sorted(servers))}) ---")
+        if existing_ids:
+            print(f"Found {len(existing_ids)} existing completed items in trace file. Resuming...")
 
         try:
             for idx, ex in enumerate(fold_items, 1):
-                t_start = time.perf_counter()
                 eid = ex.get("example_id", f"cv_{f_idx}_{idx}")
                 server_id = ex.get("server_id", "unknown_server")
                 tool_name = ex.get("tool_name", "unknown_tool")
                 gold = ex.get("expected_label", "BENIGN")
+
+                if eid in existing_ids:
+                    print(f"[Fold {f_idx} - {idx}/{len(fold_items)}] Skipping {eid} (already in trace file)")
+                    continue
+
+                t_start = time.perf_counter()
 
                 # Multi-tier pipeline check
                 static_res = evaluate_static_rules(ex.get("new_definition", {}), str(ex.get("structured_diff", "")))
@@ -128,7 +144,10 @@ def run_cross_validation(
                         lat_llm = None
                     else:
                         res = evaluate_semantic_judge_example(ex, mode="diff", model_name=model)
-                        pred = "MALICIOUS" if res["is_flagged"] else "BENIGN"
+                        if res.get("prediction") == "ERROR" or res.get("parse_error"):
+                            pred = "ERROR"
+                        else:
+                            pred = "MALICIOUS" if res["is_flagged"] else "BENIGN"
                         deciding_tier = 3
                         llm_called = True
                         lat_llm = res.get("latency_ms_llm")
@@ -155,6 +174,8 @@ def run_cross_validation(
             if writer:
                 writer.close()
 
+    print("\n5-Fold Cross-Validation execution completed.")
+
 
 def main():
     parser = argparse.ArgumentParser(description="5-Fold Server-Grouped Cross-Validation Runner.")
@@ -175,3 +196,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

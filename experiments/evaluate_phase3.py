@@ -52,6 +52,9 @@ def run_evaluation(
     print(f"Running evaluation on {len(examples)} items from {split_path.name} (mode={mode}, model={model})...")
 
     writer = TraceWriter(Path(export_traces), str(split_path)) if export_traces else None
+    existing_ids = writer.get_existing_item_ids() if writer else set()
+    if existing_ids:
+        print(f"Found {len(existing_ids)} completed items in trace file. Resuming...")
 
     # For integrated mode, set up real MCPGuardMiddleware with temporary baseline DB
     middleware = None
@@ -61,15 +64,20 @@ def run_evaluation(
         cfg = GuardConfig(policy_mode="BALANCED", baseline_db_path=tmp_db, audit_log_path=tmp_log)
         middleware = MCPGuardMiddleware(cfg)
 
-    tp, fp, tn, fn = 0, 0, 0, 0
+    tp, fp, tn, fn, errors = 0, 0, 0, 0, 0
 
     try:
         for idx, ex in enumerate(examples, 1):
-            t_total_start = time.perf_counter()
             eid = ex.get("example_id", f"item_{idx}")
             server_id = ex.get("server_id", "unknown_server")
             tool_name = ex.get("tool_name", "unknown_tool")
             gold = ex.get("expected_label", "BENIGN")
+
+            if eid in existing_ids:
+                print(f"[{idx}/{len(examples)}] Skipping {eid} (already in trace file)")
+                continue
+
+            t_total_start = time.perf_counter()
 
             pred = "BENIGN"
             deciding_tier = "none"
@@ -88,14 +96,20 @@ def run_evaluation(
 
             elif mode == "mode_a":
                 res = evaluate_semantic_judge_example(ex, mode="full", model_name=model)
-                pred = "MALICIOUS" if res["is_flagged"] else "BENIGN"
+                if res.get("prediction") == "ERROR" or res.get("parse_error"):
+                    pred = "ERROR"
+                else:
+                    pred = "MALICIOUS" if res["is_flagged"] else "BENIGN"
                 deciding_tier = 3
                 llm_called = True
                 lat_llm_ms = res.get("latency_ms_llm")
 
             elif mode == "mode_b":
                 res = evaluate_semantic_judge_example(ex, mode="diff", model_name=model)
-                pred = "MALICIOUS" if res["is_flagged"] else "BENIGN"
+                if res.get("prediction") == "ERROR" or res.get("parse_error"):
+                    pred = "ERROR"
+                else:
+                    pred = "MALICIOUS" if res["is_flagged"] else "BENIGN"
                 deciding_tier = 3
                 llm_called = True
                 lat_llm_ms = res.get("latency_ms_llm")
@@ -119,16 +133,19 @@ def run_evaluation(
                     llm_called = True
                     lat_llm_ms = audit.get("timing_breakdown_ms", {}).get("tier3_judge")
 
-                is_alarm = (action in ("BLOCK", "QUARANTINE") or verdict in ("MALICIOUS", "SUSPICIOUS"))
-                pred = "MALICIOUS" if is_alarm else "BENIGN"
+                if verdict == "ERROR":
+                    pred = "ERROR"
+                else:
+                    is_alarm = (action in ("BLOCK", "QUARANTINE") or verdict in ("MALICIOUS", "SUSPICIOUS"))
+                    pred = "MALICIOUS" if is_alarm else "BENIGN"
 
                 # Extract deciding tier
                 if audit.get("hash_result", {}).get("is_identical"):
                     deciding_tier = 0
-                elif audit.get("static_rules_result", {}).get("flagged") and audit.get("static_rules_result", {}).get("severity") == "high":
-                    deciding_tier = 2
                 elif audit.get("schema_security_result", {}).get("flagged"):
                     deciding_tier = 1.5
+                elif audit.get("static_rules_result", {}).get("flagged") and audit.get("static_rules_result", {}).get("severity") == "high":
+                    deciding_tier = 2
                 elif llm_called:
                     deciding_tier = 3
                 else:
@@ -136,7 +153,9 @@ def run_evaluation(
 
             tot_lat_ms = (time.perf_counter() - t_total_start) * 1000.0
 
-            if gold == "MALICIOUS" and pred == "MALICIOUS":
+            if pred == "ERROR":
+                errors += 1
+            elif gold == "MALICIOUS" and pred == "MALICIOUS":
                 tp += 1
             elif gold == "BENIGN" and pred == "MALICIOUS":
                 fp += 1
@@ -170,11 +189,11 @@ def run_evaluation(
     rec = tp / (tp + fn) if (tp + fn) > 0 else 0.0
     f1 = 2 * prec * rec / (prec + rec) if (prec + rec) > 0 else 0.0
 
-    print(f"\n--- Results ({mode}, N={total}) ---")
-    print(f"TP={tp}, FP={fp}, TN={tn}, FN={fn}")
+    print(f"\n--- Results ({mode}, N={total}, Errors={errors}) ---")
+    print(f"TP={tp}, FP={fp}, TN={tn}, FN={fn}, Errors={errors}")
     print(f"Precision={prec*100:.1f}%, Recall={rec*100:.1f}%, F1={f1*100:.1f}%")
 
-    return {"tp": tp, "fp": fp, "tn": tn, "fn": fn, "precision": prec, "recall": rec, "f1": f1}
+    return {"tp": tp, "fp": fp, "tn": tn, "fn": fn, "errors": errors, "precision": prec, "recall": rec, "f1": f1}
 
 
 def main():

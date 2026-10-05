@@ -106,8 +106,10 @@ def call_ollama_judge(prompt: str, system_prompt: str = SYSTEM_PROMPT_SECURITY_W
                         lbl = "MALICIOUS"
                     elif "SUSPICIOUS" in lbl or "UNCERTAIN" in lbl:
                         lbl = "SUSPICIOUS"
-                    else:
+                    elif "BENIGN" in lbl or "CLEAN" in lbl or "SAFE" in lbl:
                         lbl = "BENIGN"
+                    else:
+                        return None, raw_text, f"Unrecognized model output label '{lbl}'", lat_ms
                 parsed["label"] = lbl
                 parsed["confidence"] = float(parsed.get("confidence", 0.95))
                 parsed["reason"] = str(parsed.get("reason", ""))
@@ -136,8 +138,17 @@ def call_ollama_judge(prompt: str, system_prompt: str = SYSTEM_PROMPT_SECURITY_W
                     r_match = re.search(r'\{[\s\S]*\}', r_clean)
                     if r_match:
                         parsed = json.loads(r_match.group(0))
-                        lbl = str(parsed.get("label", "BENIGN")).upper().strip()
-                        parsed["label"] = lbl if lbl in ("BENIGN", "SUSPICIOUS", "MALICIOUS") else "BENIGN"
+                        lbl = str(parsed.get("label", "")).upper().strip()
+                        if lbl not in ("BENIGN", "SUSPICIOUS", "MALICIOUS"):
+                            if "MALICIOUS" in lbl or "ATTACK" in lbl:
+                                lbl = "MALICIOUS"
+                            elif "SUSPICIOUS" in lbl:
+                                lbl = "SUSPICIOUS"
+                            elif "BENIGN" in lbl:
+                                lbl = "BENIGN"
+                            else:
+                                return None, r_raw, f"Unrecognized repaired output label '{lbl}'", lat_ms
+                        parsed["label"] = lbl
                         return parsed, r_raw, None, lat_ms
                     return None, raw_text, "Failed to parse JSON", lat_ms
     except Exception as e:
@@ -162,20 +173,22 @@ def evaluate_semantic_judge_example(example: Dict[str, Any], mode: str = "full",
     total_lat_ms = (time.perf_counter() - t_start) * 1000.0
 
     expected = example.get("expected_label", "BENIGN")
-    
-    if parsed_json:
+
+    if parsed_json and not err:
         predicted = parsed_json.get("label", "BENIGN")
         conf = parsed_json.get("confidence", 0.0)
         reason = parsed_json.get("reason", "")
         evidence = parsed_json.get("evidence", [])
+        parse_error = False
     else:
         predicted = "ERROR"
         conf = 0.0
         reason = f"Execution error: {err}"
         evidence = []
+        parse_error = True
 
     is_flagged = (predicted in ("MALICIOUS", "SUSPICIOUS"))
-    
+
     return {
         "example_id": example.get("example_id"),
         "server_id": example.get("server_id", "unknown_server"),
@@ -187,11 +200,11 @@ def evaluate_semantic_judge_example(example: Dict[str, Any], mode: str = "full",
         "reason": reason,
         "evidence": evidence,
         "is_flagged": is_flagged,
-        "is_tp": (expected == "MALICIOUS" and is_flagged),
-        "is_fp": (expected == "BENIGN" and is_flagged),
-        "is_tn": (expected == "BENIGN" and not is_flagged),
-        "is_fn": (expected == "MALICIOUS" and not is_flagged),
-        "parse_error": bool(err),
+        "is_tp": (expected == "MALICIOUS" and predicted == "MALICIOUS"),
+        "is_fp": (expected == "BENIGN" and predicted in ("MALICIOUS", "SUSPICIOUS")),
+        "is_tn": (expected == "BENIGN" and predicted == "BENIGN"),
+        "is_fn": (expected == "MALICIOUS" and predicted == "BENIGN"),
+        "parse_error": parse_error,
         "latency_ms_total": total_lat_ms,
         "latency_ms_llm": llm_lat_ms
     }

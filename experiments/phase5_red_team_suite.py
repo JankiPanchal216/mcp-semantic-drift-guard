@@ -460,15 +460,24 @@ def run_red_team_evaluation(
     print(f"Evaluating {len(cases)} Red-Team Adversarial cases using model={model}...")
 
     writer = TraceWriter(Path(export_traces), "experiments/phase5_red_team_suite.py") if export_traces else None
+    existing_ids = writer.get_existing_item_ids() if writer else set()
+    if existing_ids:
+        print(f"Found {len(existing_ids)} completed items in red-team trace. Resuming...")
 
     caught = 0
+    errors = 0
     try:
         for idx, ex in enumerate(cases, 1):
-            t_start = time.perf_counter()
             eid = ex.get("example_id", f"rt_{idx}")
             server_id = ex.get("server_id", "unknown_server")
             tool_name = ex.get("tool_name", "unknown_tool")
             gold = ex.get("expected_label", "MALICIOUS")
+
+            if eid in existing_ids:
+                print(f"[{idx}/{len(cases)}] Skipping {eid} (already in trace file)")
+                continue
+
+            t_start = time.perf_counter()
 
             # Check static
             s_res = evaluate_static_rules(ex.get("new_definition", {}), "")
@@ -486,13 +495,18 @@ def run_red_team_evaluation(
                     lat_llm = None
                 else:
                     res = evaluate_semantic_judge_example(ex, mode="diff", model_name=model)
-                    pred = "MALICIOUS" if res["is_flagged"] else "BENIGN"
+                    if res.get("prediction") == "ERROR" or res.get("parse_error"):
+                        pred = "ERROR"
+                    else:
+                        pred = "MALICIOUS" if res["is_flagged"] else "BENIGN"
                     deciding_tier = 3
                     llm_called = True
                     lat_llm = res.get("latency_ms_llm")
 
             tot_lat = (time.perf_counter() - t_start) * 1000.0
-            if pred in ("MALICIOUS", "SUSPICIOUS"):
+            if pred == "ERROR":
+                errors += 1
+            elif pred in ("MALICIOUS", "SUSPICIOUS"):
                 caught += 1
 
             if writer:
@@ -515,7 +529,7 @@ def run_red_team_evaluation(
         if writer:
             writer.close()
 
-    print(f"\nRed-Team Evaluation Complete: {caught}/{len(cases)} caught ({caught/len(cases)*100:.1f}%)")
+    print(f"\nRed-Team Evaluation Complete: {caught}/{len(cases)} caught ({caught/len(cases)*100:.1f}%), Errors={errors}")
 
 
 def main():

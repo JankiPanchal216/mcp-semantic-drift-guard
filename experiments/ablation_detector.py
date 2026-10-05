@@ -45,24 +45,35 @@ def run_ablation(
     configs = [
         ("config_a", "Hash Only"),
         ("config_b", "Static Regex Only"),
-        ("config_h", "Deterministic Fast Path (No LLM)"),
+        ("config_c", "Hash + Static"),
+        ("config_d", "Hash + Static + Diff"),
         ("config_e", "Hash + Static + Semantic Judge"),
-        ("config_f", "Full Guard Pipeline")
+        ("config_f", "Full Guard Pipeline"),
+        ("config_g", "Guard without Schema Check"),
+        ("config_h", "Deterministic Fast Path (No LLM)")
     ]
 
     for cfg_id, cfg_name in configs:
         trace_file = out_dir / f"{cfg_id}_predictions.jsonl" if out_dir else None
         writer = TraceWriter(trace_file, str(data_path)) if trace_file else None
+        existing_ids = writer.get_existing_item_ids() if writer else set()
 
         print(f"\n--- Running {cfg_name} ({cfg_id}, N={len(items)}) ---")
+        if existing_ids:
+            print(f"Found {len(existing_ids)} completed items in {cfg_id} trace. Resuming...")
 
         try:
             for idx, ex in enumerate(items, 1):
-                t_start = time.perf_counter()
                 eid = ex.get("example_id", f"ablation_{idx}")
                 server_id = ex.get("server_id", "unknown_server")
                 tool_name = ex.get("tool_name", "unknown_tool")
                 gold = ex.get("expected_label", "BENIGN")
+
+                if eid in existing_ids:
+                    print(f"[{cfg_id} - {idx}/{len(items)}] Skipping {eid} (already in trace file)")
+                    continue
+
+                t_start = time.perf_counter()
 
                 pred = "BENIGN"
                 deciding_tier = "none"
@@ -79,26 +90,87 @@ def run_ablation(
                     pred = "MALICIOUS" if res["flagged"] else "BENIGN"
                     deciding_tier = 2 if res["flagged"] else "none"
 
-                elif cfg_id == "config_h":
-                    res = evaluate_static_rules(ex.get("new_definition", {}), str(ex.get("structured_diff", "")))
-                    if res["flagged"] and res["severity"] == "high":
-                        pred = "MALICIOUS"
-                        deciding_tier = 2
-                    else:
+                elif cfg_id == "config_c":
+                    # Hash check first; if diff exists, check static rules
+                    h_res = evaluate_hash_pinning_example(ex)
+                    if h_res["prediction"] == "BENIGN":
                         pred = "BENIGN"
-                        deciding_tier = "none"
+                        deciding_tier = 0
+                    else:
+                        s_res = evaluate_static_rules(ex.get("new_definition", {}), str(ex.get("structured_diff", "")))
+                        if s_res["flagged"] and s_res["severity"] == "high":
+                            pred = "MALICIOUS"
+                            deciding_tier = 2
+                        else:
+                            pred = "BENIGN"
+                            deciding_tier = "none"
 
-                elif cfg_id in ("config_e", "config_f"):
-                    static_res = evaluate_static_rules(ex.get("new_definition", {}), str(ex.get("structured_diff", "")))
-                    if static_res["flagged"] and static_res["severity"] == "high":
+                elif cfg_id == "config_d":
+                    # Hash + Static + Diff
+                    h_res = evaluate_hash_pinning_example(ex)
+                    if h_res["prediction"] == "BENIGN":
+                        pred = "BENIGN"
+                        deciding_tier = 0
+                    else:
+                        s_res = evaluate_static_rules(ex.get("new_definition", {}), str(ex.get("structured_diff", "")))
+                        if s_res["flagged"] and s_res["severity"] == "high":
+                            pred = "MALICIOUS"
+                            deciding_tier = 2
+                        else:
+                            pred = "BENIGN"
+                            deciding_tier = 1
+
+                elif cfg_id in ("config_e", "config_g"):
+                    # Hash + Static + Semantic Judge (No schema rule)
+                    s_res = evaluate_static_rules(ex.get("new_definition", {}), str(ex.get("structured_diff", "")))
+                    if s_res["flagged"] and s_res["severity"] == "high":
                         pred = "MALICIOUS"
                         deciding_tier = 2
                     else:
                         res = evaluate_semantic_judge_example(ex, mode="diff", model_name=model)
-                        pred = "MALICIOUS" if res["is_flagged"] else "BENIGN"
+                        if res.get("prediction") == "ERROR" or res.get("parse_error"):
+                            pred = "ERROR"
+                        else:
+                            pred = "MALICIOUS" if res["is_flagged"] else "BENIGN"
                         deciding_tier = 3
                         llm_called = True
                         lat_llm = res.get("latency_ms_llm")
+
+                elif cfg_id == "config_f":
+                    # Full Guard Pipeline (Schema + Static + Semantic Judge)
+                    schema_res = evaluate_schema_security_example(ex)
+                    if schema_res.get("is_flagged"):
+                        pred = "MALICIOUS"
+                        deciding_tier = 1.5
+                    else:
+                        s_res = evaluate_static_rules(ex.get("new_definition", {}), str(ex.get("structured_diff", "")))
+                        if s_res["flagged"] and s_res["severity"] == "high":
+                            pred = "MALICIOUS"
+                            deciding_tier = 2
+                        else:
+                            res = evaluate_semantic_judge_example(ex, mode="diff", model_name=model)
+                            if res.get("prediction") == "ERROR" or res.get("parse_error"):
+                                pred = "ERROR"
+                            else:
+                                pred = "MALICIOUS" if res["is_flagged"] else "BENIGN"
+                            deciding_tier = 3
+                            llm_called = True
+                            lat_llm = res.get("latency_ms_llm")
+
+                elif cfg_id == "config_h":
+                    # Deterministic Fast Path (No LLM: Hash + Schema + Static)
+                    schema_res = evaluate_schema_security_example(ex)
+                    if schema_res.get("is_flagged"):
+                        pred = "MALICIOUS"
+                        deciding_tier = 1.5
+                    else:
+                        s_res = evaluate_static_rules(ex.get("new_definition", {}), str(ex.get("structured_diff", "")))
+                        if s_res["flagged"] and s_res["severity"] == "high":
+                            pred = "MALICIOUS"
+                            deciding_tier = 2
+                        else:
+                            pred = "BENIGN"
+                            deciding_tier = "none"
 
                 tot_lat = (time.perf_counter() - t_start) * 1000.0
 
@@ -116,7 +188,7 @@ def run_ablation(
                         model=model if llm_called else "none"
                     )
 
-                print(f"[{cfg_id} - {idx}/{len(items)}] ID: {eid} | Pred: {pred} | Latency: {tot_lat:.2f}ms")
+                print(f"[{cfg_id} - {idx}/{len(items)}] ID: {eid} | Pred: {pred} | Tier: {deciding_tier} | Latency: {tot_lat:.2f}ms")
 
         finally:
             if writer:

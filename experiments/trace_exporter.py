@@ -45,7 +45,7 @@ def get_hardware_info() -> str:
 
 
 class TraceWriter:
-    """Appends validated per-item prediction records to a JSONL file."""
+    """Appends validated per-item prediction records to a JSONL file with resume support."""
 
     def __init__(self, output_path: Path, source_file: str, run_id: Optional[str] = None):
         self.output_path = Path(output_path)
@@ -54,7 +54,23 @@ class TraceWriter:
         self.export_commit = get_git_commit()
         self.hardware = get_hardware_info()
         self.run_id = run_id or f"run_{int(time.time())}_{uuid.uuid4().hex[:6]}"
-        self.file_handle = open(self.output_path, "w", encoding="utf-8")
+        self.file_handle = open(self.output_path, "a", encoding="utf-8")
+
+    def get_existing_item_ids(self) -> set:
+        """Returns set of item_id already written in this output file."""
+        existing = set()
+        if self.output_path.exists():
+            try:
+                with open(self.output_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        if line.strip():
+                            rec = json.loads(line)
+                            iid = rec.get("item_id")
+                            if iid:
+                                existing.add(iid)
+            except Exception:
+                pass
+        return existing
 
     def write_item(
         self,

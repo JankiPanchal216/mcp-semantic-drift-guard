@@ -2,15 +2,18 @@
 
 All changes to the research paper (`paper.md`), experimental code, datasets, and documentation are tracked in this file with reasons.
 
-### [Phase 0: Single Source of Truth, Scrubbing, and Trace Schema Standardization] - 2026-10-06
+### [Gate 0: Server-Grouped Folds, Trace Checkpointing, Error Protocol, and Baseline Disclaimers] - 2026-10-06
 
-- **Purged Constructed Prediction Rows**: Deleted all synthetic/constructed prediction files across `tier_ablation_A` through `tier_ablation_H`, `cv_fold_1` through `cv_fold_5`, `matched_pairs`, `redteam_baseline`, `redteam_v2`, `main_test_mode_a`, `main_test_mode_b`, and `main_test_integrated`.
-- **Trace Schema Standardization (`experiments/trace_exporter.py`)**: Unified prediction trace schema on: `item_id`, `server_id`, `tool_name`, `gold_label`, `predicted_label`, `deciding_tier` (numeric: 0, 1, 1.5, 2, 3 or "none"), `llm_called`, `latency_ms_total`, `latency_ms_llm`, `model`, `hardware`, `run_id`, `source_file`, `export_commit`.
-- **Scrubbed `paper.md`**: Purged all unverified legacy values (1.42s, 2.85s, 780ms, 290ms, 30.5s, 41.6s, 46.4%, 0.61, 960ms) and marked missing sweeps as `[PENDING RE-RUN]`.
-- **Reworded Static Rule Provenance**: Stated as author statement that static rules were derived from MCPTox templates and tested on MCPTox-derived attacks, noting single-commit repo history.
-- **Test Suite Hardening**:
-  - `tests/test_old_paper_numbers_fail.py`: Decorated historical test failures with `@unittest.expectedFailure` so `python -m unittest discover tests` passes.
-  - `tests/test_paper_matches_results.py`: Implemented comprehensive table and inline metric parser against `results/computed_metrics.json`, asserting zero legacy figures and verifying corrupted-paper detection.
+- **Dynamic GroupKFold CV (`experiments/cross_validate.py`)**: Replaced hard-coded server fold list with dynamic `sklearn.model_selection.GroupKFold(n_splits=5)` computed over all 370 benchmark items (train+dev+test) grouped strictly by `server_id`. Updated fold definitions, N, malicious, and benign counts in `paper.md` Section 7.4. Added `tests/test_cv_leakage.py` asserting zero pairwise server overlap and verifying 19 unique servers.
+- **Rule 10 Strict Error Enforcement (`guard/semantic_judge.py`, `guard/middleware.py`, runner scripts)**:
+  - LLM timeouts, network failures, or unparseable JSON outputs now strictly assign `prediction="ERROR"` and `parse_error=True`.
+  - Unrecognized output labels are no longer silently mapped to `"BENIGN"`.
+  - Error items are strictly excluded from TN/FN counters and tallied under a dedicated `errors` metric.
+  - Added unit test `tests/test_error_handling_rule10.py`.
+- **Per-Item Checkpointing & Resume (`experiments/trace_exporter.py`)**: Added `get_existing_item_ids()` and auto-flushing to `TraceWriter` so long-running experiment sweeps skip already-completed items on resumption.
+- **Oracle Baseline Disclaimers**: Added explicit notices in `paper.md` (Abstract, Section 1.2, Section 5.2, Section 6.1) stating that offline benchmark evaluations pre-populate the exact ground-truth `old_definition` as an oracle baseline for each item, evaluating isolated single-step semantic drift classification rather than an unanchored longitudinal deployment.
+- **Scrubbed Alert Burden Comparison**: Removed line-36 sentence mixing 0.050 alerts/release with test split counts, replacing with `[PENDING: alert-burden replay, Gate 3.1]`.
+- **Documented evaluate_phase3.py Refactoring**: Recorded removal of non-standard dev-threshold optimizer, matplotlib figure generator, and monolithic markdown report writers in favor of modular scripts and standardized trace export.
 
 
 
