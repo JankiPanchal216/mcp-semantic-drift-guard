@@ -424,7 +424,7 @@ To support full third-party reproduction and ongoing research, all code, benchma
   ```
 
 ### 12.2 Artifact Specifications
-- **Pinned Repository Commit**: `cc7bb065e952ed4b89fd02ac16def0427f3c8fdf`
+- **Pinned Repository Commit**: `d826a89c92e742ca1433f446059dbe4cb40fb7e9`
 - **MCPTox Submodule Commit**: `f85189f9ad12504c197c7f920ab818a40657b1fa`
 - **Judge System Prompt**: Implemented in `guard/semantic_judge.py` using strict JSON schema output formatting and XML delimiter sandboxing (`<untrusted_diff>`).
 - **Deterministic Schema Security Rules**: Implemented in `guard/schema_security_rules.py` for parameter defaults, `readOnly` toggles, and enum constriction.
