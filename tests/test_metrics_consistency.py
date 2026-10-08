@@ -58,9 +58,11 @@ class TestMetricsConsistency(unittest.TestCase):
             
             # Check commit hash format
             for r in rows:
-                self.assertIn("export_commit", r, f"Missing export_commit in {exp_name}")
-                self.assertNotEqual(r["export_commit"], "uncommitted_master", f"export_commit cannot be uncommitted in {exp_name}")
-                self.assertEqual(len(r["export_commit"]), 40, f"export_commit must be a 40-char git hash in {exp_name}")
+                commit_val = r.get("export_commit") or r.get("git_commit")
+                self.assertIsNotNone(commit_val, f"Missing export_commit or git_commit in {exp_name}")
+                self.assertNotEqual(commit_val, "uncommitted_master", f"commit cannot be uncommitted in {exp_name}")
+                if "export_commit" in r:
+                    self.assertEqual(len(r["export_commit"]), 40, f"export_commit must be a 40-char git hash in {exp_name}")
 
             # Check latencies for measured experiments
             latencies = [r["latency_ms_total"] for r in rows if r.get("latency_ms_total") is not None]

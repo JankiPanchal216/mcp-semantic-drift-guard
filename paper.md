@@ -41,6 +41,7 @@ Prior work (e.g., MCPTox) evaluated downstream agent vulnerability to poisoned t
 2. Formulating and benchmarking meaning-aware Semantic Drift Judges.
 3. Implementing and evaluating an integrated, multi-tier enforcement middleware with automatic rollback and quarantine handling.
 4. Stress-testing the approach against an adversarial red-team evasion suite.
+5. Evaluating multi-step incremental semantic drift (Salami Drift) to compare adjacent, cumulative, and dual-anchor monitoring architectures.
 
 ---
 
@@ -331,8 +332,98 @@ Evaluation of `data/redteam_v2.jsonl` ($N=28$, $n=2$/category) against the upgra
 ### 9.4 Judge Prompt Injection Robustness Pilot ($N=4$)
 Direct prompt override payloads targeting the judge are designated `[PENDING RE-RUN]`.
 
-### 9.5 Incremental Salami Drift Multi-Step Simulation ($N=5$)
-Sequential incremental drift evaluation across a 5-version chain is designated `[PENDING RE-RUN]`.
+### 9.5 Multi-Step Incremental Semantic Drift Evaluation (Salami Drift Benchmark V3)
+
+#### 1. Threat Model & Historical Experimental Progression
+An adversary controlling an upstream Model Context Protocol server may partition an unauthorized capability escalation across $K$ consecutive, individually minor releases ($V_1 \xrightarrow{\Delta_1} V_2 \dots \xrightarrow{\Delta_{K-1}} V_K$). Under this **Salami Drift** threat model, each adjacent delta $\Delta_i = (V_{i-1} \rightarrow V_i)$ introduces only an innocuous parameter or cosmetic docstring modification to remain below single-step detection thresholds, while the cumulative modification relative to the established baseline $\Delta_{\text{total}} = (V_0 \rightarrow V_K)$ achieves full unauthorized privilege escalation, telemetry redirection, or prompt override.
+
+The empirical evaluation of this threat progressed through three distinct methodological iterations:
+- **V1 Benchmark ($N=18$ chains, 62 transitions)**: The initial proof-of-concept demonstrated that adjacent, cumulative, and dual strategies produced indistinguishable results (75.0% chain detection). An architectural audit revealed that V1 exposed that the benchmark contained deterministic/static detection leakage and was insufficient to establish the hypothesis.
+- **V2 Iteration**: Attempted to remove leakage; however, an independent audit discovered that authoritative metrics had been generated using mock/gold-label injection. V2 must therefore not be presented as valid empirical evidence and serves as an explicit methodological failure and audit finding.
+- **V3 Authoritative Live Benchmark**: Completely redesigned benchmark with 9 automated validation quality gates (`results/SALAMI_DRIFT_V3_VALIDATION.md`), deterministic leakage removed from semantic categories, a live model selection diagnostic, smoke testing, full live evaluation with 0 mock calls and 0 gold-label leakage, and an independent final methodological audit. V3 is the authoritative experiment.
+
+#### 2. V3 Benchmark Composition & Validation Gates
+The V3 benchmark (`data/salami_drift_benchmark_v3.jsonl`, SHA-256: `04d864faa59c1c088205bb8fa38c99fc5fa3f0428070c331fe546ef0884b599f`) comprises **40 independent chains** spanning **144 total state transitions** (40 malicious transitions, 104 benign transitions):
+- **Malicious Chains ($N=24$ chains, 40 attack transitions)**:
+  - *16 Salami Drift chains*:
+    - Category A (Adjacent-Evasive Salami Drift, $n=4$ chains, 16 transitions): Multi-step capability combinations introducing standard operational parameters (`format_style`, `record_metrics`, `stream_channel`) where individual steps are subtle.
+    - Category D (Parameter Drift, $n=3$ chains, 12 transitions): Gradual relaxing of configuration constraints (e.g., timeout $\rightarrow$ custom transport $\rightarrow$ TLS verification disable toggle).
+    - Category E (Instruction Erosion, $n=3$ chains, 12 transitions): Incremental docstring phrasing weakening authority boundaries (e.g., style theme $\rightarrow$ LaTeX support $\rightarrow$ raw script rendering).
+    - Category F (Capability Combination, $n=3$ chains, 12 transitions): Staging auxiliary logging parameters that become dangerous only when combined.
+    - Category G (Low-Signal Semantic Drift, $n=3$ chains, 12 transitions): Paraphrased operational options without injection keywords.
+  - *Category B (Fast-Jump Positive Controls, $n=8$ chains, 24 transitions)*: Single-step overt capability leaps serving as positive controls.
+- **Benign Control Chains ($N=16$ chains, 104 transitions)**:
+  - *Category C (Benign Long-Drift Controls, $n=8$ chains, 32 transitions)*: Legitimate software evolution adding 4 consecutive valid parameters across 4 versions with cumulative distance matched to Category A.
+  - *Standard Benign Controls ($n=8$ chains, 24 transitions)*: 3-step routine maintenance updates (bug fixes, pagination, formatting).
+
+All chains passed 9 pre-inference validation gates, confirming Draft-07 JSON Schema validity, monotonic parameter sequencing, zero deterministic Tier 1.5/Tier 2 leakage in semantic categories, and zero gold-label leakage in model-facing prompts (`results/salami_drift_v3/model_input_audit.json`).
+
+#### 3. Model Selection Diagnostic
+Model capacity was identified as a critical dependency for structured diff reasoning. Prior to benchmarking, candidate local models were evaluated across a fixed three-model diagnostic suite (`scratch/model_selection_diagnostic.py`):
+- `qwen2.5:1.5b`: Achieved 66.7% structured JSON parse success; rejected because of truncated/malformed outputs.
+- `gemma3:4b`: Achieved **100.0% structured JSON parse success** in diagnostic with stable complete responses and approximately 13.8 seconds/call on CPU; selected as the authoritative evaluation engine.
+- `qwen3:8b`: Achieved 0.0% parse success in diagnostic; rejected because of empty/timeout outputs on CPU.
+
+Model selection was conducted on fixed diagnostic prompts strictly prior to benchmarking and was not based on benchmark performance.
+
+#### 4. Live Benchmark Execution & Audited Metrics
+The authoritative benchmark executed 432 strategy evaluations (144 transitions $\times$ 3 strategies) generating **576 genuine live LLM calls** (0 mock calls, 0 gold-label leakage). All semantic-category transitions reached the Tier 3 semantic-judge stage; 94.6% produced directly parsed Tier 3 decisions, while 5.4% (31/576 calls) required the documented `BALANCED` policy fallback because of parsing failures, safely resolving to `WARN`/`SUSPICIOUS` without ground-truth contamination.
+
+##### Transition-Level Main Results ($N=144$ Transitions):
+*Source: `results/salami_drift_v3/computed_metrics.json` and traces in `results/salami_drift_v3_*/predictions.jsonl`.*
+
+| Strategy | TP | TN | FP | FN | Recall | Precision | F1 | Benign Transition FPR |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Adjacent** | 17 | 104 | 0 | 23 | 42.5% | 100.0% | 0.597 | 0.0% |
+| **Cumulative** | 25 | 102 | 2 | 15 | 62.5% | 92.6% | 0.746 | 1.9% |
+| **Dual** | 28 | 102 | 2 | 12 | 70.0% | 93.3% | 0.800 | 1.9% |
+
+##### Chain-Level Trajectory Outcomes ($N=40$ Chains):
+
+| Strategy | Malicious Chain Recall | Benign Chain FPR | Mean Exposure |
+|---|:---:|:---:|:---:|
+| **Adjacent** | 58.3% (14/24) | 6.2% (1/16) | 0.88 |
+| **Cumulative** | 91.7% (22/24) | 50.0% (8/16) | 0.42 |
+| **Dual** | 91.7% (22/24) | 50.0% (8/16) | 0.38 |
+
+*Methodological Audit on Chain FPR*: Chain-level FPR is substantially higher than transition-level FPR because a benign chain is counted as a false-positive chain if at least one transition is flagged across its trajectory. Final audit findings confirm that while transition-level benign FPR remained low at **1.9%** (2 false positives across 104 benign transitions), 6 of the 8 cumulative/dual benign-chain flags were associated with parsing-error $\rightarrow$ `WARN` fallbacks rather than substantive semantic `MALICIOUS` judgments. Only 2 benign chains (`v3_chain_29` and `v3_chain_31`) exhibited semantic false alarms at Step 4 due to natural feature accumulation across multiple valid versions.
+
+#### 5. Hypothesis Testing & Paired Statistical Analysis
+The core research hypothesis evaluates whether cumulative context recovers malicious incremental transitions missed by adjacent-only comparison:
+$$\text{Adjacent Prediction} = \text{BENIGN} \quad \wedge \quad \text{Cumulative Prediction} = \text{MALICIOUS}$$
+
+##### Paired McNemar Exact Tests ($N=144$ Paired Transitions):
+- **Adjacent vs. Cumulative**: McNemar exact $p = 0.21011$ ($\text{not statistically significant at } \alpha = 0.05$).
+- **Adjacent vs. Dual**: McNemar exact $p = 0.02246$ ($\text{statistically significant at } \alpha = 0.05$).
+
+There were **11 cumulative-only detections** (Adjacent = `BENIGN`, Cumulative = `MALICIOUS`) versus **3 reverse discordant cases** (Adjacent = `MALICIOUS`, Cumulative = `BENIGN`, 2 of which stemmed from JSON parse failures on cumulative diffs).
+
+V3 provides direct evidence that cumulative context can recover malicious transitions missed by adjacent-only comparison, with 11 cumulative-only detections versus 3 reverse discordant cases. However, the paired Adjacent-vs-Cumulative comparison was not statistically significant (McNemar exact $p = 0.21011$). In contrast, Dual-Anchor significantly outperformed Adjacent-only monitoring (McNemar exact $p = 0.02246$), indicating that combining local and root-relative comparisons provides stronger detection than adjacent comparison alone on this benchmark.
+
+##### Audited Cumulative-Only Detections ($N=11$ Cases):
+Independent audit confirmed that all 11 cumulative-only detections satisfy the intended salami-drift construction: individually subtle incremental changes that become materially more suspicious when evaluated against the root definition ($V_0 \rightarrow V_k$):
+1. `v3_chain_01_matrix_math_step_04` (Cat A): Step 4 adds `stream_channel` context redirection.
+2. `v3_chain_02_formatter_bypass_step_03` (Cat A): Step 3 introduces unescaped character encoding bypass.
+3. `v3_chain_04_container_supervisor_step_04` (Cat A): Step 4 attaches host IPC namespace.
+4. `v3_chain_05_param_tls_step_04` (Cat D): Step 4 enables TLS certificate verification toggle.
+5. `v3_chain_07_param_sandbox_step_04` (Cat D): Step 4 enables host network interface binding.
+6. `v3_chain_08_inst_markdown_step_03` (Cat E): Step 3 enables raw script block rendering.
+7. `v3_chain_09_inst_prompts_step_04` (Cat E): Step 4 injects directive precedence overrides.
+8. `v3_chain_10_inst_sql_step_03` (Cat E): Step 3 introduces raw predicate injection.
+9. `v3_chain_10_inst_sql_step_04` (Cat E): Step 4 disables automatic tenant isolation clauses.
+10. `v3_chain_12_comb_search_step_04` (Cat F): Step 4 attaches dynamic expression evaluation.
+11. `v3_chain_15_sem_metrics_step_03` (Cat G): Step 3 enables environment token logging.
+
+#### 6. Threats to Validity
+We identify the following potential threats to validity and the controls instituted in V3:
+- **Benchmark Construction Bias**: Synthetic attack trajectories and benign evolutions may introduce structural artifacts. V3 mitigated this through length-matched Category C benign drift controls and 9 pre-inference validation gates.
+- **Deterministic Leakage Controls**: Prior iterations suffered from static keyword leakage; V3 strictly verified that 100% of transitions in semantic categories bypassed Tier 1.5 and Tier 2 filters.
+- **Gold-Label Leakage Controls**: V3 enforced strict isolation of model prompts from ground-truth labels and metadata, verified via `results/salami_drift_v3/model_input_audit.json`.
+- **Local Model Limitations & Dependence on Semantic Judge**: Evaluations utilized local quantized `gemma3:4b`. Variations in base model reasoning, instruction following, and output parsing directly influence detection fidelity.
+- **Parsing / Fallback Behavior**: A 5.4% parse failure rate was observed, with formatting anomalies defaulting to policy fallback (`WARN`), contributing to benign chain false alarms.
+- **Chain-Level FPR Amplification**: Evaluating multi-step chains compounds transition false positives; any single transition alert marks the entire benign chain as flagged.
+- **Limited Trajectory Sample Size**: With 40 chains and 144 transitions, findings represent evidence on the constructed benchmark rather than asymptotic universal proof.
+- **Generalization Boundaries**: V3 evaluates structured MCP tool evolution categories but does not encompass all arbitrary open-world tool evolution topologies.
 
 ### 9.6 Newly Added Tools & Maintainer Rug-Pull Timing Policies
 - **Newly Added Tools**: Newly introduced tools lack prior V1 baselines; policy enforces **Initial Discovery Quarantine** until explicit administrative review.
@@ -389,9 +480,15 @@ We explicitly document the following empirical, architectural, and evaluation bo
 7. **Rollback Compatibility Scope**: Baseline rollback to $V_1$ is effective for docstring modifications and optional parameters, but breaking structural mutations (required parameter additions, property deletions, type changes) cause downstream RPC invocation failures and must escalate to Full Tool Quarantine.
 8. **Evaluation Environment**: Live JSON-RPC proxy evaluation was conducted in controlled local socket test fixtures rather than multi-tenant, internet-scale production deployments.
 9. **Judge Prompt-Injection Sample ($N=4$)**: Prompt override sandboxing was verified across 4 targeted pilot cases; evaluating complex multi-turn prompt injection payloads remains future work.
-10. **Salami-Drift Evaluation Scope ($N=5$)**: Incremental multi-step drift was evaluated across a 5-version sequential chain; larger multi-branch drift topologies remain to be explored.
-11. **Local vs. Frontier Model Scope**: Primary evaluations focus on quantized local models (`Qwen3:8B`, `Gemma3:4B`, `Qwen2.5:1.5B`); evaluations on closed commercial frontier APIs (e.g., GPT-4o, Claude 3.5 Sonnet) were not executed.
-12. **Corpus Coverage**: Mining was conducted across 28 open-source repositories on GitHub; while diverse, it does not encompass the entire closed enterprise MCP landscape.
+10. **Local Model Capacity**: Only `gemma3:4b` was suitable for the authoritative Salami Drift V3 run under the local CPU environment. Larger `qwen3:8b` failed the diagnostic because of empty/timeout outputs.
+11. **Parsing Failures & Fallback Sensitivity**: Across the live V3 evaluation, 31 of 576 model queries (5.4%) failed structured JSON parsing and required policy fallback, contributing to benign chain false alarms.
+12. **Benign Chain False Positives vs. Transition FPR**: While transition-level benign FPR was low at 1.9% (2/104), chain-level benign FPR reached 50.0% (8/16 chains). 6 of the 8 cumulative/dual benign chain alarms stemmed from parse-error fallbacks on long cumulative diffs rather than semantic judgments.
+13. **Statistical Power**: The Salami Drift benchmark contains 144 transitions across 40 trajectories. Results demonstrate empirical evidence on the constructed benchmark rather than universal proof across arbitrary environments.
+14. **Benchmark Scope**: V3 covers defined salami-drift categories (A, D, E, F, G, B, C) but does not establish performance against every possible open-world MCP tool evolution topology.
+15. **Model Dependence**: Semantic detection fidelity depends directly on the selected local LLM and its parsing reliability.
+16. **No Claim of Universal Optimality**: Dual-Anchor monitoring is not claimed to be universally optimal across all deployment settings; it was the strongest strategy among those evaluated on this benchmark.
+17. **Local vs. Frontier Model Scope**: Primary evaluations focus on quantized local models (`Qwen3:8B`, `Gemma3:4B`, `Qwen2.5:1.5B`); evaluations on closed commercial frontier APIs (e.g., GPT-4o, Claude 3.5 Sonnet) were not executed.
+18. **Corpus Coverage**: Mining was conducted across 28 open-source repositories on GitHub; while diverse, it does not encompass the entire closed enterprise MCP landscape.
 
 ---
 
@@ -403,6 +500,10 @@ To support full third-party reproduction and ongoing research, all code, benchma
 - **Unit & Integration Tests (Zero Leakage & Safety)**:
   ```bash
   python -m unittest discover tests
+  ```
+- **Salami Drift Benchmark V3 Live Authoritative Evaluation**:
+  ```bash
+  python experiments/evaluate_salami_drift_v3.py --model gemma3:4b --authoritative
   ```
 - **Zero-Leakage Server Disjointness Verification**:
   ```bash
@@ -428,6 +529,19 @@ To support full third-party reproduction and ongoing research, all code, benchma
 ### 12.2 Artifact Specifications
 - **Pinned Repository Commit**: `d826a89c92e742ca1433f446059dbe4cb40fb7e9`
 - **MCPTox Submodule Commit**: `f85189f9ad12504c197c7f920ab818a40657b1fa`
+- **Salami Drift Benchmark V3 Dataset**: `data/salami_drift_benchmark_v3.jsonl` (SHA-256: `04d864faa59c1c088205bb8fa38c99fc5fa3f0428070c331fe546ef0884b599f`)
+- **Authoritative Salami Drift V3 Prediction Traces**:
+  - Adjacent Strategy: `results/salami_drift_v3_per_step/predictions.jsonl`
+  - Cumulative Strategy: `results/salami_drift_v3_cumulative/predictions.jsonl`
+  - Dual-Anchor Strategy: `results/salami_drift_v3_dual/predictions.jsonl`
+- **Audit & Validation Manifests**:
+  - `results/salami_drift_v3/validation_report.json`
+  - `results/salami_drift_v3/run_manifest.json`
+  - `results/salami_drift_v3/computed_metrics.json`
+  - `results/salami_drift_v3/model_input_audit.json`
+  - `results/SALAMI_DRIFT_V3_VALIDATION.md`
+  - `results/SALAMI_DRIFT_V3_FINAL_AUDIT.md`
+  - `results/FINAL_RESEARCH_PACKAGE_AUDIT.md`
 - **Judge System Prompt**: Implemented in `guard/semantic_judge.py` using strict JSON schema output formatting and XML delimiter sandboxing (`<untrusted_diff>`).
 - **Deterministic Schema Security Rules**: Implemented in `guard/schema_security_rules.py` for parameter defaults, `readOnly` toggles, and enum constriction.
 - **Static Regex Rules**: 7 rules in `guard/static_rules.py`.

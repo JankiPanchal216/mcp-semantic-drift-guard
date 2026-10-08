@@ -14,6 +14,7 @@ class GuardConfig:
     def __init__(
         self,
         policy_mode: str = "BALANCED",
+        anchor_mode: str = "adjacent",
         ollama_url: str = "http://localhost:11434/api/chat",
         model_name: str = "qwen3:8b",
         temperature: float = 0.0,
@@ -23,6 +24,7 @@ class GuardConfig:
         audit_log_path: Optional[Path] = None
     ):
         self.policy_mode = policy_mode.upper()  # STRICT, BALANCED, AUDIT
+        self.anchor_mode = anchor_mode.lower()  # adjacent, cumulative, dual
         self.ollama_url = ollama_url
         self.model_name = model_name
         self.temperature = temperature

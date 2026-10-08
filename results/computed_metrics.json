@@ -40,7 +40,8 @@
       "mean": null,
       "median": null,
       "p95": null
-    }
+    },
+    "chain_metrics": null
   },
   "main_test_static": {
     "n": 56,
@@ -83,7 +84,8 @@
       "mean": null,
       "median": null,
       "p95": null
-    }
+    },
+    "chain_metrics": null
   },
   "main_test_tfidf": {
     "n": 56,
@@ -126,7 +128,8 @@
       "mean": null,
       "median": null,
       "p95": null
-    }
+    },
+    "chain_metrics": null
   },
   "main_test_schema": {
     "n": 56,
@@ -169,6 +172,175 @@
       "mean": null,
       "median": null,
       "p95": null
+    },
+    "chain_metrics": null
+  },
+  "salami_drift_per_step": {
+    "n": 62,
+    "tp": 11,
+    "tn": 38,
+    "fp": 0,
+    "fn": 13,
+    "pred_pos": 11,
+    "actual_pos": 24,
+    "actual_neg": 38,
+    "precision": 1.0,
+    "precision_ci95": [
+      0.7411670330319684,
+      1.0
+    ],
+    "recall": 0.4583333333333333,
+    "recall_ci95": [
+      0.2789133373121099,
+      0.6492513464108051
+    ],
+    "f1": 0.6285714285714286,
+    "benign_fpr": 0.0,
+    "benign_fpr_ci95": [
+      0.0,
+      0.09180986822558396
+    ],
+    "malicious_fnr": 0.5416666666666666,
+    "malicious_fnr_ci95": [
+      0.3507486535891948,
+      0.72108666268789
+    ],
+    "llm_calls_total": 51,
+    "llm_calls_per_update": 0.8225806451612904,
+    "latency_all_ms": {
+      "mean": 8088.989080645162,
+      "median": 9366.606,
+      "p95": 11665.857
+    },
+    "latency_llm_ms": {
+      "mean": 9830.156529411766,
+      "median": 9562.841,
+      "p95": 11694.8295
+    },
+    "chain_metrics": {
+      "total_chains": 18,
+      "malicious_chains": 12,
+      "benign_chains": 6,
+      "chain_detection_rate": 0.75,
+      "benign_chain_fpr": 0.0,
+      "mean_exposure_window": 1.0833333333333333,
+      "median_exposure_window": 1.0,
+      "max_exposure_window": 2,
+      "min_exposure_window": 0,
+      "first_malicious_step_detection_rate": 0.16666666666666666,
+      "detected_before_final_payload_rate": 0.16666666666666666
+    }
+  },
+  "salami_drift_cumulative": {
+    "n": 62,
+    "tp": 11,
+    "tn": 38,
+    "fp": 0,
+    "fn": 13,
+    "pred_pos": 11,
+    "actual_pos": 24,
+    "actual_neg": 38,
+    "precision": 1.0,
+    "precision_ci95": [
+      0.7411670330319684,
+      1.0
+    ],
+    "recall": 0.4583333333333333,
+    "recall_ci95": [
+      0.2789133373121099,
+      0.6492513464108051
+    ],
+    "f1": 0.6285714285714286,
+    "benign_fpr": 0.0,
+    "benign_fpr_ci95": [
+      0.0,
+      0.09180986822558396
+    ],
+    "malicious_fnr": 0.5416666666666666,
+    "malicious_fnr_ci95": [
+      0.3507486535891948,
+      0.72108666268789
+    ],
+    "llm_calls_total": 51,
+    "llm_calls_per_update": 0.8225806451612904,
+    "latency_all_ms": {
+      "mean": 9145.332161290322,
+      "median": 11165.092,
+      "p95": 15070.436399999999
+    },
+    "latency_llm_ms": {
+      "mean": 11113.128156862744,
+      "median": 11842.68,
+      "p95": 15168.986
+    },
+    "chain_metrics": {
+      "total_chains": 18,
+      "malicious_chains": 12,
+      "benign_chains": 6,
+      "chain_detection_rate": 0.75,
+      "benign_chain_fpr": 0.0,
+      "mean_exposure_window": 1.0833333333333333,
+      "median_exposure_window": 1.0,
+      "max_exposure_window": 2,
+      "min_exposure_window": 0,
+      "first_malicious_step_detection_rate": 0.16666666666666666,
+      "detected_before_final_payload_rate": 0.16666666666666666
+    }
+  },
+  "salami_drift_dual": {
+    "n": 62,
+    "tp": 11,
+    "tn": 38,
+    "fp": 0,
+    "fn": 13,
+    "pred_pos": 11,
+    "actual_pos": 24,
+    "actual_neg": 38,
+    "precision": 1.0,
+    "precision_ci95": [
+      0.7411670330319684,
+      1.0
+    ],
+    "recall": 0.4583333333333333,
+    "recall_ci95": [
+      0.2789133373121099,
+      0.6492513464108051
+    ],
+    "f1": 0.6285714285714286,
+    "benign_fpr": 0.0,
+    "benign_fpr_ci95": [
+      0.0,
+      0.09180986822558396
+    ],
+    "malicious_fnr": 0.5416666666666666,
+    "malicious_fnr_ci95": [
+      0.3507486535891948,
+      0.72108666268789
+    ],
+    "llm_calls_total": 51,
+    "llm_calls_per_update": 0.8225806451612904,
+    "latency_all_ms": {
+      "mean": 12150.123580645162,
+      "median": 16405.982,
+      "p95": 22442.257249999995
+    },
+    "latency_llm_ms": {
+      "mean": 14768.117764705883,
+      "median": 16891.207,
+      "p95": 24451.934999999998
+    },
+    "chain_metrics": {
+      "total_chains": 18,
+      "malicious_chains": 12,
+      "benign_chains": 6,
+      "chain_detection_rate": 0.75,
+      "benign_chain_fpr": 0.0,
+      "mean_exposure_window": 1.0833333333333333,
+      "median_exposure_window": 1.0,
+      "max_exposure_window": 2,
+      "min_exposure_window": 0,
+      "first_malicious_step_detection_rate": 0.16666666666666666,
+      "detected_before_final_payload_rate": 0.16666666666666666
     }
   }
 }

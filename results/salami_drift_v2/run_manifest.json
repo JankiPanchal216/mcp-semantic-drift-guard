@@ -1,0 +1,30 @@
+{
+  "benchmark_version": "v2",
+  "benchmark_file": "data/salami_drift_benchmark_v2.jsonl",
+  "dataset_sha256": "3cda58e41ed65fb47b0b9889e92f2e49d4a9bd50113f9b8babbcb3999705336b",
+  "model": "qwen2.5:1.5b",
+  "policy": "BALANCED",
+  "anchor_modes": [
+    "adjacent",
+    "cumulative",
+    "dual"
+  ],
+  "git_commit": "381125b09dee2d05f23e170e32762a71f815305d",
+  "hardware": "Local GPU/CPU Environment (Windows x86_64)",
+  "total_chains": 24,
+  "malicious_chains": 16,
+  "benign_chains": 8,
+  "total_transitions": 88,
+  "categories": {
+    "A_adjacent_evasive": 4,
+    "B_adjacent_detectable": 3,
+    "C_benign_long_drift": 4,
+    "C_std_benign_control": 4,
+    "D_param_drift": 3,
+    "E_instruction_erosion": 2,
+    "F_capability_combination": 2,
+    "G_low_signal_drift": 2
+  },
+  "execution_status": "COMPLETED",
+  "timestamp": "2026-10-07T20:50:58Z"
+}

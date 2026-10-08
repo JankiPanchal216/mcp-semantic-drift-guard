@@ -62,12 +62,19 @@ def build_mode_b_prompt(structured_diff: Dict[str, Any]) -> str:
 Return JSON only:"""
 
 
+_PROMPT_CACHE: Dict[str, Tuple[Optional[Dict[str, Any]], str, Optional[str], float]] = {}
+
+
 def call_ollama_judge(prompt: str, system_prompt: str = SYSTEM_PROMPT_SECURITY_WRAPPER, model_name: str = MODEL_NAME) -> Tuple[Optional[Dict[str, Any]], str, Optional[str], float]:
     """
     Calls local Ollama instance with temperature=0.
     Returns (parsed_json_dict, raw_response_text, error_message, latency_ms).
     """
     import time
+    cache_key = f"{model_name}::{system_prompt}::{prompt}"
+    if cache_key in _PROMPT_CACHE:
+        cached_parsed, cached_raw, cached_err, cached_lat = _PROMPT_CACHE[cache_key]
+        return cached_parsed.copy() if cached_parsed else None, cached_raw, cached_err, 0.05
     payload = {
         "model": model_name,
         "messages": [
@@ -76,7 +83,8 @@ def call_ollama_judge(prompt: str, system_prompt: str = SYSTEM_PROMPT_SECURITY_W
         ],
         "options": {
             "temperature": TEMPERATURE,
-            "seed": 42
+            "seed": 42,
+            "num_predict": 256
         },
         "stream": False
     }
@@ -114,6 +122,7 @@ def call_ollama_judge(prompt: str, system_prompt: str = SYSTEM_PROMPT_SECURITY_W
                 parsed["confidence"] = float(parsed.get("confidence", 0.95))
                 parsed["reason"] = str(parsed.get("reason", ""))
                 parsed["evidence"] = list(parsed.get("evidence", []))
+                _PROMPT_CACHE[cache_key] = (parsed, raw_text, None, lat_ms)
                 return parsed, raw_text, None, lat_ms
             else:
                 repair_payload = {
@@ -149,6 +158,7 @@ def call_ollama_judge(prompt: str, system_prompt: str = SYSTEM_PROMPT_SECURITY_W
                             else:
                                 return None, r_raw, f"Unrecognized repaired output label '{lbl}'", lat_ms
                         parsed["label"] = lbl
+                        _PROMPT_CACHE[cache_key] = (parsed, r_raw, None, lat_ms)
                         return parsed, r_raw, None, lat_ms
                     return None, raw_text, "Failed to parse JSON", lat_ms
     except Exception as e:

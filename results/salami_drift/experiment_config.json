@@ -1,0 +1,17 @@
+{
+  "benchmark_version": "1.0_multi_chain",
+  "benchmark_file": "C:\\Users\\Janki Panchal\\Downloads\\New folder\\Desktop\\Research\\APP\\data\\salami_drift_benchmark.jsonl",
+  "random_seed": 42,
+  "detector_configuration": "T0_Hash -> T1_AST -> T1.5_Schema -> T2_Static -> T3_Local_Judge",
+  "policy_mode": "BALANCED",
+  "tested_anchor_modes": [
+    "adjacent",
+    "cumulative",
+    "dual"
+  ],
+  "model": "qwen2.5:1.5b",
+  "hardware": "Local GPU/CPU Environment",
+  "git_commit": "master_salami_drift_v1",
+  "total_chains": 18,
+  "total_transitions": 62
+}

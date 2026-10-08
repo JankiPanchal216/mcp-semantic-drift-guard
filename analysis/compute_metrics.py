@@ -68,6 +68,66 @@ def evaluate_prediction_file(pred_file: Path) -> Dict[str, Any]:
     lat_llm_median = float(np.median(llm_latencies)) if llm_latencies else None
     lat_llm_p95 = float(np.percentile(llm_latencies, 95)) if llm_latencies else None
 
+    # Chain-level exposure metrics if chain_id present
+    chains_map = {}
+    for r in rows:
+        if "chain_id" in r:
+            cid = r["chain_id"]
+            if cid not in chains_map:
+                chains_map[cid] = []
+            chains_map[cid].append(r)
+
+    chain_metrics = None
+    if chains_map:
+        mal_exp_windows = []
+        mal_chains_count = 0
+        ben_chains_count = 0
+        detected_mal_chains = 0
+        first_mal_detected_count = 0
+        before_final_count = 0
+        false_alarm_benign_chains = 0
+
+        for cid, c_rows in chains_map.items():
+            c_rows_sorted = sorted(c_rows, key=lambda x: x.get("step_index", 0))
+            mal_steps = [r for r in c_rows_sorted if r["gold_label"] == "MALICIOUS"]
+            is_mal = len(mal_steps) > 0
+
+            first_det_idx = next((r.get("step_index", 0) for r in c_rows_sorted if r["predicted_label"] == "MALICIOUS"), None)
+
+            if is_mal:
+                mal_chains_count += 1
+                first_mal_idx = mal_steps[0].get("step_index", 0)
+                if first_det_idx is not None:
+                    detected_mal_chains += 1
+                    if first_det_idx <= first_mal_idx:
+                        exp_win = 0
+                        first_mal_detected_count += 1
+                    else:
+                        exp_win = first_det_idx - first_mal_idx
+                    if first_det_idx < c_rows_sorted[-1].get("step_index", 0):
+                        before_final_count += 1
+                else:
+                    exp_win = len(mal_steps)
+                mal_exp_windows.append(exp_win)
+            else:
+                ben_chains_count += 1
+                if first_det_idx is not None:
+                    false_alarm_benign_chains += 1
+
+        chain_metrics = {
+            "total_chains": len(chains_map),
+            "malicious_chains": mal_chains_count,
+            "benign_chains": ben_chains_count,
+            "chain_detection_rate": (detected_mal_chains / mal_chains_count) if mal_chains_count > 0 else 0.0,
+            "benign_chain_fpr": (false_alarm_benign_chains / ben_chains_count) if ben_chains_count > 0 else 0.0,
+            "mean_exposure_window": float(np.mean(mal_exp_windows)) if mal_exp_windows else 0.0,
+            "median_exposure_window": float(np.median(mal_exp_windows)) if mal_exp_windows else 0.0,
+            "max_exposure_window": int(max(mal_exp_windows)) if mal_exp_windows else 0,
+            "min_exposure_window": int(min(mal_exp_windows)) if mal_exp_windows else 0,
+            "first_malicious_step_detection_rate": (first_mal_detected_count / mal_chains_count) if mal_chains_count > 0 else 0.0,
+            "detected_before_final_payload_rate": (before_final_count / mal_chains_count) if mal_chains_count > 0 else 0.0
+        }
+
     return {
         "n": total_n,
         "tp": tp,
@@ -97,7 +157,8 @@ def evaluate_prediction_file(pred_file: Path) -> Dict[str, Any]:
             "mean": lat_llm_mean,
             "median": lat_llm_median,
             "p95": lat_llm_p95
-        }
+        },
+        "chain_metrics": chain_metrics
     }
 
 
@@ -125,7 +186,10 @@ def compute_all_metrics() -> Dict[str, Any]:
         "cv_fold_5",
         "matched_pairs",
         "redteam_baseline",
-        "redteam_v2"
+        "redteam_v2",
+        "salami_drift_per_step",
+        "salami_drift_cumulative",
+        "salami_drift_dual"
     ]
 
     all_metrics = {}

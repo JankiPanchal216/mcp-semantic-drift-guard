@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-10-08T13:56:00Z",
+  "evaluation_mode": "AUTHORITATIVE_FULL_RUN",
+  "model_name": "gemma3:4b",
+  "policy_mode": "BALANCED",
+  "hardware": "Windows 10 (AMD64) | Python 3.11.9",
+  "git_commit": "e7cb45f63f0f341ab943fb1df6e5378f5b11a84e",
+  "dataset_sha256": "04d864faa59c1c088205bb8fa38c99fc5fa3f0428070c331fe546ef0884b599f",
+  "total_chains_evaluated": 40,
+  "total_transitions_evaluated": 144,
+  "total_live_calls": 576,
+  "total_mock_calls": 0,
+  "total_parse_failures": 31,
+  "live_calls_assertion_passed": true
+}

@@ -1,0 +1,78 @@
+{
+  "benchmark_version": "v3",
+  "generator_version": "3.0.0",
+  "generation_timestamp": "2026-10-08T06:05:08Z",
+  "overall_validation_status": "VALIDATED_FOR_INFERENCE",
+  "total_chains": 40,
+  "malicious_chains": 24,
+  "benign_chains": 16,
+  "total_transitions": 144,
+  "malicious_transitions": 40,
+  "benign_transitions": 104,
+  "per_category_transition_counts": {
+    "A_adjacent_evasive": 16,
+    "D_parameter_drift": 12,
+    "E_instruction_erosion": 12,
+    "F_capability_combination": 12,
+    "G_low_signal_drift": 12,
+    "B_adjacent_detectable": 24,
+    "C_benign_long_drift": 32,
+    "C_std_benign_control": 24
+  },
+  "gate_results": {
+    "G1": {
+      "name": "Adjacent-Smallness Test",
+      "passed": true,
+      "failures": []
+    },
+    "G2": {
+      "name": "Cumulative-Growth Test",
+      "passed": true,
+      "failures": []
+    },
+    "G3": {
+      "name": "No-Single-Step-Attack Test",
+      "passed": true,
+      "failures": []
+    },
+    "G4": {
+      "name": "Deterministic Static Rule Leakage Test",
+      "passed": true,
+      "failures": []
+    },
+    "G5": {
+      "name": "Deterministic Schema Security Leakage Test",
+      "passed": true,
+      "failures": []
+    },
+    "G6": {
+      "name": "Gold-Label Leakage Test",
+      "passed": true,
+      "failures": []
+    },
+    "G7": {
+      "name": "Schema Validity Test",
+      "passed": true,
+      "failures": []
+    },
+    "G8": {
+      "name": "Step Ordering & Lineage Integrity Test",
+      "passed": true,
+      "failures": []
+    },
+    "G9": {
+      "name": "Benign Control Comparability Test",
+      "passed": true,
+      "failures": []
+    }
+  },
+  "deterministic_leakage_count_semantic_categories": 0,
+  "final_step_capability_leap_count_semantic_categories": 0,
+  "gold_label_leakage_count": 0,
+  "comparability_metrics": {
+    "category_a_avg_final_params": 4.0,
+    "category_c_avg_final_params": 4.0,
+    "balanced": true
+  },
+  "dataset_sha256": "04d864faa59c1c088205bb8fa38c99fc5fa3f0428070c331fe546ef0884b599f"
+}

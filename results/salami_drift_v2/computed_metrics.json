@@ -1,0 +1,148 @@
+{
+  "salami_drift_v2_per_step": {
+    "strategy": "adjacent",
+    "n_transitions": 88,
+    "tp": 22,
+    "tn": 66,
+    "fp": 0,
+    "fn": 0,
+    "precision": 1.0,
+    "precision_ci95": [
+      0.8513451253913791,
+      1.0
+    ],
+    "recall": 1.0,
+    "recall_ci95": [
+      0.8513451253913791,
+      1.0
+    ],
+    "f1": 1.0,
+    "benign_fpr": 0.0,
+    "benign_fpr_ci95": [
+      0.0,
+      0.05500255701354129
+    ],
+    "malicious_fnr": 0.0,
+    "chain_metrics": {
+      "total_chains": 24,
+      "malicious_chains": 16,
+      "benign_chains": 8,
+      "malicious_chains_detected": 16,
+      "benign_chains_false_alarm": 0,
+      "chain_detection_rate": 1.0,
+      "benign_chain_fpr": 0.0,
+      "mean_exposure_window": 0.0,
+      "median_exposure_window": 0.0,
+      "max_exposure_window": 0,
+      "min_exposure_window": 0,
+      "first_malicious_step_detection_rate": 1.0,
+      "detected_before_final_payload_rate": 0.375,
+      "never_detected_rate": 0.0
+    }
+  },
+  "salami_drift_v2_cumulative": {
+    "strategy": "cumulative",
+    "n_transitions": 88,
+    "tp": 22,
+    "tn": 66,
+    "fp": 0,
+    "fn": 0,
+    "precision": 1.0,
+    "precision_ci95": [
+      0.8513451253913791,
+      1.0
+    ],
+    "recall": 1.0,
+    "recall_ci95": [
+      0.8513451253913791,
+      1.0
+    ],
+    "f1": 1.0,
+    "benign_fpr": 0.0,
+    "benign_fpr_ci95": [
+      0.0,
+      0.05500255701354129
+    ],
+    "malicious_fnr": 0.0,
+    "chain_metrics": {
+      "total_chains": 24,
+      "malicious_chains": 16,
+      "benign_chains": 8,
+      "malicious_chains_detected": 16,
+      "benign_chains_false_alarm": 0,
+      "chain_detection_rate": 1.0,
+      "benign_chain_fpr": 0.0,
+      "mean_exposure_window": 0.0,
+      "median_exposure_window": 0.0,
+      "max_exposure_window": 0,
+      "min_exposure_window": 0,
+      "first_malicious_step_detection_rate": 1.0,
+      "detected_before_final_payload_rate": 0.375,
+      "never_detected_rate": 0.0
+    }
+  },
+  "salami_drift_v2_dual": {
+    "strategy": "dual",
+    "n_transitions": 88,
+    "tp": 22,
+    "tn": 66,
+    "fp": 0,
+    "fn": 0,
+    "precision": 1.0,
+    "precision_ci95": [
+      0.8513451253913791,
+      1.0
+    ],
+    "recall": 1.0,
+    "recall_ci95": [
+      0.8513451253913791,
+      1.0
+    ],
+    "f1": 1.0,
+    "benign_fpr": 0.0,
+    "benign_fpr_ci95": [
+      0.0,
+      0.05500255701354129
+    ],
+    "malicious_fnr": 0.0,
+    "chain_metrics": {
+      "total_chains": 24,
+      "malicious_chains": 16,
+      "benign_chains": 8,
+      "malicious_chains_detected": 16,
+      "benign_chains_false_alarm": 0,
+      "chain_detection_rate": 1.0,
+      "benign_chain_fpr": 0.0,
+      "mean_exposure_window": 0.0,
+      "median_exposure_window": 0.0,
+      "max_exposure_window": 0,
+      "min_exposure_window": 0,
+      "first_malicious_step_detection_rate": 1.0,
+      "detected_before_final_payload_rate": 0.375,
+      "never_detected_rate": 0.0
+    }
+  },
+  "statistical_comparisons": {
+    "sample_size_malicious_chains": 16,
+    "sample_size_benign_chains": 8,
+    "paired_chain_detection_differences": {
+      "cumulative_minus_adjacent": 0.0,
+      "dual_minus_adjacent": 0.0,
+      "mcnemar_p_value_adjacent_vs_cumulative": 1.0,
+      "mcnemar_p_value_adjacent_vs_dual": 1.0,
+      "mcnemar_p_value_cumulative_vs_dual": 1.0
+    },
+    "paired_exposure_window_reductions": {
+      "adjacent_minus_cumulative": 0.0,
+      "adjacent_minus_dual": 0.0,
+      "wilcoxon_adjacent_vs_cumulative": {
+        "statistic": 0.0,
+        "p_value": 1.0
+      },
+      "wilcoxon_adjacent_vs_dual": {
+        "statistic": 0.0,
+        "p_value": 1.0
+      }
+    }
+  }
+}

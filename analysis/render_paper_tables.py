@@ -117,6 +117,36 @@ def render_table_8_8(metrics: Dict[str, Any]) -> str:
     return "\n".join(table)
 
 
+def render_table_salami_drift(metrics: Dict[str, Any]) -> str:
+    """Renders Salami Drift Multi-Step Benchmark Comparison Table."""
+    ps = metrics.get("salami_drift_per_step", {})
+    cu = metrics.get("salami_drift_cumulative", {})
+    du = metrics.get("salami_drift_dual", {})
+
+    ps_cm = ps.get("chain_metrics", {})
+    cu_cm = cu.get("chain_metrics", {})
+    du_cm = du.get("chain_metrics", {})
+
+    def _fmt_row(name: str, exp_data: Dict[str, Any], cm: Dict[str, Any]) -> str:
+        if not exp_data or not cm:
+            return f"| **{name}** | [PENDING] | [PENDING] | [PENDING] | [PENDING] | [PENDING] |"
+        det_rate = cm.get("chain_detection_rate", 0.0)
+        fpr = cm.get("benign_chain_fpr", 0.0)
+        mean_exp = cm.get("mean_exposure_window", 0.0)
+        med_exp = cm.get("median_exposure_window", 0.0)
+        max_exp = cm.get("max_exposure_window", 0)
+        return f"| **{name}** | {fmt_pct(det_rate)} | {fmt_pct(fpr)} | {mean_exp:.2f} | {med_exp:.1f} | {max_exp} |"
+
+    table = [
+        "| Strategy | Detection Rate | FPR | Mean Exposure | Median Exposure | Max Exposure |",
+        "|---|---:|---:|---:|---:|---:|",
+        _fmt_row("Per-step (Adjacent)", ps, ps_cm),
+        _fmt_row("Cumulative ($V_1$ Anchor)", cu, cu_cm),
+        _fmt_row("Dual-anchor (Combined)", du, du_cm)
+    ]
+    return "\n".join(table)
+
+
 def generate_all_tables():
     if not METRICS_FILE.exists():
         raise FileNotFoundError("computed_metrics.json not found. Run analysis/compute_metrics.py first.")
@@ -130,8 +160,11 @@ def generate_all_tables():
     print(render_table_7_4(metrics))
     print("\n=== Table 8.8 (Master Comparison Matrix) ===")
     print(render_table_8_8(metrics))
+    print("\n=== Salami Drift Multi-Step Benchmark Table ===")
+    print(render_table_salami_drift(metrics))
 
 
 if __name__ == "__main__":
     generate_all_tables()
+
 
