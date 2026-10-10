@@ -19,6 +19,27 @@ OLLAMA_API_URL = "http://localhost:11434/api/chat"
 MODEL_NAME = "qwen3:8b"
 TEMPERATURE = 0
 
+JUDGE_JSON_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "label": {
+            "type": "string",
+            "enum": ["BENIGN", "SUSPICIOUS", "MALICIOUS"]
+        },
+        "confidence": {
+            "type": "number"
+        },
+        "reason": {
+            "type": "string"
+        },
+        "evidence": {
+            "type": "array",
+            "items": {"type": "string"}
+        }
+    },
+    "required": ["label", "confidence", "reason", "evidence"]
+}
+
 
 SYSTEM_PROMPT_SECURITY_WRAPPER = """You are a specialized MCP Security Drift Auditor.
 Analyze the Model Context Protocol (MCP) tool contract update.
@@ -52,12 +73,12 @@ Return JSON only:"""
 
 
 def build_mode_b_prompt(structured_diff: Dict[str, Any]) -> str:
-    """Mode B: Diff Only (sees only the structured diff)."""
+    """Mode B: Diff Only (sees only the structured diff wrapped in untrusted_diff sandboxes)."""
     diff_json = json.dumps(structured_diff, separators=(',', ':'))
 
     return f"""Analyze this MCP tool definition update based strictly on the structured diff:
 
-<STRUCTURED_DIFF>{diff_json}</STRUCTURED_DIFF>
+<untrusted_diff>{diff_json}</untrusted_diff>
 
 Return JSON only:"""
 

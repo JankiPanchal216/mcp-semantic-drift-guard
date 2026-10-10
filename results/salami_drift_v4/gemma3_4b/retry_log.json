@@ -1,0 +1,30 @@
+{
+  "adjacent": [
+    {
+      "item_id": "v4_chain_cat_g_11_diagnostic_probe_11_step_02",
+      "strategy": "adjacent",
+      "attempts_used": 2,
+      "messages": [
+        "Attempt 1: Exception timed out"
+      ]
+    },
+    {
+      "item_id": "v4_chain_cat_c_std_15_benign_std_tool_15_step_04",
+      "strategy": "adjacent",
+      "attempts_used": 2,
+      "messages": [
+        "Attempt 1: Exception timed out"
+      ]
+    }
+  ],
+  "cumulative": [
+    {
+      "item_id": "v4_chain_cat_a_01_calculate_matrix_inverse_step_02",
+      "strategy": "cumulative",
+      "attempts_used": 2,
+      "messages": [
+        "Attempt 1: Exception timed out"
+      ]
+    }
+  ]
+}

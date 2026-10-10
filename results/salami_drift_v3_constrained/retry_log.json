@@ -1,0 +1,17 @@
+{
+  "total_calls": 288,
+  "total_retries_triggered": 1,
+  "total_residual_parse_failures": 0,
+  "residual_parse_failure_rate": 0.0,
+  "retry_events": [
+    {
+      "item_id": "v3_chain_22_fast_exec_step_03",
+      "strategy": "adjacent",
+      "attempts": 2,
+      "retries": [
+        "Attempt 1: Exception timed out"
+      ],
+      "success": true
+    }
+  ]
+}

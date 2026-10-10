@@ -1,0 +1,57 @@
+{
+  "evaluation_name": "Phase 5 Delivery Layer & Live Transport Failure Conditions",
+  "date": "2026-10-09",
+  "total_test_conditions": 5,
+  "all_tests_passed": true,
+  "total_unvetted_delivered_before": 5,
+  "total_unvetted_delivered_after": 0,
+  "conditions": [
+    {
+      "condition_id": "FC-1",
+      "name": "Ratcheting Failure under Salami Drift",
+      "unmitigated_action": "ALLOW",
+      "unmitigated_verdict": "BENIGN",
+      "mitigated_action": "QUARANTINE",
+      "mitigated_verdict": "MALICIOUS",
+      "unvetted_delivered_before": 1,
+      "unvetted_delivered_after": 0,
+      "status": "PASS"
+    },
+    {
+      "condition_id": "FC-2",
+      "name": "Reconnection History Reset under Dynamic Server ID",
+      "unmitigated_action": "ALLOW (Trust-on-First-Use Reset)",
+      "mitigated_action": "BLOCK (Cross-Session Signature Anchor Enforcement)",
+      "unvetted_delivered_before": 1,
+      "unvetted_delivered_after": 0,
+      "status": "PASS"
+    },
+    {
+      "condition_id": "FC-3",
+      "name": "Double-Fetch / TOCTOU Swapping Vulnerability",
+      "unmitigated_action": "LEAK (Server swaps definition between check and use)",
+      "mitigated_action": "SECURE (Single-Fetch Atomic Cache Forwarding)",
+      "unvetted_delivered_before": 1,
+      "unvetted_delivered_after": 0,
+      "status": "PASS"
+    },
+    {
+      "condition_id": "FC-4",
+      "name": "Dropped or Coalesced list_changed Notification Desync",
+      "unmitigated_action": "LEAK (Client invokes mutated tool without re-vetting)",
+      "mitigated_action": "BLOCK (State-Monotonic Version Sequence Barrier)",
+      "unvetted_delivered_before": 1,
+      "unvetted_delivered_after": 0,
+      "status": "PASS"
+    },
+    {
+      "condition_id": "FC-5",
+      "name": "Judge Timeout / Network Partition Fail-Safe",
+      "unmitigated_action": "FAIL-OPEN (Delivers unvetted definition to client)",
+      "mitigated_action": "FAIL-CLOSED (BLOCK: Serves previous trusted baseline)",
+      "unvetted_delivered_before": 1,
+      "unvetted_delivered_after": 0,
+      "status": "PASS"
+    }
+  ]
+}

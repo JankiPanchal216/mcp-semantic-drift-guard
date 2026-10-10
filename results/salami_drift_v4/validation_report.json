@@ -1,0 +1,72 @@
+{
+  "benchmark_version": "v4",
+  "generator_version": "4.0.0",
+  "generation_timestamp": "2026-10-09T06:59:30Z",
+  "overall_validation_status": "VALIDATED_FOR_INFERENCE",
+  "total_chains": 116,
+  "malicious_chains": 72,
+  "benign_chains": 44,
+  "total_transitions": 436,
+  "malicious_transitions": 132,
+  "benign_transitions": 304,
+  "calibration_chains": 58,
+  "held_out_test_chains": 58,
+  "gate_results": {
+    "G1": {
+      "name": "Adjacent-Smallness Test",
+      "passed": true,
+      "failures": []
+    },
+    "G2": {
+      "name": "Monotonic / Structural Validity Test",
+      "passed": true,
+      "failures": []
+    },
+    "G3": {
+      "name": "No Single-Step Capability Leap in Semantic Categories",
+      "passed": true,
+      "failures": []
+    },
+    "G4": {
+      "name": "Deterministic Static Rule Leakage Test",
+      "passed": true,
+      "failures": []
+    },
+    "G5": {
+      "name": "Deterministic Schema Security Leakage Test",
+      "passed": true,
+      "failures": []
+    },
+    "G6": {
+      "name": "Gold-Label Leakage Test",
+      "passed": true,
+      "failures": []
+    },
+    "G7": {
+      "name": "Draft-07 JSON Schema Validity Test",
+      "passed": true,
+      "failures": []
+    },
+    "G8": {
+      "name": "Step Ordering & Lineage Integrity Test",
+      "passed": true,
+      "failures": []
+    },
+    "G9": {
+      "name": "Benign Control Balance & Diversity Test",
+      "passed": true,
+      "failures": []
+    },
+    "G10": {
+      "name": "Trivial Separator Check (AUC < 0.65)",
+      "passed": true,
+      "failures": []
+    }
+  },
+  "trivial_separator_metrics": {
+    "auc_chain_length": 0.6029,
+    "auc_cumulative_param_delta": 0.6098,
+    "auc_cumulative_levenshtein": 0.5562
+  },
+  "dataset_sha256": "91f1d0de6f7673731c34967e3f5c77504e598b49fd6cc4807ef6209ddd4faebe"
+}

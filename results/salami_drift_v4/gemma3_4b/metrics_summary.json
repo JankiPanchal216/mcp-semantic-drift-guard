@@ -1,0 +1,1195 @@
+{
+  "metadata": {
+    "model_name": "gemma3:4b",
+    "dataset_sha256": "91f1d0de6f7673731c34967e3f5c77504e598b49fd6cc4807ef6209ddd4faebe",
+    "evaluation_timestamp": "2026-10-09T21:33:25Z",
+    "strategies": [
+      "adjacent",
+      "cumulative"
+    ]
+  },
+  "parse_diagnostics": {
+    "adjacent": {
+      "total_calls": 436,
+      "residual_parse_failures": 0,
+      "residual_parse_failure_rate": 0.0,
+      "calls_requiring_retry": 3,
+      "raw_avg_latency_ms": 39645.6,
+      "active_avg_latency_ms": 28877.1,
+      "active_avg_latency_s": 28.88,
+      "sleep_gaps_excluded": [
+        {
+          "item_id": "v4_chain_cat_g_07_diagnostic_probe_07_step_01",
+          "latency_s": 206.33
+        },
+        {
+          "item_id": "v4_chain_cat_g_12_diagnostic_probe_12_step_01",
+          "latency_s": 3190.96
+        },
+        {
+          "item_id": "v4_chain_cat_c_std_05_benign_std_tool_05_step_01",
+          "latency_s": 182.54
+        },
+        {
+          "item_id": "v4_chain_cat_c_std_08_benign_std_tool_08_step_02",
+          "latency_s": 145.91
+        },
+        {
+          "item_id": "v4_chain_cat_c_std_16_benign_std_tool_16_step_01",
+          "latency_s": 1113.71
+        }
+      ]
+    },
+    "cumulative": {
+      "total_calls": 436,
+      "residual_parse_failures": 0,
+      "residual_parse_failure_rate": 0.0,
+      "calls_requiring_retry": 1,
+      "raw_avg_latency_ms": 32949.61,
+      "active_avg_latency_ms": 25579.53,
+      "active_avg_latency_s": 25.58,
+      "sleep_gaps_excluded": [
+        {
+          "item_id": "v4_chain_cat_a_01_calculate_matrix_inverse_step_04",
+          "latency_s": 3238.93
+        }
+      ]
+    }
+  },
+  "metrics_by_split": {
+    "all": {
+      "rule_a_strict": {
+        "adjacent": {
+          "salami_chains": {
+            "detected": 31,
+            "total": 60,
+            "recall": 0.5167,
+            "ci_95": [
+              0.3931,
+              0.6382
+            ],
+            "avg_we": 0.1
+          },
+          "fast_jump_chains": {
+            "detected": 12,
+            "total": 12,
+            "recall": 1.0,
+            "ci_95": [
+              0.7575,
+              1.0
+            ],
+            "avg_we": 1.0
+          },
+          "all_malicious_chains": {
+            "detected": 43,
+            "total": 72,
+            "recall": 0.5972,
+            "ci_95": [
+              0.4818,
+              0.7028
+            ],
+            "avg_we": 0.25
+          },
+          "benign_control_chains": {
+            "false_alarms": 0,
+            "total": 44,
+            "fpr": 0.0,
+            "ci_95": [
+              0.0,
+              0.0803
+            ]
+          }
+        },
+        "cumulative": {
+          "salami_chains": {
+            "detected": 30,
+            "total": 60,
+            "recall": 0.5,
+            "ci_95": [
+              0.3774,
+              0.6226
+            ],
+            "avg_we": 0.0833
+          },
+          "fast_jump_chains": {
+            "detected": 10,
+            "total": 12,
+            "recall": 0.8333,
+            "ci_95": [
+              0.552,
+              0.953
+            ],
+            "avg_we": 0.8333
+          },
+          "all_malicious_chains": {
+            "detected": 40,
+            "total": 72,
+            "recall": 0.5556,
+            "ci_95": [
+              0.4409,
+              0.6646
+            ],
+            "avg_we": 0.2083
+          },
+          "benign_control_chains": {
+            "false_alarms": 0,
+            "total": 44,
+            "fpr": 0.0,
+            "ci_95": [
+              0.0,
+              0.0803
+            ]
+          }
+        },
+        "mcnemar_cumulative_vs_adjacent_salami": {
+          "contingency_table": {
+            "both_correct": 24,
+            "a_correct_only": 7,
+            "b_correct_only": 6,
+            "both_incorrect": 23
+          },
+          "discordant_pairs": 13,
+          "mcnemar_exact_p_value": 1.0
+        }
+      },
+      "rule_b_balanced": {
+        "adjacent": {
+          "salami_chains": {
+            "detected": 58,
+            "total": 60,
+            "recall": 0.9667,
+            "ci_95": [
+              0.8864,
+              0.9908
+            ],
+            "avg_we": 0.7667
+          },
+          "fast_jump_chains": {
+            "detected": 12,
+            "total": 12,
+            "recall": 1.0,
+            "ci_95": [
+              0.7575,
+              1.0
+            ],
+            "avg_we": 1.0
+          },
+          "all_malicious_chains": {
+            "detected": 70,
+            "total": 72,
+            "recall": 0.9722,
+            "ci_95": [
+              0.9043,
+              0.9923
+            ],
+            "avg_we": 0.8056
+          },
+          "benign_control_chains": {
+            "false_alarms": 3,
+            "total": 44,
+            "fpr": 0.0682,
+            "ci_95": [
+              0.0235,
+              0.1823
+            ]
+          }
+        },
+        "cumulative": {
+          "salami_chains": {
+            "detected": 43,
+            "total": 60,
+            "recall": 0.7167,
+            "ci_95": [
+              0.5923,
+              0.8149
+            ],
+            "avg_we": 0.3333
+          },
+          "fast_jump_chains": {
+            "detected": 12,
+            "total": 12,
+            "recall": 1.0,
+            "ci_95": [
+              0.7575,
+              1.0
+            ],
+            "avg_we": 1.0
+          },
+          "all_malicious_chains": {
+            "detected": 55,
+            "total": 72,
+            "recall": 0.7639,
+            "ci_95": [
+              0.654,
+              0.847
+            ],
+            "avg_we": 0.4444
+          },
+          "benign_control_chains": {
+            "false_alarms": 0,
+            "total": 44,
+            "fpr": 0.0,
+            "ci_95": [
+              0.0,
+              0.0803
+            ]
+          }
+        },
+        "mcnemar_cumulative_vs_adjacent_salami": {
+          "contingency_table": {
+            "both_correct": 41,
+            "a_correct_only": 17,
+            "b_correct_only": 2,
+            "both_incorrect": 0
+          },
+          "discordant_pairs": 19,
+          "mcnemar_exact_p_value": 0.00073
+        }
+      },
+      "rule_c_audit": {
+        "adjacent": {
+          "salami_chains": {
+            "detected": 58,
+            "total": 60,
+            "recall": 0.9667,
+            "ci_95": [
+              0.8864,
+              0.9908
+            ],
+            "avg_we": 0.7667
+          },
+          "fast_jump_chains": {
+            "detected": 12,
+            "total": 12,
+            "recall": 1.0,
+            "ci_95": [
+              0.7575,
+              1.0
+            ],
+            "avg_we": 1.0
+          },
+          "all_malicious_chains": {
+            "detected": 70,
+            "total": 72,
+            "recall": 0.9722,
+            "ci_95": [
+              0.9043,
+              0.9923
+            ],
+            "avg_we": 0.8056
+          },
+          "benign_control_chains": {
+            "false_alarms": 3,
+            "total": 44,
+            "fpr": 0.0682,
+            "ci_95": [
+              0.0235,
+              0.1823
+            ]
+          }
+        },
+        "cumulative": {
+          "salami_chains": {
+            "detected": 43,
+            "total": 60,
+            "recall": 0.7167,
+            "ci_95": [
+              0.5923,
+              0.8149
+            ],
+            "avg_we": 0.3333
+          },
+          "fast_jump_chains": {
+            "detected": 12,
+            "total": 12,
+            "recall": 1.0,
+            "ci_95": [
+              0.7575,
+              1.0
+            ],
+            "avg_we": 1.0
+          },
+          "all_malicious_chains": {
+            "detected": 55,
+            "total": 72,
+            "recall": 0.7639,
+            "ci_95": [
+              0.654,
+              0.847
+            ],
+            "avg_we": 0.4444
+          },
+          "benign_control_chains": {
+            "false_alarms": 0,
+            "total": 44,
+            "fpr": 0.0,
+            "ci_95": [
+              0.0,
+              0.0803
+            ]
+          }
+        },
+        "mcnemar_cumulative_vs_adjacent_salami": {
+          "contingency_table": {
+            "both_correct": 41,
+            "a_correct_only": 17,
+            "b_correct_only": 2,
+            "both_incorrect": 0
+          },
+          "discordant_pairs": 19,
+          "mcnemar_exact_p_value": 0.00073
+        }
+      },
+      "rule_d_conservative": {
+        "adjacent": {
+          "salami_chains": {
+            "detected": 31,
+            "total": 60,
+            "recall": 0.5167,
+            "ci_95": [
+              0.3931,
+              0.6382
+            ],
+            "avg_we": 0.1
+          },
+          "fast_jump_chains": {
+            "detected": 12,
+            "total": 12,
+            "recall": 1.0,
+            "ci_95": [
+              0.7575,
+              1.0
+            ],
+            "avg_we": 1.0
+          },
+          "all_malicious_chains": {
+            "detected": 43,
+            "total": 72,
+            "recall": 0.5972,
+            "ci_95": [
+              0.4818,
+              0.7028
+            ],
+            "avg_we": 0.25
+          },
+          "benign_control_chains": {
+            "false_alarms": 0,
+            "total": 44,
+            "fpr": 0.0,
+            "ci_95": [
+              0.0,
+              0.0803
+            ]
+          }
+        },
+        "cumulative": {
+          "salami_chains": {
+            "detected": 30,
+            "total": 60,
+            "recall": 0.5,
+            "ci_95": [
+              0.3774,
+              0.6226
+            ],
+            "avg_we": 0.0833
+          },
+          "fast_jump_chains": {
+            "detected": 10,
+            "total": 12,
+            "recall": 0.8333,
+            "ci_95": [
+              0.552,
+              0.953
+            ],
+            "avg_we": 0.8333
+          },
+          "all_malicious_chains": {
+            "detected": 40,
+            "total": 72,
+            "recall": 0.5556,
+            "ci_95": [
+              0.4409,
+              0.6646
+            ],
+            "avg_we": 0.2083
+          },
+          "benign_control_chains": {
+            "false_alarms": 0,
+            "total": 44,
+            "fpr": 0.0,
+            "ci_95": [
+              0.0,
+              0.0803
+            ]
+          }
+        },
+        "mcnemar_cumulative_vs_adjacent_salami": {
+          "contingency_table": {
+            "both_correct": 24,
+            "a_correct_only": 7,
+            "b_correct_only": 6,
+            "both_incorrect": 23
+          },
+          "discordant_pairs": 13,
+          "mcnemar_exact_p_value": 1.0
+        }
+      }
+    },
+    "calibration": {
+      "rule_a_strict": {
+        "adjacent": {
+          "salami_chains": {
+            "detected": 19,
+            "total": 34,
+            "recall": 0.5588,
+            "ci_95": [
+              0.3945,
+              0.7112
+            ],
+            "avg_we": 0.0294
+          },
+          "fast_jump_chains": {
+            "detected": 5,
+            "total": 5,
+            "recall": 1.0,
+            "ci_95": [
+              0.5655,
+              1.0
+            ],
+            "avg_we": 1.0
+          },
+          "all_malicious_chains": {
+            "detected": 24,
+            "total": 39,
+            "recall": 0.6154,
+            "ci_95": [
+              0.459,
+              0.7511
+            ],
+            "avg_we": 0.1538
+          },
+          "benign_control_chains": {
+            "false_alarms": 0,
+            "total": 19,
+            "fpr": 0.0,
+            "ci_95": [
+              0.0,
+              0.1682
+            ]
+          }
+        },
+        "cumulative": {
+          "salami_chains": {
+            "detected": 15,
+            "total": 34,
+            "recall": 0.4412,
+            "ci_95": [
+              0.2888,
+              0.6055
+            ],
+            "avg_we": 0.0294
+          },
+          "fast_jump_chains": {
+            "detected": 4,
+            "total": 5,
+            "recall": 0.8,
+            "ci_95": [
+              0.3755,
+              0.9638
+            ],
+            "avg_we": 0.8
+          },
+          "all_malicious_chains": {
+            "detected": 19,
+            "total": 39,
+            "recall": 0.4872,
+            "ci_95": [
+              0.3387,
+              0.638
+            ],
+            "avg_we": 0.1282
+          },
+          "benign_control_chains": {
+            "false_alarms": 0,
+            "total": 19,
+            "fpr": 0.0,
+            "ci_95": [
+              0.0,
+              0.1682
+            ]
+          }
+        },
+        "mcnemar_cumulative_vs_adjacent_salami": {
+          "contingency_table": {
+            "both_correct": 14,
+            "a_correct_only": 5,
+            "b_correct_only": 1,
+            "both_incorrect": 14
+          },
+          "discordant_pairs": 6,
+          "mcnemar_exact_p_value": 0.21875
+        }
+      },
+      "rule_b_balanced": {
+        "adjacent": {
+          "salami_chains": {
+            "detected": 33,
+            "total": 34,
+            "recall": 0.9706,
+            "ci_95": [
+              0.8508,
+              0.9948
+            ],
+            "avg_we": 0.7059
+          },
+          "fast_jump_chains": {
+            "detected": 5,
+            "total": 5,
+            "recall": 1.0,
+            "ci_95": [
+              0.5655,
+              1.0
+            ],
+            "avg_we": 1.0
+          },
+          "all_malicious_chains": {
+            "detected": 38,
+            "total": 39,
+            "recall": 0.9744,
+            "ci_95": [
+              0.8682,
+              0.9955
+            ],
+            "avg_we": 0.7436
+          },
+          "benign_control_chains": {
+            "false_alarms": 2,
+            "total": 19,
+            "fpr": 0.1053,
+            "ci_95": [
+              0.0294,
+              0.3139
+            ]
+          }
+        },
+        "cumulative": {
+          "salami_chains": {
+            "detected": 23,
+            "total": 34,
+            "recall": 0.6765,
+            "ci_95": [
+              0.5084,
+              0.8087
+            ],
+            "avg_we": 0.2059
+          },
+          "fast_jump_chains": {
+            "detected": 5,
+            "total": 5,
+            "recall": 1.0,
+            "ci_95": [
+              0.5655,
+              1.0
+            ],
+            "avg_we": 1.0
+          },
+          "all_malicious_chains": {
+            "detected": 28,
+            "total": 39,
+            "recall": 0.7179,
+            "ci_95": [
+              0.5622,
+              0.8346
+            ],
+            "avg_we": 0.3077
+          },
+          "benign_control_chains": {
+            "false_alarms": 0,
+            "total": 19,
+            "fpr": 0.0,
+            "ci_95": [
+              0.0,
+              0.1682
+            ]
+          }
+        },
+        "mcnemar_cumulative_vs_adjacent_salami": {
+          "contingency_table": {
+            "both_correct": 22,
+            "a_correct_only": 11,
+            "b_correct_only": 1,
+            "both_incorrect": 0
+          },
+          "discordant_pairs": 12,
+          "mcnemar_exact_p_value": 0.00635
+        }
+      },
+      "rule_c_audit": {
+        "adjacent": {
+          "salami_chains": {
+            "detected": 33,
+            "total": 34,
+            "recall": 0.9706,
+            "ci_95": [
+              0.8508,
+              0.9948
+            ],
+            "avg_we": 0.7059
+          },
+          "fast_jump_chains": {
+            "detected": 5,
+            "total": 5,
+            "recall": 1.0,
+            "ci_95": [
+              0.5655,
+              1.0
+            ],
+            "avg_we": 1.0
+          },
+          "all_malicious_chains": {
+            "detected": 38,
+            "total": 39,
+            "recall": 0.9744,
+            "ci_95": [
+              0.8682,
+              0.9955
+            ],
+            "avg_we": 0.7436
+          },
+          "benign_control_chains": {
+            "false_alarms": 2,
+            "total": 19,
+            "fpr": 0.1053,
+            "ci_95": [
+              0.0294,
+              0.3139
+            ]
+          }
+        },
+        "cumulative": {
+          "salami_chains": {
+            "detected": 23,
+            "total": 34,
+            "recall": 0.6765,
+            "ci_95": [
+              0.5084,
+              0.8087
+            ],
+            "avg_we": 0.2059
+          },
+          "fast_jump_chains": {
+            "detected": 5,
+            "total": 5,
+            "recall": 1.0,
+            "ci_95": [
+              0.5655,
+              1.0
+            ],
+            "avg_we": 1.0
+          },
+          "all_malicious_chains": {
+            "detected": 28,
+            "total": 39,
+            "recall": 0.7179,
+            "ci_95": [
+              0.5622,
+              0.8346
+            ],
+            "avg_we": 0.3077
+          },
+          "benign_control_chains": {
+            "false_alarms": 0,
+            "total": 19,
+            "fpr": 0.0,
+            "ci_95": [
+              0.0,
+              0.1682
+            ]
+          }
+        },
+        "mcnemar_cumulative_vs_adjacent_salami": {
+          "contingency_table": {
+            "both_correct": 22,
+            "a_correct_only": 11,
+            "b_correct_only": 1,
+            "both_incorrect": 0
+          },
+          "discordant_pairs": 12,
+          "mcnemar_exact_p_value": 0.00635
+        }
+      },
+      "rule_d_conservative": {
+        "adjacent": {
+          "salami_chains": {
+            "detected": 19,
+            "total": 34,
+            "recall": 0.5588,
+            "ci_95": [
+              0.3945,
+              0.7112
+            ],
+            "avg_we": 0.0294
+          },
+          "fast_jump_chains": {
+            "detected": 5,
+            "total": 5,
+            "recall": 1.0,
+            "ci_95": [
+              0.5655,
+              1.0
+            ],
+            "avg_we": 1.0
+          },
+          "all_malicious_chains": {
+            "detected": 24,
+            "total": 39,
+            "recall": 0.6154,
+            "ci_95": [
+              0.459,
+              0.7511
+            ],
+            "avg_we": 0.1538
+          },
+          "benign_control_chains": {
+            "false_alarms": 0,
+            "total": 19,
+            "fpr": 0.0,
+            "ci_95": [
+              0.0,
+              0.1682
+            ]
+          }
+        },
+        "cumulative": {
+          "salami_chains": {
+            "detected": 15,
+            "total": 34,
+            "recall": 0.4412,
+            "ci_95": [
+              0.2888,
+              0.6055
+            ],
+            "avg_we": 0.0294
+          },
+          "fast_jump_chains": {
+            "detected": 4,
+            "total": 5,
+            "recall": 0.8,
+            "ci_95": [
+              0.3755,
+              0.9638
+            ],
+            "avg_we": 0.8
+          },
+          "all_malicious_chains": {
+            "detected": 19,
+            "total": 39,
+            "recall": 0.4872,
+            "ci_95": [
+              0.3387,
+              0.638
+            ],
+            "avg_we": 0.1282
+          },
+          "benign_control_chains": {
+            "false_alarms": 0,
+            "total": 19,
+            "fpr": 0.0,
+            "ci_95": [
+              0.0,
+              0.1682
+            ]
+          }
+        },
+        "mcnemar_cumulative_vs_adjacent_salami": {
+          "contingency_table": {
+            "both_correct": 14,
+            "a_correct_only": 5,
+            "b_correct_only": 1,
+            "both_incorrect": 14
+          },
+          "discordant_pairs": 6,
+          "mcnemar_exact_p_value": 0.21875
+        }
+      }
+    },
+    "held_out_test": {
+      "rule_a_strict": {
+        "adjacent": {
+          "salami_chains": {
+            "detected": 12,
+            "total": 26,
+            "recall": 0.4615,
+            "ci_95": [
+              0.2876,
+              0.6454
+            ],
+            "avg_we": 0.1923
+          },
+          "fast_jump_chains": {
+            "detected": 7,
+            "total": 7,
+            "recall": 1.0,
+            "ci_95": [
+              0.6457,
+              1.0
+            ],
+            "avg_we": 1.0
+          },
+          "all_malicious_chains": {
+            "detected": 19,
+            "total": 33,
+            "recall": 0.5758,
+            "ci_95": [
+              0.4081,
+              0.7276
+            ],
+            "avg_we": 0.3636
+          },
+          "benign_control_chains": {
+            "false_alarms": 0,
+            "total": 25,
+            "fpr": 0.0,
+            "ci_95": [
+              0.0,
+              0.1332
+            ]
+          }
+        },
+        "cumulative": {
+          "salami_chains": {
+            "detected": 15,
+            "total": 26,
+            "recall": 0.5769,
+            "ci_95": [
+              0.3895,
+              0.7446
+            ],
+            "avg_we": 0.1538
+          },
+          "fast_jump_chains": {
+            "detected": 6,
+            "total": 7,
+            "recall": 0.8571,
+            "ci_95": [
+              0.4869,
+              0.9743
+            ],
+            "avg_we": 0.8571
+          },
+          "all_malicious_chains": {
+            "detected": 21,
+            "total": 33,
+            "recall": 0.6364,
+            "ci_95": [
+              0.4662,
+              0.7781
+            ],
+            "avg_we": 0.303
+          },
+          "benign_control_chains": {
+            "false_alarms": 0,
+            "total": 25,
+            "fpr": 0.0,
+            "ci_95": [
+              0.0,
+              0.1332
+            ]
+          }
+        },
+        "mcnemar_cumulative_vs_adjacent_salami": {
+          "contingency_table": {
+            "both_correct": 10,
+            "a_correct_only": 2,
+            "b_correct_only": 5,
+            "both_incorrect": 9
+          },
+          "discordant_pairs": 7,
+          "mcnemar_exact_p_value": 0.45312
+        }
+      },
+      "rule_b_balanced": {
+        "adjacent": {
+          "salami_chains": {
+            "detected": 25,
+            "total": 26,
+            "recall": 0.9615,
+            "ci_95": [
+              0.8111,
+              0.9932
+            ],
+            "avg_we": 0.8462
+          },
+          "fast_jump_chains": {
+            "detected": 7,
+            "total": 7,
+            "recall": 1.0,
+            "ci_95": [
+              0.6457,
+              1.0
+            ],
+            "avg_we": 1.0
+          },
+          "all_malicious_chains": {
+            "detected": 32,
+            "total": 33,
+            "recall": 0.9697,
+            "ci_95": [
+              0.8468,
+              0.9946
+            ],
+            "avg_we": 0.8788
+          },
+          "benign_control_chains": {
+            "false_alarms": 1,
+            "total": 25,
+            "fpr": 0.04,
+            "ci_95": [
+              0.0071,
+              0.1954
+            ]
+          }
+        },
+        "cumulative": {
+          "salami_chains": {
+            "detected": 20,
+            "total": 26,
+            "recall": 0.7692,
+            "ci_95": [
+              0.5795,
+              0.8897
+            ],
+            "avg_we": 0.5
+          },
+          "fast_jump_chains": {
+            "detected": 7,
+            "total": 7,
+            "recall": 1.0,
+            "ci_95": [
+              0.6457,
+              1.0
+            ],
+            "avg_we": 1.0
+          },
+          "all_malicious_chains": {
+            "detected": 27,
+            "total": 33,
+            "recall": 0.8182,
+            "ci_95": [
+              0.6561,
+              0.9139
+            ],
+            "avg_we": 0.6061
+          },
+          "benign_control_chains": {
+            "false_alarms": 0,
+            "total": 25,
+            "fpr": 0.0,
+            "ci_95": [
+              0.0,
+              0.1332
+            ]
+          }
+        },
+        "mcnemar_cumulative_vs_adjacent_salami": {
+          "contingency_table": {
+            "both_correct": 19,
+            "a_correct_only": 6,
+            "b_correct_only": 1,
+            "both_incorrect": 0
+          },
+          "discordant_pairs": 7,
+          "mcnemar_exact_p_value": 0.125
+        }
+      },
+      "rule_c_audit": {
+        "adjacent": {
+          "salami_chains": {
+            "detected": 25,
+            "total": 26,
+            "recall": 0.9615,
+            "ci_95": [
+              0.8111,
+              0.9932
+            ],
+            "avg_we": 0.8462
+          },
+          "fast_jump_chains": {
+            "detected": 7,
+            "total": 7,
+            "recall": 1.0,
+            "ci_95": [
+              0.6457,
+              1.0
+            ],
+            "avg_we": 1.0
+          },
+          "all_malicious_chains": {
+            "detected": 32,
+            "total": 33,
+            "recall": 0.9697,
+            "ci_95": [
+              0.8468,
+              0.9946
+            ],
+            "avg_we": 0.8788
+          },
+          "benign_control_chains": {
+            "false_alarms": 1,
+            "total": 25,
+            "fpr": 0.04,
+            "ci_95": [
+              0.0071,
+              0.1954
+            ]
+          }
+        },
+        "cumulative": {
+          "salami_chains": {
+            "detected": 20,
+            "total": 26,
+            "recall": 0.7692,
+            "ci_95": [
+              0.5795,
+              0.8897
+            ],
+            "avg_we": 0.5
+          },
+          "fast_jump_chains": {
+            "detected": 7,
+            "total": 7,
+            "recall": 1.0,
+            "ci_95": [
+              0.6457,
+              1.0
+            ],
+            "avg_we": 1.0
+          },
+          "all_malicious_chains": {
+            "detected": 27,
+            "total": 33,
+            "recall": 0.8182,
+            "ci_95": [
+              0.6561,
+              0.9139
+            ],
+            "avg_we": 0.6061
+          },
+          "benign_control_chains": {
+            "false_alarms": 0,
+            "total": 25,
+            "fpr": 0.0,
+            "ci_95": [
+              0.0,
+              0.1332
+            ]
+          }
+        },
+        "mcnemar_cumulative_vs_adjacent_salami": {
+          "contingency_table": {
+            "both_correct": 19,
+            "a_correct_only": 6,
+            "b_correct_only": 1,
+            "both_incorrect": 0
+          },
+          "discordant_pairs": 7,
+          "mcnemar_exact_p_value": 0.125
+        }
+      },
+      "rule_d_conservative": {
+        "adjacent": {
+          "salami_chains": {
+            "detected": 12,
+            "total": 26,
+            "recall": 0.4615,
+            "ci_95": [
+              0.2876,
+              0.6454
+            ],
+            "avg_we": 0.1923
+          },
+          "fast_jump_chains": {
+            "detected": 7,
+            "total": 7,
+            "recall": 1.0,
+            "ci_95": [
+              0.6457,
+              1.0
+            ],
+            "avg_we": 1.0
+          },
+          "all_malicious_chains": {
+            "detected": 19,
+            "total": 33,
+            "recall": 0.5758,
+            "ci_95": [
+              0.4081,
+              0.7276
+            ],
+            "avg_we": 0.3636
+          },
+          "benign_control_chains": {
+            "false_alarms": 0,
+            "total": 25,
+            "fpr": 0.0,
+            "ci_95": [
+              0.0,
+              0.1332
+            ]
+          }
+        },
+        "cumulative": {
+          "salami_chains": {
+            "detected": 15,
+            "total": 26,
+            "recall": 0.5769,
+            "ci_95": [
+              0.3895,
+              0.7446
+            ],
+            "avg_we": 0.1538
+          },
+          "fast_jump_chains": {
+            "detected": 6,
+            "total": 7,
+            "recall": 0.8571,
+            "ci_95": [
+              0.4869,
+              0.9743
+            ],
+            "avg_we": 0.8571
+          },
+          "all_malicious_chains": {
+            "detected": 21,
+            "total": 33,
+            "recall": 0.6364,
+            "ci_95": [
+              0.4662,
+              0.7781
+            ],
+            "avg_we": 0.303
+          },
+          "benign_control_chains": {
+            "false_alarms": 0,
+            "total": 25,
+            "fpr": 0.0,
+            "ci_95": [
+              0.0,
+              0.1332
+            ]
+          }
+        },
+        "mcnemar_cumulative_vs_adjacent_salami": {
+          "contingency_table": {
+            "both_correct": 10,
+            "a_correct_only": 2,
+            "b_correct_only": 5,
+            "both_incorrect": 9
+          },
+          "discordant_pairs": 7,
+          "mcnemar_exact_p_value": 0.45312
+        }
+      }
+    }
+  }
+}

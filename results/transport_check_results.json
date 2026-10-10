@@ -1,0 +1,78 @@
+{
+  "status": "PASS",
+  "total_transitions_evaluated": 144,
+  "total_byte_checks": 144,
+  "passed_byte_checks": 144,
+  "byte_equality_rate": 1.0,
+  "transports_verified": [
+    "offline_in_memory",
+    "stdio_newline_delimited_jsonrpc_2_0",
+    "http_server_sent_events_sse_stream"
+  ],
+  "representative_subset_chains": [
+    {
+      "chain_id": "v3_chain_01_matrix_math",
+      "category": "A_adjacent_evasive",
+      "total_steps": 4,
+      "byte_identical_across_transports": true,
+      "stdio_status": "PASS",
+      "http_sse_status": "PASS"
+    },
+    {
+      "chain_id": "v3_chain_05_param_tls",
+      "category": "D_parameter_drift",
+      "total_steps": 4,
+      "byte_identical_across_transports": true,
+      "stdio_status": "PASS",
+      "http_sse_status": "PASS"
+    },
+    {
+      "chain_id": "v3_chain_17_fast_shell",
+      "category": "B_adjacent_detectable",
+      "total_steps": 3,
+      "byte_identical_across_transports": true,
+      "stdio_status": "PASS",
+      "http_sse_status": "PASS"
+    },
+    {
+      "chain_id": "v3_chain_19_fast_creds",
+      "category": "B_adjacent_detectable",
+      "total_steps": 3,
+      "byte_identical_across_transports": true,
+      "stdio_status": "PASS",
+      "http_sse_status": "PASS"
+    },
+    {
+      "chain_id": "v3_chain_25_benign_json",
+      "category": "C_benign_long_drift",
+      "total_steps": 4,
+      "byte_identical_across_transports": true,
+      "stdio_status": "PASS",
+      "http_sse_status": "PASS"
+    },
+    {
+      "chain_id": "v3_chain_27_benign_stats",
+      "category": "C_benign_long_drift",
+      "total_steps": 4,
+      "byte_identical_across_transports": true,
+      "stdio_status": "PASS",
+      "http_sse_status": "PASS"
+    },
+    {
+      "chain_id": "v3_chain_33_std_split",
+      "category": "C_std_benign_control",
+      "total_steps": 3,
+      "byte_identical_across_transports": true,
+      "stdio_status": "PASS",
+      "http_sse_status": "PASS"
+    },
+    {
+      "chain_id": "v3_chain_37_std_csv",
+      "category": "C_std_benign_control",
+      "total_steps": 3,
+      "byte_identical_across_transports": true,
+      "stdio_status": "PASS",
+      "http_sse_status": "PASS"
+    }
+  ]
+}

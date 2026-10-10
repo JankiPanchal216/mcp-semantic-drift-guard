@@ -1,0 +1,136 @@
+{
+  "adjacent": [
+    {
+      "item_id": "v3_chain_03_database_export_step_02",
+      "strategy": "adjacent",
+      "attempts_used": 2,
+      "messages": [
+        "Attempt 1: Exception: Unterminated string starting at: line 1 column 447 (char 446)"
+      ]
+    },
+    {
+      "item_id": "v3_chain_10_inst_sql_step_02",
+      "strategy": "adjacent",
+      "attempts_used": 2,
+      "messages": [
+        "Attempt 1: Exception: Unterminated string starting at: line 1 column 460 (char 459)"
+      ]
+    },
+    {
+      "item_id": "v3_chain_15_sem_metrics_step_04",
+      "strategy": "adjacent",
+      "attempts_used": 2,
+      "messages": [
+        "Attempt 1: Exception: Unterminated string starting at: line 1 column 724 (char 723)"
+      ]
+    },
+    {
+      "item_id": "v3_chain_16_sem_config_step_04",
+      "strategy": "adjacent",
+      "attempts_used": 3,
+      "messages": [
+        "Attempt 1: Exception: Unterminated string starting at: line 1 column 829 (char 828)",
+        "Attempt 2: Exception: Unterminated string starting at: line 1 column 811 (char 810)",
+        "Attempt 3: Exception: Unterminated string starting at: line 1 column 811 (char 810)"
+      ]
+    },
+    {
+      "item_id": "v3_chain_19_fast_creds_step_02",
+      "strategy": "adjacent",
+      "attempts_used": 2,
+      "messages": [
+        "Attempt 1: Exception: Unterminated string starting at: line 1 column 479 (char 478)"
+      ]
+    },
+    {
+      "item_id": "v3_chain_22_fast_exec_step_01",
+      "strategy": "adjacent",
+      "attempts_used": 3,
+      "messages": [
+        "Attempt 1: Exception: Unterminated string starting at: line 1 column 394 (char 393)",
+        "Attempt 2: Exception: Unterminated string starting at: line 1 column 420 (char 419)",
+        "Attempt 3: Exception: Unterminated string starting at: line 1 column 420 (char 419)"
+      ]
+    },
+    {
+      "item_id": "v3_chain_23_fast_overwrite_step_01",
+      "strategy": "adjacent",
+      "attempts_used": 2,
+      "messages": [
+        "Attempt 1: Exception: Unterminated string starting at: line 1 column 377 (char 376)"
+      ]
+    }
+  ],
+  "cumulative": [
+    {
+      "item_id": "v3_chain_02_formatter_bypass_step_04",
+      "strategy": "cumulative",
+      "attempts_used": 2,
+      "messages": [
+        "Attempt 1: Exception: Unterminated string starting at: line 1 column 649 (char 648)"
+      ]
+    },
+    {
+      "item_id": "v3_chain_13_comb_alerts_step_02",
+      "strategy": "cumulative",
+      "attempts_used": 2,
+      "messages": [
+        "Attempt 1: Exception: Unterminated string starting at: line 1 column 454 (char 453)"
+      ]
+    },
+    {
+      "item_id": "v3_chain_19_fast_creds_step_02",
+      "strategy": "cumulative",
+      "attempts_used": 2,
+      "messages": [
+        "Attempt 1: Exception: Unterminated string starting at: line 1 column 438 (char 437)"
+      ]
+    },
+    {
+      "item_id": "v3_chain_22_fast_exec_step_01",
+      "strategy": "cumulative",
+      "attempts_used": 3,
+      "messages": [
+        "Attempt 1: Exception: Unterminated string starting at: line 1 column 394 (char 393)",
+        "Attempt 2: Exception: Unterminated string starting at: line 1 column 420 (char 419)",
+        "Attempt 3: Exception: Unterminated string starting at: line 1 column 420 (char 419)"
+      ]
+    },
+    {
+      "item_id": "v3_chain_26_benign_markdown_step_03",
+      "strategy": "cumulative",
+      "attempts_used": 2,
+      "messages": [
+        "Attempt 1: Exception: Unterminated string starting at: line 1 column 370 (char 369)"
+      ]
+    },
+    {
+      "item_id": "v3_chain_29_benign_search_step_03",
+      "strategy": "cumulative",
+      "attempts_used": 3,
+      "messages": [
+        "Attempt 1: Exception: Unterminated string starting at: line 1 column 375 (char 374)",
+        "Attempt 2: Exception: Unterminated string starting at: line 1 column 375 (char 374)",
+        "Attempt 3: Exception: Unterminated string starting at: line 1 column 375 (char 374)"
+      ]
+    },
+    {
+      "item_id": "v3_chain_34_std_math_step_03",
+      "strategy": "cumulative",
+      "attempts_used": 3,
+      "messages": [
+        "Attempt 1: Exception: Unterminated string starting at: line 1 column 388 (char 387)",
+        "Attempt 2: Exception: Unterminated string starting at: line 1 column 438 (char 437)",
+        "Attempt 3: Exception: Unterminated string starting at: line 1 column 438 (char 437)"
+      ]
+    },
+    {
+      "item_id": "v3_chain_37_std_csv_step_02",
+      "strategy": "cumulative",
+      "attempts_used": 2,
+      "messages": [
+        "Attempt 1: Exception: Unterminated string starting at: line 1 column 358 (char 357)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "benchmark_file": "C:\\Users\\Janki Panchal\\Downloads\\New folder\\Desktop\\Research\\APP\\data\\salami_drift_benchmark_v4.jsonl",
+  "benchmark_sha256": "91f1d0de6f7673731c34967e3f5c77504e598b49fd6cc4807ef6209ddd4faebe",
+  "timestamp": 1791561805.0685432,
+  "strategies": {
+    "adjacent": {
+      "strategy": "adjacent",
+      "raw_file": "C:\\Users\\Janki Panchal\\Downloads\\New folder\\Desktop\\Research\\APP\\results\\salami_drift_v4\\gemma3_4b\\predictions_adjacent.jsonl",
+      "validated_file": "C:\\Users\\Janki Panchal\\Downloads\\New folder\\Desktop\\Research\\APP\\results\\salami_drift_v4\\gemma3_4b\\validated\\predictions_adjacent.jsonl",
+      "expected_items": 436,
+      "extracted_valid_items": 436,
+      "missing_items": [],
+      "duplicate_items": [],
+      "anomalies_detected": [
+        {
+          "char_offset": 668259,
+          "type": "raw_decode_exception",
+          "error": "Expecting ',' delimiter: line 434 column 1313 (char 669571)",
+          "preview": "{\"item_id\": \"v4_chain_cat_c_doc_08_benign_doc_tool_08_step_02\", \"chain_id\": \"v4_chain_cat_c_doc_08_b"
+        },
+        {
+          "char_offset": 669018,
+          "type": "raw_decode_exception",
+          "error": "Expecting property name enclosed in double quotes: line 434 column 761 (char 669019)",
+          "preview": "{\\\"label\\\": \\\"BENIGN\\\", \\\"confidence\\\": 0.99, \\\"reason\\\": \\\"The update adds standard deviation calcu"
+        },
+        {
+          "char_offset": 669469,
+          "type": "raw_decode_exception",
+          "error": "Expecting ',' delimiter: line 434 column 1313 (char 669571)",
+          "preview": "{\"rule_a_strict\": false, \"rule_b_balanced\": false, \"rule_c_audit\": false, \"rule_d_conservative\": fal"
+        },
+        {
+          "type": "repaired_concatenated_record",
+          "item_id": "v4_chain_cat_c_doc_08_benign_doc_tool_08_step_02",
+          "status": "RECOVERED_100_PERCENT"
+        }
+      ],
+      "schema_errors": [],
+      "status": "PASS"
+    },
+    "cumulative": {
+      "strategy": "cumulative",
+      "raw_file": "C:\\Users\\Janki Panchal\\Downloads\\New folder\\Desktop\\Research\\APP\\results\\salami_drift_v4\\gemma3_4b\\predictions_cumulative.jsonl",
+      "validated_file": "C:\\Users\\Janki Panchal\\Downloads\\New folder\\Desktop\\Research\\APP\\results\\salami_drift_v4\\gemma3_4b\\validated\\predictions_cumulative.jsonl",
+      "expected_items": 436,
+      "extracted_valid_items": 436,
+      "missing_items": [],
+      "duplicate_items": [],
+      "anomalies_detected": [
+        {
+          "char_offset": 666271,
+          "type": "raw_decode_exception",
+          "error": "Expecting ':' delimiter: line 434 column 7 (char 666277)",
+          "preview": "{\"it{\"item_id\": \"v4_chain_cat_c_doc_08_benign_doc_tool_08_step_02\", \"chain_id\": \"v4_chain_cat_c_doc_"
+        }
+      ],
+      "schema_errors": [],
+      "status": "PASS"
+    }
+  },
+  "gate_0a_verdict": "PASS"
+}
