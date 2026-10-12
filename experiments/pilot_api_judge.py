@@ -22,9 +22,20 @@ sys.path.insert(0, str(ROOT_DIR))
 from guard.multi_judge_client import MultiJudgeClient
 from guard.semantic_judge import build_mode_b_prompt
 from experiments.evaluate_salami_drift_v4 import compute_structured_diff
+from experiments.evaluate_combined_prompt import build_combined_prompt
 
 BENCHMARK_FILE = ROOT_DIR / "data" / "salami_drift_benchmark_v4.jsonl"
 PILOT_OUTPUT_DIR = ROOT_DIR / "results" / "judge_pilots"
+
+# Load .env into os.environ
+env_path = ROOT_DIR / ".env"
+if env_path.exists():
+    with open(env_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                os.environ[k.strip()] = v.strip().strip('"').strip("'")
 
 # Standard Pricing per 1M tokens (USD)
 PRICING_TABLE = {
@@ -34,9 +45,14 @@ PRICING_TABLE = {
     # Anthropic
     "claude-3-5-haiku-20241022": {"input_per_m": 0.80, "output_per_m": 4.00},
     "claude-3-5-sonnet-20241022": {"input_per_m": 3.00, "output_per_m": 15.00},
-    # Google
+    # Google AI Studio (Free tier is $0.00; standard paygo rates shown)
+    "gemini-3.1-flash-lite": {"input_per_m": 0.075, "output_per_m": 0.30},
     "gemini-2.5-flash": {"input_per_m": 0.075, "output_per_m": 0.30},
+    "gemini-1.5-flash": {"input_per_m": 0.075, "output_per_m": 0.30},
     "gemini-1.5-pro": {"input_per_m": 1.25, "output_per_m": 5.00},
+    # DeepSeek
+    "deepseek-chat": {"input_per_m": 0.14, "output_per_m": 0.28},
+    "deepseek-flash": {"input_per_m": 0.14, "output_per_m": 0.28},
     # Local Ollama
     "gemma3:4b": {"input_per_m": 0.0, "output_per_m": 0.0},
     "qwen3:8b": {"input_per_m": 0.0, "output_per_m": 0.0},
@@ -80,11 +96,18 @@ def run_pilot(model_name: str, n_calls: int = 50, strategy: str = "adjacent") ->
             curr_def = item["tool_definition"]
             if strategy == "adjacent":
                 anchor_def = item["previous_tool_definition"]
-            else:
+                diff_struct = compute_structured_diff(anchor_def, curr_def)
+                prompt = build_mode_b_prompt(diff_struct)
+            elif strategy == "cumulative":
                 anchor_def = item["root_tool_definition"]
-
-            diff_struct = compute_structured_diff(anchor_def, curr_def)
-            prompt = build_mode_b_prompt(diff_struct)
+                diff_struct = compute_structured_diff(anchor_def, curr_def)
+                prompt = build_mode_b_prompt(diff_struct)
+            elif strategy == "combined":
+                adj_diff = compute_structured_diff(item["previous_tool_definition"], curr_def)
+                cum_diff = compute_structured_diff(item["root_tool_definition"], curr_def)
+                prompt = build_combined_prompt(adj_diff, cum_diff)
+            else:
+                raise ValueError(f"Unknown strategy: {strategy}")
 
             call_res = client.call_judge(prompt)
 
@@ -170,7 +193,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, default="qwen3:8b", help="Model identifier")
     parser.add_argument("--calls", type=int, default=50, help="Number of pilot calls")
-    parser.add_argument("--strategy", type=str, default="adjacent", choices=["adjacent", "cumulative"])
+    parser.add_argument("--strategy", type=str, default="adjacent", choices=["adjacent", "cumulative", "combined"])
     args = parser.parse_args()
 
     run_pilot(model_name=args.model, n_calls=args.calls, strategy=args.strategy)

@@ -100,7 +100,7 @@ def generate_table_1_taxonomy() -> str:
 | **Cryptographic Signing & Provenance** (Mas et al. 2026, Sigstore) | Supply-chain compromise / untrusted upstream developer identity | Signer identity mismatch and tampering in transit | Compromised developer keys, malicious insider releases, or author-signed malicious updates | **Low**: Zero alerts for validly signed releases, but zero detection of signed malware (Qualitative estimate) |
 | **Static Capability Scanners** (`mcp-scan` / Snyk 2025) | Static injection keywords and overt dangerous command execution | Predefined regex patterns (`<IMPORTANT>`, `/etc/shadow`, `rm -rf`) | Paraphrased instructions, zero-day syntax, subtle parameter overrides, multi-step salami drift | **Zero runtime burden**: Fast ($< 0.25$ ms), but limited to static rule recall (75.8%) (Qualitative estimate) |
 | **Monolithic LLM Vetting** (NeMo Guardrails, Llama Guard) | General tool poisoning and indirect prompt injection | Full prompt/tool context semantic risk | Context-window saturation, high runtime cost, evasive multi-step drift | **Medium**: Slower per-call latency, vulnerable to length bias and prompt injection without diff isolation (Qualitative estimate) |
-| **MCP Semantic Drift Guard** (This Work) | Single-step & multi-step incremental semantic drift (Salami Drift) | Structured schema & docstring semantic delta ($\Delta T$) | Highly distributed cross-tool collusion beyond individual tool state | **Low**: Differentiates benign clarifications from drift; active longitudinal replay designated future work (Qualitative estimate) |"""
+| **MCP Semantic Drift Guard** (This Work) | Single-step & multi-step incremental semantic drift (Salami Drift) | Structured schema & docstring semantic delta ($\Delta T$) | Highly distributed cross-tool collusion beyond individual tool state | **Not measured**: Differentiates benign clarifications from drift; active longitudinal replay designated future work |"""
 
 
 def generate_table_2_held_out(hash_res: Dict[str, Any], static_res: Dict[str, Any], tfidf_res: Dict[str, Any]) -> str:
@@ -110,9 +110,7 @@ def generate_table_2_held_out(hash_res: Dict[str, Any], static_res: Dict[str, An
 | **Exact Hash Pinning (Tier 0)** | {hash_res['tp']} | {hash_res['tn']} | {hash_res['fp']} | {hash_res['fn']} | {hash_res['precision']*100:.1f}% [{hash_res['precision_ci'][0]*100:.1f}%, {hash_res['precision_ci'][1]*100:.1f}%] | **{hash_res['recall']*100:.1f}%** [{hash_res['recall_ci'][0]*100:.1f}%, {hash_res['recall_ci'][1]*100:.1f}%] | {hash_res['f1']*100:.1f}% | {hash_res['fpr']*100:.1f}% [{hash_res['fpr_ci'][0]*100:.1f}%, {hash_res['fpr_ci'][1]*100:.1f}%] | {hash_res['mean_latency_ms']:.3f} ms | 0.0 |
 | **Static Keyword Rules (Tier 2)** | {static_res['tp']} | {static_res['tn']} | {static_res['fp']} | {static_res['fn']} | **{static_res['precision']*100:.1f}%** [{static_res['precision_ci'][0]*100:.1f}%, {static_res['precision_ci'][1]*100:.1f}%] | {static_res['recall']*100:.1f}% [{static_res['recall_ci'][0]*100:.1f}%, {static_res['recall_ci'][1]*100:.1f}%] | **{static_res['f1']*100:.1f}%** | **{static_res['fpr']*100:.1f}%** [{static_res['fpr_ci'][0]*100:.1f}%, {static_res['fpr_ci'][1]*100:.1f}%] | {static_res['mean_latency_ms']:.3f} ms | 0.0 |
 | **TF-IDF Cosine Baseline** | {tfidf_res['tp']} | {tfidf_res['tn']} | {tfidf_res['fp']} | {tfidf_res['fn']} | {tfidf_res['precision']*100:.1f}% [{tfidf_res['precision_ci'][0]*100:.1f}%, {tfidf_res['precision_ci'][1]*100:.1f}%] | {tfidf_res['recall']*100:.1f}% [{tfidf_res['recall_ci'][0]*100:.1f}%, {tfidf_res['recall_ci'][1]*100:.1f}%] | {tfidf_res['f1']*100:.1f}% | {tfidf_res['fpr']*100:.1f}% [{tfidf_res['fpr_ci'][0]*100:.1f}%, {tfidf_res['fpr_ci'][1]*100:.1f}%] | {tfidf_res['mean_latency_ms']:.3f} ms | 0.0 |
-| **Semantic Judge Mode A (Full)** | [PENDING RE-RUN] | - | - | - | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | 1.0 |
-| **Semantic Judge Mode B (Diff)** | [PENDING RE-RUN] | - | - | - | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | 1.0 |
-| **Integrated Guard Middleware** | [PENDING RE-RUN] | - | - | - | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING] |"""
+| **Deterministic Schema Checks (Tier 1.5)** | 0 | 23 | 0 | 33 | n/a | 0.0% [0.0%, 10.4%] | 0.0% | 0.0% [0.0%, 14.3%] | 0.005 ms | 0.0 |"""
 
 
 def generate_table_3_master(hash_res: Dict[str, Any], static_res: Dict[str, Any], tfidf_res: Dict[str, Any]) -> str:
@@ -122,10 +120,7 @@ def generate_table_3_master(hash_res: Dict[str, Any], static_res: Dict[str, Any]
 | **Exact Hash Pinning (Tier 0)** | {hash_res['precision']*100:.1f}% [{hash_res['precision_ci'][0]*100:.1f}%, {hash_res['precision_ci'][1]*100:.1f}%] | **{hash_res['recall']*100:.1f}%** [{hash_res['recall_ci'][0]*100:.1f}%, {hash_res['recall_ci'][1]*100:.1f}%] | {hash_res['f1']*100:.1f}% | {hash_res['fpr']*100:.1f}% [{hash_res['fpr_ci'][0]*100:.1f}%, {hash_res['fpr_ci'][1]*100:.1f}%] | **0.0%** [0.0%, 10.4%] | {hash_res['mean_latency_ms']:.3f} ms | 0.0 |
 | **Static Keyword Rules (Tier 2)** | **{static_res['precision']*100:.1f}%** [{static_res['precision_ci'][0]*100:.1f}%, {static_res['precision_ci'][1]*100:.1f}%] | {static_res['recall']*100:.1f}% [{static_res['recall_ci'][0]*100:.1f}%, {static_res['recall_ci'][1]*100:.1f}%] | {static_res['f1']*100:.1f}% | **{static_res['fpr']*100:.1f}%** [{static_res['fpr_ci'][0]*100:.1f}%, {static_res['fpr_ci'][1]*100:.1f}%] | {static_res['fnr']*100:.1f}% [{static_res['fnr_ci'][0]*100:.1f}%, {static_res['fnr_ci'][1]*100:.1f}%] | {static_res['mean_latency_ms']:.3f} ms | 0.0 |
 | **TF-IDF Cosine Baseline** | {tfidf_res['precision']*100:.1f}% [{tfidf_res['precision_ci'][0]*100:.1f}%, {tfidf_res['precision_ci'][1]*100:.1f}%] | {tfidf_res['recall']*100:.1f}% [{tfidf_res['recall_ci'][0]*100:.1f}%, {tfidf_res['recall_ci'][1]*100:.1f}%] | {tfidf_res['f1']*100:.1f}% | {tfidf_res['fpr']*100:.1f}% [{tfidf_res['fpr_ci'][0]*100:.1f}%, {tfidf_res['fpr_ci'][1]*100:.1f}%] | {tfidf_res['fnr']*100:.1f}% [{tfidf_res['fnr_ci'][0]*100:.1f}%, {tfidf_res['fnr_ci'][1]*100:.1f}%] | {tfidf_res['mean_latency_ms']:.3f} ms | 0.0 |
-| **Deterministic Schema (Tier 1.5)** | n/a | 0.0% [0.0%, 10.4%] | 0.0% | **0.0%** [0.0%, 14.3%] | 100.0% [89.6%, 100.0%] | 0.005 ms | 0.0 |
-| **Semantic Judge Mode A (Full)** | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | 1.0 |
-| **Semantic Judge Mode B (Diff Only)** | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | 1.0 |
-| **Integrated Guard Middleware (BALANCED)** | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING] |"""
+| **Deterministic Schema (Tier 1.5)** | n/a | 0.0% [0.0%, 10.4%] | 0.0% | **0.0%** [0.0%, 14.3%] | 100.0% [89.6%, 100.0%] | 0.005 ms | 0.0 |"""
 
 
 def generate_table_4_v3_transitions(audit_data: Dict[str, Any]) -> str:
@@ -504,6 +499,97 @@ def generate_table_11_delivery_layer(delivery_report: Dict[str, Any]) -> str:
 {body}"""
 
 
+def generate_table_12_multi_judge(v4_report: Dict[str, Any], gemini_summary: Optional[Dict[str, Any]]) -> str:
+    """Table 12: Multi-Judge Evaluation & Replicability on Frozen Held-Out Test Split (N=58 Chains)."""
+    rows = []
+    
+    # 1. Gemma 3 4B (Local Open-Weight Model)
+    test_d = v4_report["splits_analysis"]["held_out_test"]
+    gemma_parse_rate = "100.0% (0 fails)"
+    for r_name, r_key in [("Rule (b) Primary BALANCED", "rule_b_balanced"), ("Rule (a) Strict MALICIOUS", "rule_a_strict")]:
+        for s_name, s_key in [("Adjacent", "adjacent"), ("Cumulative", "cumulative"), ("Combined Prompt", "combined")]:
+            if s_key not in test_d[r_key]:
+                continue
+            m = test_d[r_key][s_key]
+            sal = m["salami_only"]
+            fast = m["fast_jump"]
+            ben = m["benign_fpr"]
+            we_val = sal.get("mean_exposure", sal.get("avg_we", 0.0))
+            
+            strict_sal = f"{sal['rate']*100:.1f}% ({sal['detected']}/{sal['n']}) [{sal['ci'][0]*100:.1f}%, {sal['ci'][1]*100:.1f}%]"
+            any_sal = f"{sal.get('any_post_onset_rate', sal['rate'])*100:.1f}% ({sal.get('any_post_onset_detected', sal['detected'])}/{sal['n']}) [{sal.get('any_post_onset_ci', sal['ci'])[0]*100:.1f}%, {sal.get('any_post_onset_ci', sal['ci'])[1]*100:.1f}%]"
+            fast_str = f"{fast['rate']*100:.1f}% ({fast['detected']}/{fast['n']}) [{fast['ci'][0]*100:.1f}%, {fast['ci'][1]*100:.1f}%]"
+            ben_str = f"{ben['rate']*100:.1f}% ({ben['detected']}/{ben['n']}) [{ben['ci'][0]*100:.1f}%, {ben['ci'][1]*100:.1f}%]"
+            
+            prefix = f"| **gemma3:4b** (Local 4B) | **{r_name}** | **{s_name}** | {gemma_parse_rate} |"
+            rows.append(f"{prefix} {strict_sal} | {any_sal} | {fast_str} | {ben_str} | {we_val:.3f} |")
+            
+    # 2. Gemini 3.1 Flash Lite (Lite-Tier Cloud Judge)
+    if gemini_summary:
+        gem_parse = gemini_summary.get("parse_statistics", {})
+        gem_res = gemini_summary.get("results", {})
+        for r_name, r_key in [("Rule (b) Primary BALANCED", "rule_b_balanced"), ("Rule (a) Strict MALICIOUS", "rule_a_strict")]:
+            for s_name, s_key in [("Adjacent", "adjacent"), ("Cumulative", "cumulative"), ("Combined Prompt", "combined")]:
+                if s_key not in gem_res or r_key not in gem_res[s_key]:
+                    continue
+                m = gem_res[s_key][r_key]
+                p_stat = gem_parse.get(s_key, {})
+                p_rate_str = f"{p_stat.get('success_rate', 1.0)*100:.1f}% ({p_stat.get('failures', 0)} fail)"
+                
+                sal = m["salami_only"]
+                fast = m["fast_jump"]
+                ben = m["benign_fpr"]
+                we_val = sal.get("mean_exposure", 0.0)
+                
+                strict_sal = f"{sal['rate']*100:.1f}% ({sal['detected']}/{sal['n']}) [{sal['ci'][0]*100:.1f}%, {sal['ci'][1]*100:.1f}%]"
+                any_sal = f"{sal.get('any_post_onset_rate', sal['rate'])*100:.1f}% ({sal.get('any_post_onset_detected', sal['detected'])}/{sal['n']}) [{sal.get('any_post_onset_ci', sal['ci'])[0]*100:.1f}%, {sal.get('any_post_onset_ci', sal['ci'])[1]*100:.1f}%]"
+                fast_str = f"{fast['rate']*100:.1f}% ({fast['detected']}/{fast['n']}) [{fast['ci'][0]*100:.1f}%, {fast['ci'][1]*100:.1f}%]"
+                ben_str = f"{ben['rate']*100:.1f}% ({ben['detected']}/{ben['n']}) [{ben['ci'][0]*100:.1f}%, {ben['ci'][1]*100:.1f}%]"
+                
+                prefix = f"| **gemini-3.1-flash-lite** (Lite-tier Cloud) | **{r_name}** | **{s_name}** | {p_rate_str} |"
+                rows.append(f"{prefix} {strict_sal} | {any_sal} | {fast_str} | {ben_str} | {we_val:.3f} |")
+                
+    # Comparisons & Hypothesis Status footer
+    footer = []
+    if gemini_summary:
+        comps = gemini_summary.get("comparisons", {})
+        h_res = gemini_summary.get("replication_hypotheses", {})
+        
+        adj_cum_mcn = comps.get("adjacent_vs_cumulative", {}).get("mcnemar", {})
+        adj_cum_boot = comps.get("adjacent_vs_cumulative", {}).get("bootstrap_diff", {})
+        comb_adj_mcn = comps.get("combined_vs_adjacent", {}).get("mcnemar", {})
+        comb_adj_boot = comps.get("combined_vs_adjacent", {}).get("bootstrap_diff", {})
+        comb_cum_mcn = comps.get("combined_vs_cumulative", {}).get("mcnemar", {})
+        comb_cum_boot = comps.get("combined_vs_cumulative", {}).get("bootstrap_diff", {})
+        
+        h1 = h_res.get("H1_adjacent_ge_cumulative_salami_recall", {})
+        h2 = h_res.get("H2_combined_pareto_efficiency", {})
+        
+        footer.append(f"\n**Statistical Comparisons (gemini-3.1-flash-lite, Rule b BALANCED)**:")
+        if adj_cum_mcn:
+            footer.append(f"- **Adjacent vs. Cumulative**: Diff = {adj_cum_boot.get('mean_diff', 0)*100:+.1f}% [95% bootstrap CI: {adj_cum_boot.get('ci_95', [0,0])[0]*100:+.1f}%, {adj_cum_boot.get('ci_95', [0,0])[1]*100:+.1f}%], McNemar exact $p = {adj_cum_mcn.get('p_value', 1.0):.4f}$ (discordant $b={adj_cum_mcn.get('discordant_1_only',0)}, c={adj_cum_mcn.get('discordant_2_only',0)}$).")
+        if comb_adj_mcn:
+            footer.append(f"- **Combined vs. Adjacent**: Diff = {comb_adj_boot.get('mean_diff', 0)*100:+.1f}% [95% bootstrap CI: {comb_adj_boot.get('ci_95', [0,0])[0]*100:+.1f}%, {comb_adj_boot.get('ci_95', [0,0])[1]*100:+.1f}%], McNemar exact $p = {comb_adj_mcn.get('p_value', 1.0):.4f}$.")
+        if comb_cum_mcn:
+            footer.append(f"- **Combined vs. Cumulative**: Diff = {comb_cum_boot.get('mean_diff', 0)*100:+.1f}% [95% bootstrap CI: {comb_cum_boot.get('ci_95', [0,0])[0]*100:+.1f}%, {comb_cum_boot.get('ci_95', [0,0])[1]*100:+.1f}%], McNemar exact $p = {comb_cum_mcn.get('p_value', 1.0):.4f}$.")
+        
+        footer.append(f"\n**Pre-Registered Replicability Hypotheses**:")
+        if h1:
+            footer.append(f"- **$H_1$ (Adjacent vs. Cumulative Salami Recall on gemini-3.1-flash-lite)**: No significant difference (McNemar $p = 1.0000$; direction depends on rule: Cumulative higher under rule (a): 25/26 vs 22/26; Adjacent higher under rule (b): 23/26 vs 22/26). The attention dilution mechanism hypothesized for local models is a hypothesis that the Gemini result does not support.")
+        if h2:
+            footer.append(f"- **$H_2$ (Combined Prompt Pareto Efficiency)**: **{'HOLDS / SUPPORTED' if h2.get('supported') else 'FAILS / REJECTED'}** (Combined Recall: {h2.get('combined_recall',0)*100:.1f}%, Adjacent Recall: {h2.get('adjacent_recall',0)*100:.1f}%; Combined FPR: {h2.get('combined_fpr',0)*100:.1f}%, Adjacent FPR: {h2.get('adjacent_fpr',0)*100:.1f}%).")
+        elif "combined" not in gem_res:
+            footer.append(f"- **$H_2$ (Combined Prompt Pareto Efficiency)**: **[PENDING RESUMPTION]** (Combined strategy evaluation is paused at 21/215 valid records due to Google AI Studio daily free-tier quota ceiling; will be evaluated after quota reset).")
+        
+    body = "\n".join(rows)
+    foot = "\n".join(footer)
+    return f"""| Model & Judge Tier | Decision Rule | Anchor Strategy | Parse Rate | Strict Salami Recall (95% Wilson CI) | Any-After-Onset Sensitivity (95% Wilson CI) | Fast-Jump Recall (95% Wilson CI) | Benign Chain FPR (95% Wilson CI) | Salami Mean Exposure $\\bar{{W}}_e$ |
+|---|---|---|:---:|:---:|:---:|:---:|:---:|:---:|
+{body}
+
+{foot}"""
+
+
 def main():
     os.makedirs(TABLES_DIR, exist_ok=True)
     
@@ -564,6 +650,13 @@ def main():
     else:
         with open(delivery_file, "r", encoding="utf-8") as f:
             delivery_report = json.load(f)
+
+    # 8. Load Gemini Multi-Judge Summary (if present)
+    gemini_summary_file = RESULTS_DIR / "salami_drift_v4" / "google_gemini-3.1-flash-lite" / "metrics_summary.json"
+    gemini_summary = None
+    if gemini_summary_file.exists():
+        with open(gemini_summary_file, "r", encoding="utf-8") as f:
+            gemini_summary = json.load(f)
         
     t1 = generate_table_1_taxonomy()
     t2 = generate_table_2_held_out(hash_p, static_p, tfidf_p)
@@ -582,6 +675,7 @@ def main():
     t9 = generate_table_9_novel_methods(novel_report)
     t10 = generate_table_10_adaptive_attacker(adaptive_report)
     t11 = generate_table_11_delivery_layer(delivery_report)
+    t12 = generate_table_12_multi_judge(v4_report, gemini_summary)
 
     md_output = f"""# Master Research Paper Tables
 
@@ -635,6 +729,9 @@ def main():
 
 ## Table 11: Live MCP Transport & Delivery-Layer Failure Condition Test Outcomes
 {t11}
+
+## Table 12: Multi-Judge Evaluation & Replicability on Frozen Held-Out Test Split (N=58 Chains, gemma3:4b vs. gemini-3.1-flash-lite)
+{t12}
 """
     
     md_path = TABLES_DIR / "tables_markdown.md"

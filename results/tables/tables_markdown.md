@@ -7,7 +7,7 @@
 | **Cryptographic Signing & Provenance** (Mas et al. 2026, Sigstore) | Supply-chain compromise / untrusted upstream developer identity | Signer identity mismatch and tampering in transit | Compromised developer keys, malicious insider releases, or author-signed malicious updates | **Low**: Zero alerts for validly signed releases, but zero detection of signed malware (Qualitative estimate) |
 | **Static Capability Scanners** (`mcp-scan` / Snyk 2025) | Static injection keywords and overt dangerous command execution | Predefined regex patterns (`<IMPORTANT>`, `/etc/shadow`, `rm -rf`) | Paraphrased instructions, zero-day syntax, subtle parameter overrides, multi-step salami drift | **Zero runtime burden**: Fast ($< 0.25$ ms), but limited to static rule recall (75.8%) (Qualitative estimate) |
 | **Monolithic LLM Vetting** (NeMo Guardrails, Llama Guard) | General tool poisoning and indirect prompt injection | Full prompt/tool context semantic risk | Context-window saturation, high runtime cost, evasive multi-step drift | **Medium**: Slower per-call latency, vulnerable to length bias and prompt injection without diff isolation (Qualitative estimate) |
-| **MCP Semantic Drift Guard** (This Work) | Single-step & multi-step incremental semantic drift (Salami Drift) | Structured schema & docstring semantic delta ($\Delta T$) | Highly distributed cross-tool collusion beyond individual tool state | **Low**: Differentiates benign clarifications from drift; active longitudinal replay designated future work (Qualitative estimate) |
+| **MCP Semantic Drift Guard** (This Work) | Single-step & multi-step incremental semantic drift (Salami Drift) | Structured schema & docstring semantic delta ($\Delta T$) | Highly distributed cross-tool collusion beyond individual tool state | **Not measured**: Differentiates benign clarifications from drift; active longitudinal replay designated future work |
 
 ## Table 2: Held-Out Benchmark Results (N=56)
 | Method / Defense Layer | TP | TN | FP | FN | Observed Precision (95% CI) | Observed Recall (95% CI) | $F_1$ Score | Observed Benign FPR (95% CI) | Mean Latency | LLM Calls / Upd |
@@ -15,9 +15,7 @@
 | **Exact Hash Pinning (Tier 0)** | 33 | 0 | 23 | 0 | 58.9% [45.9%, 70.8%] | **100.0%** [89.6%, 100.0%] | 74.2% | 100.0% [85.7%, 100.0%] | 0.010 ms | 0.0 |
 | **Static Keyword Rules (Tier 2)** | 25 | 23 | 0 | 8 | **100.0%** [86.7%, 100.0%] | 75.8% [59.0%, 87.2%] | **86.2%** | **0.0%** [0.0%, 14.3%] | 0.227 ms | 0.0 |
 | **TF-IDF Cosine Baseline** | 31 | 6 | 17 | 2 | 64.6% [50.4%, 76.6%] | 93.9% [80.4%, 98.3%] | 76.5% | 73.9% [53.5%, 87.5%] | 1.062 ms | 0.0 |
-| **Semantic Judge Mode A (Full)** | [PENDING RE-RUN] | - | - | - | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | 1.0 |
-| **Semantic Judge Mode B (Diff)** | [PENDING RE-RUN] | - | - | - | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | 1.0 |
-| **Integrated Guard Middleware** | [PENDING RE-RUN] | - | - | - | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING] |
+| **Deterministic Schema Checks (Tier 1.5)** | 0 | 23 | 0 | 33 | n/a | 0.0% [0.0%, 10.4%] | 0.0% | 0.0% [0.0%, 14.3%] | 0.005 ms | 0.0 |
 
 ## Table 3: Master Evaluation Comparison Matrix (Configs A-H)
 | System / Defense Paradigm | Precision (95% CI) | Recall (95% CI) | F1 Score | Benign FPR (95% CI) | Malicious FNR (95% CI) | Mean Latency | LLM Calls / Upd |
@@ -26,9 +24,6 @@
 | **Static Keyword Rules (Tier 2)** | **100.0%** [86.7%, 100.0%] | 75.8% [59.0%, 87.2%] | 86.2% | **0.0%** [0.0%, 14.3%] | 24.2% [12.8%, 41.0%] | 0.227 ms | 0.0 |
 | **TF-IDF Cosine Baseline** | 64.6% [50.4%, 76.6%] | 93.9% [80.4%, 98.3%] | 76.5% | 73.9% [53.5%, 87.5%] | 6.1% [1.7%, 19.6%] | 1.062 ms | 0.0 |
 | **Deterministic Schema (Tier 1.5)** | n/a | 0.0% [0.0%, 10.4%] | 0.0% | **0.0%** [0.0%, 14.3%] | 100.0% [89.6%, 100.0%] | 0.005 ms | 0.0 |
-| **Semantic Judge Mode A (Full)** | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | 1.0 |
-| **Semantic Judge Mode B (Diff Only)** | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | 1.0 |
-| **Integrated Guard Middleware (BALANCED)** | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING RE-RUN] | [PENDING] |
 
 ## Table 4: Transition-Level Salami Drift Benchmark V3 Results (N=144)
 | Decision Rule | Strategy | TP | TN | FP | FN | Observed Recall (95% Wilson CI) | Observed Precision (95% Wilson CI) | $F_1$ Score | Observed Benign FPR (95% Wilson CI) |
@@ -233,3 +228,29 @@
 | **FC-3** | Double-Fetch / TOCTOU Swapping Vulnerability | `LEAK (Server swaps definition between check and use)` | `SECURE (Single-Fetch Atomic Cache Forwarding)` | 1 $\rightarrow$ 0 | **PASS** |
 | **FC-4** | Dropped or Coalesced list_changed Notification Desync | `LEAK (Client invokes mutated tool without re-vetting)` | `BLOCK (State-Monotonic Version Sequence Barrier)` | 1 $\rightarrow$ 0 | **PASS** |
 | **FC-5** | Judge Timeout / Network Partition Fail-Safe | `FAIL-OPEN (Delivers unvetted definition to client)` | `FAIL-CLOSED (BLOCK: Serves previous trusted baseline)` | 1 $\rightarrow$ 0 | **PASS** |
+
+## Table 12: Multi-Judge Evaluation & Replicability on Frozen Held-Out Test Split (N=58 Chains, gemma3:4b vs. gemini-3.1-flash-lite)
+| Model & Judge Tier | Decision Rule | Anchor Strategy | Parse Rate | Strict Salami Recall (95% Wilson CI) | Any-After-Onset Sensitivity (95% Wilson CI) | Fast-Jump Recall (95% Wilson CI) | Benign Chain FPR (95% Wilson CI) | Salami Mean Exposure $\bar{W}_e$ |
+|---|---|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| **gemma3:4b** (Local 4B) | **Rule (b) Primary BALANCED** | **Adjacent** | 100.0% (0 fails) | 96.2% (25/26) [81.1%, 99.3%] | 96.2% (25/26) [81.1%, 99.3%] | 100.0% (7/7) [64.6%, 100.0%] | 4.0% (1/25) [0.7%, 19.5%] | 0.192 |
+| **gemma3:4b** (Local 4B) | **Rule (b) Primary BALANCED** | **Cumulative** | 100.0% (0 fails) | 76.9% (20/26) [58.0%, 89.0%] | 76.9% (20/26) [58.0%, 89.0%] | 100.0% (7/7) [64.6%, 100.0%] | 0.0% (0/25) [0.0%, 13.3%] | 0.731 |
+| **gemma3:4b** (Local 4B) | **Rule (b) Primary BALANCED** | **Combined Prompt** | 100.0% (0 fails) | 96.2% (25/26) [81.1%, 99.3%] | 100.0% (26/26) [87.1%, 100.0%] | 100.0% (7/7) [64.6%, 100.0%] | 0.0% (0/25) [0.0%, 13.3%] | 0.154 |
+| **gemma3:4b** (Local 4B) | **Rule (a) Strict MALICIOUS** | **Adjacent** | 100.0% (0 fails) | 46.2% (12/26) [28.8%, 64.5%] | 46.2% (12/26) [28.8%, 64.5%] | 100.0% (7/7) [64.6%, 100.0%] | 0.0% (0/25) [0.0%, 13.3%] | 1.346 |
+| **gemma3:4b** (Local 4B) | **Rule (a) Strict MALICIOUS** | **Cumulative** | 100.0% (0 fails) | 57.7% (15/26) [39.0%, 74.5%] | 57.7% (15/26) [39.0%, 74.5%] | 85.7% (6/7) [48.7%, 97.4%] | 0.0% (0/25) [0.0%, 13.3%] | 1.269 |
+| **gemma3:4b** (Local 4B) | **Rule (a) Strict MALICIOUS** | **Combined Prompt** | 100.0% (0 fails) | 42.3% (11/26) [25.5%, 61.1%] | 42.3% (11/26) [25.5%, 61.1%] | 100.0% (7/7) [64.6%, 100.0%] | 0.0% (0/25) [0.0%, 13.3%] | 1.385 |
+| **gemini-3.1-flash-lite** (Lite-tier Cloud) | **Rule (b) Primary BALANCED** | **Adjacent** | 100.0% (0 fail) | 88.5% (23/26) [71.0%, 96.0%] | 100.0% (26/26) [87.1%, 100.0%] | 100.0% (7/7) [64.6%, 100.0%] | 0.0% (0/25) [0.0%, 13.3%] | 0.808 |
+| **gemini-3.1-flash-lite** (Lite-tier Cloud) | **Rule (b) Primary BALANCED** | **Cumulative** | 100.0% (0 fail) | 84.6% (22/26) [66.5%, 93.8%] | 100.0% (26/26) [87.1%, 100.0%] | 100.0% (7/7) [64.6%, 100.0%] | 0.0% (0/25) [0.0%, 13.3%] | 0.769 |
+| **gemini-3.1-flash-lite** (Lite-tier Cloud) | **Rule (b) Primary BALANCED** | **Combined Prompt** | 100.0% (0 fail) | 84.6% (22/26) [66.5%, 93.8%] | 100.0% (26/26) [87.1%, 100.0%] | 100.0% (7/7) [64.6%, 100.0%] | 0.0% (0/25) [0.0%, 13.3%] | 0.846 |
+| **gemini-3.1-flash-lite** (Lite-tier Cloud) | **Rule (a) Strict MALICIOUS** | **Adjacent** | 100.0% (0 fail) | 84.6% (22/26) [66.5%, 93.8%] | 84.6% (22/26) [66.5%, 93.8%] | 100.0% (7/7) [64.6%, 100.0%] | 0.0% (0/25) [0.0%, 13.3%] | 0.231 |
+| **gemini-3.1-flash-lite** (Lite-tier Cloud) | **Rule (a) Strict MALICIOUS** | **Cumulative** | 100.0% (0 fail) | 96.2% (25/26) [81.1%, 99.3%] | 96.2% (25/26) [81.1%, 99.3%] | 100.0% (7/7) [64.6%, 100.0%] | 0.0% (0/25) [0.0%, 13.3%] | 0.269 |
+| **gemini-3.1-flash-lite** (Lite-tier Cloud) | **Rule (a) Strict MALICIOUS** | **Combined Prompt** | 100.0% (0 fail) | 88.5% (23/26) [71.0%, 96.0%] | 88.5% (23/26) [71.0%, 96.0%] | 100.0% (7/7) [64.6%, 100.0%] | 0.0% (0/25) [0.0%, 13.3%] | 0.308 |
+
+
+**Statistical Comparisons (gemini-3.1-flash-lite, Rule b BALANCED)**:
+- **Adjacent vs. Cumulative**: Diff = +3.8% [95% bootstrap CI: +0.0%, +11.5%], McNemar exact $p = 1.0000$ (discordant $b=1, c=0$).
+- **Combined vs. Adjacent**: Diff = -3.8% [95% bootstrap CI: -11.5%, +0.0%], McNemar exact $p = 1.0000$.
+- **Combined vs. Cumulative**: Diff = +0.0% [95% bootstrap CI: +0.0%, +0.0%], McNemar exact $p = 1.0000$.
+
+**Pre-Registered Replicability Hypotheses**:
+- **$H_1$ (Adjacent vs. Cumulative Salami Recall on gemini-3.1-flash-lite)**: No significant difference (McNemar $p = 1.0000$; direction depends on rule: Cumulative higher under rule (a): 25/26 vs 22/26; Adjacent higher under rule (b): 23/26 vs 22/26). The attention dilution mechanism hypothesized for local models is a hypothesis that the Gemini result does not support.
+- **$H_2$ (Combined Prompt Pareto Efficiency)**: **FAILS / REJECTED** (Combined Recall: 84.6%, Adjacent Recall: 88.5%; Combined FPR: 0.0%, Adjacent FPR: 0.0%).

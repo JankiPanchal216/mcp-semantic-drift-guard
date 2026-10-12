@@ -77,8 +77,10 @@ class MultiJudgeClient:
             return "openai"
         elif m.startswith("claude-"):
             return "anthropic"
-        elif m.startswith("gemini-"):
+        elif "gemini" in m:
             return "google"
+        elif "deepseek" in m:
+            return "deepseek"
         elif ":" in m or m.startswith("qwen") or m.startswith("gemma") or m.startswith("llama") or m.startswith("mistral"):
             return "ollama"
         else:
@@ -118,6 +120,8 @@ class MultiJudgeClient:
                     raw_text, p_tok, c_tok = self._call_anthropic(prompt, system_prompt)
                 elif self.provider == "google":
                     raw_text, p_tok, c_tok = self._call_google(prompt, system_prompt)
+                elif self.provider == "deepseek":
+                    raw_text, p_tok, c_tok = self._call_deepseek(prompt, system_prompt)
                 else:
                     raise ValueError(f"Unsupported provider: {self.provider}")
 
@@ -154,6 +158,8 @@ class MultiJudgeClient:
                 total_lat_ms += lat_ms
                 err_msg = str(e)
                 retry_log.append(f"Attempt {attempt + 1}: Exception: {err_msg}")
+                if "DAILY_QUOTA" in err_msg:
+                    break
 
             time.sleep(0.15)
 
@@ -301,11 +307,63 @@ class MultiJudgeClient:
             data=data_bytes,
             headers={"Content-Type": "application/json"}
         )
+        
+        # Exponential backoff specifically for HTTP 429 / rate limits (longer backoff)
+        backoff_seconds = [5, 15, 30, 60]
+        for idx, wait_time in enumerate([0] + backoff_seconds):
+            if wait_time > 0:
+                print(f"[Google Gemini] HTTP 429 / transient error encountered. Backing off for {wait_time}s...")
+                time.sleep(wait_time)
+            try:
+                with urllib.request.urlopen(req, timeout=60) as resp:
+                    resp_data = json.loads(resp.read().decode("utf-8"))
+                
+                raw_text = resp_data["candidates"][0]["content"]["parts"][0]["text"].strip()
+                usage = resp_data.get("usageMetadata", {})
+                p_tok = usage.get("promptTokenCount", int(len(prompt) / 4))
+                c_tok = usage.get("candidatesTokenCount", int(len(raw_text) / 4))
+                return raw_text, p_tok, c_tok
+            except urllib.error.HTTPError as he:
+                if he.code == 429:
+                    err_body = he.read().decode("utf-8", errors="ignore")
+                    if "PerDay" in err_body or "requests per day" in err_body.lower() or "limit: 500" in err_body or "quota" in err_body.lower() or "resource has been exhausted" in err_body.lower():
+                        print(f"[Google Gemini] Daily quota limit reached: {err_body}")
+                        raise RuntimeError(f"DAILY_QUOTA_429: {err_body}")
+                    if idx < len(backoff_seconds):
+                        continue
+                raise he
+
+    def _call_deepseek(self, prompt: str, system_prompt: str) -> Tuple[str, int, int]:
+        api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
+        if not api_key:
+            raise ValueError("DEEPSEEK_API_KEY environment variable is not set.")
+        
+        url = "https://api.deepseek.com/chat/completions"
+        payload = {
+            "model": self.model_name,
+            "messages": [
+                {"role": "system", "content": f"{system_prompt}\n\nRespond strictly with valid JSON matching this schema:\n{json.dumps(JUDGE_JSON_SCHEMA)}"},
+                {"role": "user", "content": prompt}
+            ],
+            "response_format": {"type": "json_object"},
+            "temperature": self.temperature,
+            "max_tokens": 256
+        }
+        data_bytes = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            url,
+            data=data_bytes,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}"
+            }
+        )
         with urllib.request.urlopen(req, timeout=60) as resp:
             resp_data = json.loads(resp.read().decode("utf-8"))
         
-        raw_text = resp_data["candidates"][0]["content"]["parts"][0]["text"].strip()
-        usage = resp_data.get("usageMetadata", {})
-        p_tok = usage.get("promptTokenCount", int(len(prompt) / 4))
-        c_tok = usage.get("candidatesTokenCount", int(len(raw_text) / 4))
+        raw_text = resp_data["choices"][0]["message"]["content"].strip()
+        usage = resp_data.get("usage", {})
+        p_tok = usage.get("prompt_tokens", int(len(prompt) / 4))
+        c_tok = usage.get("completion_tokens", int(len(raw_text) / 4))
         return raw_text, p_tok, c_tok
+

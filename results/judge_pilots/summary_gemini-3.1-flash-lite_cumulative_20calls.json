@@ -1,0 +1,23 @@
+{
+  "model_name": "gemini-3.1-flash-lite",
+  "provider": "google",
+  "pilot_calls": 20,
+  "strategy": "cumulative",
+  "parse_failures": 0,
+  "parse_failure_rate": 0.0,
+  "parse_success_rate": 1.0,
+  "calls_requiring_retry": 0,
+  "avg_prompt_tokens": 362.9,
+  "avg_completion_tokens": 106.2,
+  "avg_total_tokens": 469.1,
+  "avg_latency_ms": 4085.67,
+  "pricing_per_1m": {
+    "input_per_m": 0.075,
+    "output_per_m": 0.3
+  },
+  "estimated_cost_per_call_usd": 5.9e-05,
+  "estimated_cost_frozen_test_set_single_strategy_usd": 0.0129,
+  "estimated_cost_frozen_test_set_both_strategies_usd": 0.0258,
+  "estimated_cost_full_benchmark_both_strategies_usd": 0.0515,
+  "pilot_records_file": "C:\\Users\\Janki Panchal\\Downloads\\New folder\\Desktop\\Research\\APP\\results\\judge_pilots\\pilot_gemini-3.1-flash-lite_cumulative_20calls.jsonl"
+}

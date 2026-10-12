@@ -131,16 +131,10 @@ class TestPaperMatchesResults(unittest.TestCase):
         self.assertEqual(schema_row["Precision (95% CI)"], "n/a")
         self.assertIn("0.0% [0.0%, 10.4%]", schema_row["Recall (95% CI)"])
 
-        # Unexecuted rows are labeled [PENDING RE-RUN]
-        mode_a_row = table_8_8.get("Semantic Judge Mode A (Full)")
-        self.assertIn("[PENDING RE-RUN]", mode_a_row["Precision (95% CI)"])
-        self.assertIn("[PENDING RE-RUN]", mode_a_row["Recall (95% CI)"])
-
-        mode_b_row = table_8_8.get("Semantic Judge Mode B (Diff Only)")
-        self.assertIn("[PENDING RE-RUN]", mode_b_row["Precision (95% CI)"])
-
-        int_row = table_8_8.get("Integrated Guard Middleware (BALANCED)")
-        self.assertIn("[PENDING RE-RUN]", int_row["Precision (95% CI)"])
+        # Unexecuted sweeps removed from master table and deferred to Future Work
+        self.assertNotIn("Semantic Judge Mode A (Full)", table_8_8)
+        self.assertNotIn("Semantic Judge Mode B (Diff Only)", table_8_8)
+        self.assertNotIn("Integrated Guard Middleware (BALANCED)", table_8_8)
 
     def test_zero_legacy_numbers_in_entire_paper(self):
         forbidden_patterns = [
