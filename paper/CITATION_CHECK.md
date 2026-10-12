@@ -12,6 +12,7 @@ This document records the verification provenance for every bibliographic entry 
 - **Year:** 2025 (Submitted August 19, 2025)
 - **Venue / Identifier:** arXiv:2508.14925
 - **Verified URL Checked:** `https://arxiv.org/abs/2508.14925`
+- **Fetch Date:** 2026-10-12
 - **Verification Status:** **PASS (VERIFIED)**
 
 ### 2. `zong2025mcpsafetybench` (MCP-SafetyBench)
@@ -20,6 +21,7 @@ This document records the verification provenance for every bibliographic entry 
 - **Year:** 2025 (Accepted ICLR 2026)
 - **Venue / Identifier:** arXiv:2512.15163
 - **Verified URL Checked:** `https://arxiv.org/abs/2512.15163`
+- **Fetch Date:** 2026-10-12
 - **Verification Status:** **PASS (VERIFIED)**
 
 ### 3. `shi2025toolhijacker` (ToolHijacker / Tool Selection Injection)
@@ -28,6 +30,7 @@ This document records the verification provenance for every bibliographic entry 
 - **Year:** 2025
 - **Venue / Identifier:** arXiv:2504.19793 / NDSS Symposium 2025
 - **Verified URL Checked:** `https://arxiv.org/abs/2504.19793`
+- **Fetch Date:** 2026-10-12
 - **Verification Status:** **PASS (VERIFIED)**
 
 ### 4. `mas2026trustworthy` (Trustworthy MCP Registry)
@@ -37,6 +40,7 @@ This document records the verification provenance for every bibliographic entry 
 - **Journal / Volume / Pages:** *Future Internet*, 18(5), Article 243
 - **DOI:** `10.3390/fi18050243`
 - **Verified URL Checked:** `https://doi.org/10.3390/fi18050243`
+- **Fetch Date:** 2026-10-12
 - **Verification Status:** **PASS (VERIFIED)**
 
 ### 5. `newman2022sigstore` (Sigstore Keyless Signing)
@@ -46,6 +50,7 @@ This document records the verification provenance for every bibliographic entry 
 - **Venue / Pages:** *Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security (CCS '22)*, pp. 2353–2367
 - **DOI:** `10.1145/3548606.3560596`
 - **Verified URL Checked:** `https://api.crossref.org/works/10.1145/3548606.3560596`
+- **Fetch Date:** 2026-10-12
 - **Verification Status:** **PASS (VERIFIED)**
 
 
@@ -55,6 +60,7 @@ This document records the verification provenance for every bibliographic entry 
 - **Year:** 2023
 - **Venue / Identifier:** arXiv:2312.06674
 - **Verified URL Checked:** `https://arxiv.org/abs/2312.06674`
+- **Fetch Date:** 2026-10-12
 - **Verification Status:** **PASS (VERIFIED)**
 
 ### 7. `rebedea2023nemo` (NeMo Guardrails)
@@ -64,6 +70,7 @@ This document records the verification provenance for every bibliographic entry 
 - **Venue / Pages:** *Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP): System Demonstrations*, pp. 431–445
 - **DOI:** `10.18653/v1/2023.emnlp-demo.40`
 - **Verified URL Checked:** `https://aclanthology.org/2023.emnlp-demo.40/`
+- **Fetch Date:** 2026-10-12
 - **Verification Status:** **PASS (VERIFIED)**
 
 ### 8. `snyk2025mcpscan` (Snyk Agent Scan / MCP-Scan)
@@ -72,6 +79,7 @@ This document records the verification provenance for every bibliographic entry 
 - **Year:** 2025
 - **Repository URL:** `https://github.com/snyk/agent-scan`
 - **Verified URL Checked:** `https://github.com/snyk/agent-scan`
+- **Fetch Date:** 2026-10-12
 - **Verification Status:** **PASS (VERIFIED)**
 
 ### 9. `w3c2016sri` (Subresource Integrity)
@@ -79,6 +87,7 @@ This document records the verification provenance for every bibliographic entry 
 - **Author:** W3C Web Application Security Working Group (Devdatta Akhawe, Frederik Braun, François Marier, Joel Weinberger, Eds.)
 - **Year:** 2016 (W3C Recommendation, 23 June 2016)
 - **Verified URL Checked:** `https://www.w3.org/TR/SRI/`
+- **Fetch Date:** 2026-10-12
 - **Verification Status:** **PASS (VERIFIED)**
 
 ### 10. `brito2018breaking` (Breaking APIs Empirical Study)
@@ -88,6 +97,7 @@ This document records the verification provenance for every bibliographic entry 
 - **Venue / Pages:** *Proceedings of the IEEE 25th International Conference on Software Analysis, Evolution and Reengineering (SANER)*, pp. 255–265
 - **DOI:** `10.1109/SANER.2018.8330214`
 - **Verified URL Checked:** `https://doi.org/10.1109/SANER.2018.8330214`
+- **Fetch Date:** 2026-10-12
 - **Verification Status:** **PASS (VERIFIED)**
 
 ### 11. `dig2006apis` (API Evolution and Refactoring)
@@ -97,6 +107,7 @@ This document records the verification provenance for every bibliographic entry 
 - **Journal / Volume / Pages:** *Journal of Software Maintenance and Evolution: Research and Practice*, 18(2), pp. 83–107
 - **DOI:** `10.1002/smr.328`
 - **Verified URL Checked:** `https://doi.org/10.1002/smr.328`
+- **Fetch Date:** 2026-10-12
 - **Verification Status:** **PASS (VERIFIED)**
 
 ### 12. `anthropic2024mcp` (Model Context Protocol Specification)
@@ -105,4 +116,5 @@ This document records the verification provenance for every bibliographic entry 
 - **Year:** 2024–2025
 - **Specification URL:** `https://spec.modelcontextprotocol.io/` / `https://modelcontextprotocol.io/specification`
 - **Verified URL Checked:** `https://spec.modelcontextprotocol.io/`
+- **Fetch Date:** 2026-10-12
 - **Verification Status:** **PASS (VERIFIED)**

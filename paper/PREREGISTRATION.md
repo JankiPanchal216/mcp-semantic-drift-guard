@@ -155,11 +155,20 @@ All empirical outcomes (recall, FPR, exposure window $\bar{W}_e$, McNemar exact 
 - **Combined Strategy ($N=215$ transitions):** 100% complete (215/215 valid verdicts). Strict Salami recall = 84.6% (22/26), Any-After-Onset = 100.0% (26/26), Fast-Jump = 100.0% (7/7), Benign FPR = 0.0% (0/25).
 - **Hypothesis 2 ($H_2$) Outcome:** **FAILS / REJECTED** (Combined: 84.6% vs. Adjacent: 88.5%, Diff: -3.8% [95% bootstrap CI: -11.5%, +0.0%], exact McNemar $p = 1.0000$). Combined Prompt provides no Pareto advantage on lightweight cloud reasoning models.
 
-### 8.7 Third Judge Candidate Check & Exclusion Audit (DeepSeek API, 2026-10-12)
+### 8.7 Third Judge Candidate Check & Exclusion Audit (DeepSeek API)
+**Audit Timestamp:** 2026-10-12T12:12:00+05:30  
+**Status:** EXCLUDED (Prior to Calibration Pilots or Test Split Runs)
+
 - **Candidate Models:** `deepseek-flash` (DeepSeek-V4.1-Flash) and `deepseek-v4-pro` (DeepSeek-V4-Pro).
 - **Authentication Check:** The `DEEPSEEK_API_KEY` authenticated successfully (`HTTP 200 OK` on `https://api.deepseek.com/models` and `https://api.deepseek.com/user/balance`). Key status is verified **VALID**.
-- **Credit & Balance Check:** Live balance inquiry returned `{"is_available": false, "balance_infos": [{"currency": "USD", "total_balance": "0.00", "granted_balance": "0.00", "topped_up_balance": "0.00"}]}`. All chat completion requests failed immediately with `HTTP 402 Insufficient Balance`.
-- **Exclusion Outcome:** DeepSeek was formally excluded prior to pilot or test split runs due to zero available balance ($0.00) and payment requirement. In accordance with the pre-registered protocol, the empirical evaluation remains frozen at two judges (`gemma3:4b` and `gemini-3.1-flash-lite`).
+- **Credit & Balance Check:** Live balance inquiry returned `{"is_available": false, "balance_infos": [{"currency": "USD", "total_balance": "0.00", "granted_balance": "0.00", "topped_up_balance": "0.00"}]}`. A test chat completion probe failed immediately with `HTTP 402 Insufficient Balance`.
+- **Operational Discipline:** Zero API calls were executed beyond connectivity/balance checks and the single rejected chat probe. No model outputs, traces, or predictions were produced.
+- **Exclusion Outcome:** DeepSeek was formally excluded due to zero available balance ($0.00) and payment requirements.
+- **Candidate Exclusions Summary:**
+  1. *Local `qwen3:8b` (Ollama)*: Disqualified on 5-call CPU pilot (40.0% parse rate, Gate 1 failed; thinking tokens disabled/stripped).
+  2. *Hugging Face Inference Providers*: Disqualified during connectivity check (`HTTP 402 Payment Required`).
+  3. *DeepSeek API*: Excluded due to zero balance ($0.00, `HTTP 402 Insufficient Balance`).
+- **Benchmark Scope:** In strict accordance with the pre-registered protocol, the empirical study remains frozen at two verified judges: `gemma3:4b` (local open-weight 4B) and `gemini-3.1-flash-lite` (lite-tier cloud).
 
 
 
