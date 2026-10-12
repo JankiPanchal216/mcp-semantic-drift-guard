@@ -119,6 +119,7 @@ To ensure findings evaluate semantic drift rather than transport artifacts, all 
 2. **Excluded Candidates & Disqualifications:**
    - *Local `qwen3:8b` (Ollama)*: Disqualified after achieving 40.0% parse rate (2/5) with 190s/call CPU latency, failing Gate 1 ($\ge 99.0\%$).
    - *Hugging Face Inference Providers*: Disqualified as serverless router endpoints require pre-paid account credits (`HTTP 402 Payment Required`).
+   - *DeepSeek API (`deepseek-flash` / `deepseek-v4-flash`, `deepseek-v4-pro`)*: Evaluated on 2026-10-12. API key authentication verified successfully (HTTP 200 on `/models` and `/user/balance`). However, account balance check returned `total_balance: $0.00`, `is_available: false`, and chat completion requests returned `HTTP 402 Insufficient Balance`. Excluded due to zero account balance / payment requirement. Benchmark evaluation remains frozen at two judges (`gemma3:4b` and `gemini-3.1-flash-lite`).
 
 ### 8.2 Judge Qualification & Selection Rule
 Prior to evaluating the frozen test split, each candidate model must qualify on a **50-call calibration pilot** drawn strictly from the Calibration Split ($N=58$ chains, 221 transitions):
@@ -153,5 +154,12 @@ All empirical outcomes (recall, FPR, exposure window $\bar{W}_e$, McNemar exact 
 - **Resumption Protocol & Status:** Following daily quota reset on 2026-10-12, evaluation resumed for Combined Prompt only starting from the 21 valid records, successfully completing all 215 transitions across the day boundary (21 on 2026-10-11, 194 on 2026-10-12) with the 20 audit-isolated failure attempts documented in the day-boundary split.
 - **Combined Strategy ($N=215$ transitions):** 100% complete (215/215 valid verdicts). Strict Salami recall = 84.6% (22/26), Any-After-Onset = 100.0% (26/26), Fast-Jump = 100.0% (7/7), Benign FPR = 0.0% (0/25).
 - **Hypothesis 2 ($H_2$) Outcome:** **FAILS / REJECTED** (Combined: 84.6% vs. Adjacent: 88.5%, Diff: -3.8% [95% bootstrap CI: -11.5%, +0.0%], exact McNemar $p = 1.0000$). Combined Prompt provides no Pareto advantage on lightweight cloud reasoning models.
+
+### 8.7 Third Judge Candidate Check & Exclusion Audit (DeepSeek API, 2026-10-12)
+- **Candidate Models:** `deepseek-flash` (DeepSeek-V4.1-Flash) and `deepseek-v4-pro` (DeepSeek-V4-Pro).
+- **Authentication Check:** The `DEEPSEEK_API_KEY` authenticated successfully (`HTTP 200 OK` on `https://api.deepseek.com/models` and `https://api.deepseek.com/user/balance`). Key status is verified **VALID**.
+- **Credit & Balance Check:** Live balance inquiry returned `{"is_available": false, "balance_infos": [{"currency": "USD", "total_balance": "0.00", "granted_balance": "0.00", "topped_up_balance": "0.00"}]}`. All chat completion requests failed immediately with `HTTP 402 Insufficient Balance`.
+- **Exclusion Outcome:** DeepSeek was formally excluded prior to pilot or test split runs due to zero available balance ($0.00) and payment requirement. In accordance with the pre-registered protocol, the empirical evaluation remains frozen at two judges (`gemma3:4b` and `gemini-3.1-flash-lite`).
+
 
 
