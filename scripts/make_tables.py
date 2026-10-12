@@ -376,20 +376,28 @@ def generate_table_8_v4_baselines(baselines_report: Dict[str, Any], v4_report: D
 
     b_res = baselines_report["baselines_test_results"]
     
-    # 1. Deterministic & Calibrated baselines
-    for b_key in [
-        "exact_hash_pinning", "static_keyword_regex",
-        "tfidf_matched_fpr_50", "tfidf_matched_fpr_25", "tfidf_matched_fpr_12", "tfidf_matched_fpr_0",
-        "edit_dist_matched_fpr_50", "edit_dist_matched_fpr_25", "edit_dist_matched_fpr_12", "edit_dist_matched_fpr_0",
-        "param_delta_matched_fpr_50", "param_delta_matched_fpr_25", "param_delta_matched_fpr_0"
-    ]:
+    # 1. Deterministic & Calibrated baselines (one row per distinct threshold; merged identical dev targets)
+    distinct_baselines = [
+        ("exact_hash_pinning", None),
+        ("static_keyword_regex", None),
+        ("tfidf_matched_fpr_50", None),
+        ("tfidf_matched_fpr_25", None),
+        ("tfidf_matched_fpr_12", None),
+        ("tfidf_matched_fpr_0", None),
+        ("edit_dist_matched_fpr_50", "Normalized Edit Distance (Calibrated Dev Target=25.0%–50.0%, Thresh >= 0.6571, Achieved Test FPR=44.0%)"),
+        ("edit_dist_matched_fpr_12", None),
+        ("edit_dist_matched_fpr_0", None),
+        ("param_delta_matched_fpr_50", "Parameter Count Delta (Calibrated Dev Target=25.0%–50.0%, Thresh >= 4, Achieved Test FPR=44.0%)"),
+        ("param_delta_matched_fpr_0", None)
+    ]
+    for b_key, custom_name in distinct_baselines:
         if b_key not in b_res: continue
         item = b_res[b_key]
         sal = item["salami_only"]
         fast = item["fast_jump"]
         mal = item["all_malicious"]
         ben = item["benign_fpr"]
-        name = item["name"]
+        name = custom_name if custom_name else item["name"]
         rows.append(
             f"| **{name}** | {sal['rate']*100:.1f}% ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])} | "
             f"{fast['rate']*100:.1f}% ({fast['detected']}/{fast['n']}) {fmt_ci(fast['detected'], fast['n'])} | "
@@ -577,9 +585,7 @@ def generate_table_12_multi_judge(v4_report: Dict[str, Any], gemini_summary: Opt
         if h1:
             footer.append(f"- **$H_1$ (Adjacent vs. Cumulative Salami Recall on gemini-3.1-flash-lite)**: No significant difference (McNemar $p = 1.0000$; direction depends on rule: Cumulative higher under rule (a): 25/26 vs 22/26; Adjacent higher under rule (b): 23/26 vs 22/26). The attention dilution mechanism hypothesized for local models is a hypothesis that the Gemini result does not support.")
         if h2:
-            footer.append(f"- **$H_2$ (Combined Prompt Pareto Efficiency)**: **{'HOLDS / SUPPORTED' if h2.get('supported') else 'FAILS / REJECTED'}** (Combined Recall: {h2.get('combined_recall',0)*100:.1f}%, Adjacent Recall: {h2.get('adjacent_recall',0)*100:.1f}%; Combined FPR: {h2.get('combined_fpr',0)*100:.1f}%, Adjacent FPR: {h2.get('adjacent_fpr',0)*100:.1f}%).")
-        elif "combined" not in gem_res:
-            footer.append(f"- **$H_2$ (Combined Prompt Pareto Efficiency)**: **[PENDING RESUMPTION]** (Combined strategy evaluation is paused at 21/215 valid records due to Google AI Studio daily free-tier quota ceiling; will be evaluated after quota reset).")
+            footer.append(f"- **$H_2$ (Combined Prompt Pareto Efficiency)**: Not supported on Gemini, weakly supported on gemma (one fewer false-alarm chain, p=1.0), judge-dependent (Combined Recall: {h2.get('combined_recall',0)*100:.1f}%, Adjacent Recall: {h2.get('adjacent_recall',0)*100:.1f}%; Combined FPR: {h2.get('combined_fpr',0)*100:.1f}%, Adjacent FPR: {h2.get('adjacent_fpr',0)*100:.1f}%).")
         
     body = "\n".join(rows)
     foot = "\n".join(footer)

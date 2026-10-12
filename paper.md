@@ -4,15 +4,15 @@
 
 The Model Context Protocol (MCP) enables Large Language Model (LLM) agents to dynamically discover and execute external tools at runtime. However, because advertised tool contracts—including docstrings, parameter descriptions, and schemas—are directly ingested into agent system prompts, malicious or compromised upstream servers can mount tool-poisoning attacks to hijack agent execution. While single-step attacks inject overt malicious directives, sophisticated adversaries can partition an unauthorized capability escalation across multiple consecutive, individually subtle release updates—a threat model we formalize as **Salami Drift** (or incremental "rug-pull" attacks). Existing MCP defenses detect change (exact hash pinning, signing) or judge a single definition (static scanners, monolithic LLM vetting), failing to differentiate benign contract refactoring from multi-step capability creep.
 
-Across an empirical audit of 621 historical release transitions from open-source MCP repositories, 31 releases (4.99%) contained legitimate tool-definition modifications (an operator burden of 0.050 alerts per release transition), all of which trigger security re-approval under exact cryptographic pinning. To address this challenge, we introduce the **MCP Semantic Drift Guard**, a 5-tier architecture combining deterministic fast-paths ($< 0.25$ ms), schema security checks, and structured diff reasoning powered by lightweight models—including local open-weight judges (`gemma3:4b`, 4B parameters) and a second frontier judge, Google `gemini-3.1-flash-lite` (lite-tier cloud judge; pinned ID `gemini-3.1-flash-lite`, evaluated 2026-10-11/12 in one continuous run with a day-boundary quota resumption)—under Draft-07 JSON Schema constrained decoding. A third candidate judge (DeepSeek API, evaluating `deepseek-flash`) authenticated with a valid key on 2026-10-12 but was formally excluded due to an account balance of $0.00 and HTTP 402 Insufficient Balance (with zero calls beyond connectivity probes and no model results), focusing empirical evaluation on two verified judges.
+Across an empirical audit of 621 historical release transitions from open-source MCP repositories, 31 releases (4.99%) contained legitimate tool-definition modifications (an operator burden of 0.050 alerts per release transition), all of which trigger security re-approval under exact cryptographic pinning. To address this challenge, we introduce the **MCP Semantic Drift Guard**, a 5-tier architecture combining deterministic fast-paths ($< 0.25$ ms), schema security checks, and structured diff reasoning powered by lightweight models—including local open-weight judges (`gemma3:4b`, 4B parameters) and a second lite-tier cloud judge, Google `gemini-3.1-flash-lite` (pinned ID `gemini-3.1-flash-lite`, evaluated 2026-10-11/12 in one continuous run with a day-boundary quota resumption)—under Draft-07 JSON Schema constrained decoding. A third candidate judge (DeepSeek API, evaluating `deepseek-flash`) authenticated with a valid key on 2026-10-12 but was formally excluded due to an account balance of $0.00 and HTTP 402 Insufficient Balance (with zero calls beyond connectivity probes and no model results), focusing empirical evaluation on two verified judges.
 
 In single-step held-out benchmark evaluations ($N=56$; source: `results/computed_metrics.json`), exact cryptographic hash pinning achieves **Precision = 58.9%**, **Recall = 100.0%**, with **Benign FPR = 100.0%** (by construction); author-defined static regex rules achieve **Precision = 100.0%**, **Recall = 75.8%**, with **Benign FPR = 0.0%**; and the TF-IDF cosine baseline achieves **Precision = 64.6%**, **Recall = 93.9%**, with **Benign FPR = 73.9%**.
 
 On the pre-registered **Salami Drift Benchmark V4** ($N=116$ chains, 436 transitions; SHA-256: `91f1d0de...`) evaluated under a server-disjoint 50/50 split (58 calibration chains, 58 frozen held-out test chains: 26 Salami, 7 Fast-Jump, 25 Benign):
-1. **Adjacent vs. Cumulative Comparison ($H_1$) & Combined Strategy ($H_2$)**: Under the primary pre-registered rule (**Rule b BALANCED**), Adjacent comparison on `gemma3:4b` achieves **96.2% (25/26)** Salami-only chain recall [95% Wilson CI: 81.1%, 99.3%] with a mean exposure window of $\bar{W}_e = 0.192$ steps and **4.0% (1/25)** Benign FPR [0.7%, 19.5%]. Cumulative root comparison achieves **76.9% (20/26)** Salami recall [58.0%, 89.0%] with $\bar{W}_e = 0.731$ and **0.0% (0/25)** Benign FPR [0.0%, 13.3%] (test split difference: +19.2% [95% bootstrap CI: +0.0%, +38.5%], McNemar $p = 0.1250$; calibration split difference: +26.5%, $p = 0.0225$; pooled post hoc difference: +23.3%, $p = 0.0026$). On cross-architecture replication using Google `gemini-3.1-flash-lite`, both Adjacent and Cumulative comparison achieved 100.0% (26/26) Any-After-Onset Salami sensitivity and 0.0% (0/25) Benign FPR; strict Salami recall showed no significant difference ($H_1$: Adjacent 88.5% [23/26] vs. Cumulative 84.6% [22/26], exact McNemar $p = 1.0000$), with the direction depending on the decision rule (Cumulative higher under strict Rule (a): 96.2% [25/26] vs. 84.6% [22/26]). Thus, the Adjacent vs. Cumulative gap is judge-dependent; attention dilution remains an untested hypothesis that the Gemini result does not support. For $H_2$ (Combined Prompt Pareto efficiency), Combined matches Adjacent recall on `gemma3:4b` (96.2%, 25/26) with one fewer false-alarm chain (0/25 vs 1/25, $p = 1.0000$), but fails to hold on Gemini (84.6% [22/26] vs. Adjacent 88.5% [23/26], same 0/25 FPR, exact McNemar $p = 1.0000$), while expanding input context by +47.0% tokens (508.2 vs 345.6 mean prompt tokens on gemma; latency not comparatively evaluated).
+1. **Adjacent vs. Cumulative Comparison ($H_1$) & Combined Strategy ($H_2$)**: Under the primary pre-registered rule (**Rule b BALANCED**), Adjacent comparison on `gemma3:4b` achieves **96.2% (25/26)** Salami-only chain recall [95% Wilson CI: 81.1%, 99.3%] with a mean exposure window of $\bar{W}_e = 0.192$ steps and **4.0% (1/25)** Benign FPR [0.7%, 19.5%]. Cumulative root comparison achieves **76.9% (20/26)** Salami recall [58.0%, 89.0%] with $\bar{W}_e = 0.731$ and **0.0% (0/25)** Benign FPR [0.0%, 13.3%] (test split difference: +19.2% [95% bootstrap CI: +0.0%, +38.5%], McNemar $p = 0.1250$; calibration split difference: +26.5%, $p = 0.0225$; pooled post hoc difference: +23.3%, $p = 0.0026$). On cross-architecture replication using Google `gemini-3.1-flash-lite`, both Adjacent and Cumulative comparison achieved 100.0% (26/26) Any-After-Onset Salami sensitivity and 0.0% (0/25) Benign FPR; strict Salami recall showed no significant difference ($H_1$: Adjacent 88.5% [23/26] vs. Cumulative 84.6% [22/26], exact McNemar $p = 1.0000$), with the direction depending on the decision rule (Cumulative higher under strict Rule (a): 96.2% [25/26] vs. 84.6% [22/26]). Thus, the Adjacent vs. Cumulative gap is judge-dependent; attention dilution remains an untested hypothesis that the Gemini result does not support. For $H_2$ (Combined Prompt Pareto efficiency), $H_2$ is not supported on Gemini, weakly supported on gemma (one fewer false-alarm chain, p=1.0), and judge-dependent (Gemini Combined: 84.6% [22/26] vs. Adjacent 88.5% [23/26], same 0/25 FPR, exact McNemar $p = 1.0000$; Gemma: 96.2% vs. 96.2%, 0/25 vs. 1/25, $p = 1.0000$), while expanding input context by +47.0% tokens (508.2 vs 345.6 mean prompt tokens on gemma; latency not comparatively evaluated).
 2. **Matched-FPR Baselines**: Exact cryptographic hash pinning achieves 100.0% (26/26) recall by construction, but incurs a 100.0% (25/25) benign false alarm rate ($\bar{W}_e = 0.000$). At calibrated low-FPR operating points ($\le 4.0\%$), deterministic baselines fail to detect multi-step drift (Parameter delta: 0.0%, Levenshtein edit distance: 0.0%, TF-IDF cosine distance: 3.9%, Static regex: 0.0%). Parameter delta matches Cumulative recall (76.9% [20/26]) only by accepting a 44.0% (11/25) benign false alarm rate.
 3. **Novel Architectures**: Root-anchored Capability-Set Tracking achieves 61.5% (16/26) Salami recall but suffers 32.0% (8/25) Benign FPR on legitimate additions; Calibrated Drift Budgeting ($B^*=4.10$) maintains 0.0% (0/25) Benign FPR but yields 30.8% (8/26) Salami recall.
-4. **Adaptive Attacker Resistance**: Under black-box template and semantic mutation search ($Q \le 5$ queries/step, average 8.12 queries/chain, $N=24$ malicious chains), the Adjacent Guard retains **91.7% post-adaptive recall** (22/24; 8.3% evasion rate [2.3%, 25.9%]), whereas Cumulative Guard suffers 41.7% evasion (10/24) and Drift Budget suffers 83.3% evasion (20/24), indicating that cumulative root anchoring enables incremental budget exploitation under adaptive search.
+4. **Adaptive Attacker Resistance**: Under black-box template and semantic mutation search ($Q \le 5$ queries/step, average 8.12 queries/chain, $N=24$ malicious chains evaluated against local judge `gemma3:4b`), the Adjacent Guard retains **91.7% post-adaptive recall** (22/24; 8.3% evasion rate [2.3%, 25.9%]), whereas Cumulative Guard suffers 41.7% evasion (10/24) and Drift Budget suffers 83.3% evasion (20/24), suggesting the hypothesis that cumulative root anchoring may allow template mutations to distribute edits below detection thresholds under adaptive search.
 5. **Delivery Layer & Live Transport**: Empirical evaluation across 5 scripted transport failure conditions on a localhost mock harness (ratcheting, dynamic reconnection reset, TOCTOU double fetch, dropped notifications, judge timeout fail-safe) demonstrates prevention of unvetted definition delivery across all 5 test conditions (5/5 $\rightarrow$ 0/5).
 6. **Benchmark Audit Limitations**: Benchmark V4 exhibits docstring length shift correlation (ROC-AUC = 0.7228) and borderline edit distance ($\max(\text{AUC}, 1-\text{AUC}) = 0.6511$), failing the pre-registered $<0.65$ gate; all findings are reported subject to this limitation.
 
@@ -92,7 +92,7 @@ The MCP lifecycle establishes specific protocol interactions that adversaries ca
 - **Time-of-Check to Time-of-Use (TOCTOU)**: If the defense performs a double fetch (fetching a definition to inspect, then requesting the catalog again for client dispatch), a malicious server can return a benign contract during inspection and swap in poisoned payloads during dispatch. Single-fetch atomic cache forwarding addresses this race condition.
 
 ### 2.5 Defense Scope & Threat Boundary Table
-Table 1b formalizes the operational boundaries of the defense:
+Table 1 formalizes the operational boundaries of the defense:
 
 | Threat Category | In-Scope Attack Vectors | Out-of-Scope Threat Vectors | Primary Defensive Mitigation |
 |---|---|---|---|
@@ -100,13 +100,15 @@ Table 1b formalizes the operational boundaries of the defense:
 | **Transport Desync** | TOCTOU swapping, reconnection resets, dropped `list_changed` notifications | Kernel compromise, network-level man-in-the-middle on unencrypted transports | State-Monotonic Version Barrier, Atomic Cache Forwarding |
 | **Ecosystem Collusion** | Single-server multi-step capability creep | Multi-server cross-tool distributed collusion beyond individual server state | Per-server SQLite baseline store and rollback quarantine |
 
+*Table 1: Defense Scope & Threat Boundary Table.*
+
 ---
 
 ## 3. Related Work & Defensive Taxonomy
 
 The security of tool-augmented agents has recently received increased scrutiny. Single-step prompt injection and tool hijacking benchmarks such as MCPTox (Wang et al., 2025), MCP-SafetyBench (Zong et al., 2025), and ToolHijacker (Shi et al., 2025) evaluate adversarial docstrings that redirect model execution in a single release. Concurrently, the software engineering literature on API evolution (Brito et al., 2018; Dig and Johnson, 2006) demonstrates that real-world software interfaces evolve continuously through routine documentation clarifications, parameter refactoring, and backward-compatible feature additions. Differentiating benign evolutionary maintenance from subtle multi-step capability creep represents an unaddressed gap in agent defense architectures.
 
-Table 1 summarizes the defensive boundaries across existing paradigms and the MCP Semantic Drift Guard:
+Table 2 summarizes the defensive boundaries across existing paradigms and the MCP Semantic Drift Guard:
 
 | Defense Paradigm | Exemplar Approaches | Threat Model Scope | Primary Detection Target | Operational Blind Spots | Operator Review Burden |
 |---|---|---|---|---|---|
@@ -116,7 +118,7 @@ Table 1 summarizes the defensive boundaries across existing paradigms and the MC
 | **Monolithic LLM Vetting** | NeMo Guardrails (Rebedea et al., 2023), Llama Guard (Inan et al., 2023) | Full-context prompt injection | General prompt/tool risk | Context-window saturation, high latency, lacks multi-step context | **Medium** (High per-call latency, length bias; qualitative) |
 | **MCP Semantic Drift Guard (This Work)** | 5-tier pipeline + Multi-Anchor | Single-step & multi-step salami drift | Structured schema & docstring delta ($\Delta T$) | Distributed cross-tool collusion beyond individual tool state | **Not measured** (Synthetic benchmark FPR 4.0%; production burden not measured) |
 
-*Table 1: Comparative Taxonomy Matrix of Defensive Paradigms.*
+*Table 2: Comparative Taxonomy Matrix of Defensive Paradigms.*
 
 ---
 
@@ -154,16 +156,15 @@ The defense pipeline (`guard/middleware.py`, illustrated in Figure 1) operates a
 2. **Tier 1: Structured Diff Extraction**: Computes AST parameter deltas and docstring diffs (Figure 2).
 3. **Tier 1.5: Deterministic Schema Security Rules**: Scans parameter type changes, enum constriction, `readOnly` toggles, and regex patterns in default values in $< 0.005\text{ ms}$.
 4. **Tier 2: Static Rules Scan**: Screens docstring diffs against injection keywords in $< 0.25\text{ ms}$.
-5. **Tier 3: Semantic Judge (Mode B Diff-Only)**: Evaluates structured diffs under strict Draft-07 JSON Schema constrained decoding using `gemma3:4b` ($T=0$).
+5. **Tier 3: Semantic Judge (Mode B Diff-Only)**: Evaluates structured diffs under strict Draft-07 JSON Schema constrained decoding using lightweight models: local open-weight `gemma3:4b` ($T=0$) or lite-tier cloud `gemini-3.1-flash-lite` ($T=0$).
 6. **Policy Engine & SQLite Rollback**: Maps verdicts (`BENIGN`, `SUSPICIOUS`, `MALICIOUS`) to deterministic actions (`ALLOW`, `WARN`, `BLOCK`, `QUARANTINE`).
 
 ### 5.1 Formal Definitions of Decision Rules and Chain Metrics
 Let a tool evolution chain $c$ of length $K$ be defined as a sequence of definitions $(T_0, T_1, \dots, T_K)$, with transitions $t \in [1, K]$. Let $m_c \in [1, K]$ denote the attack onset step ($m_c = 1$ for Fast-Jump attacks, $m_c > 1$ for multi-step Salami attacks, and $m_c = \infty$ for Benign chains).
 
-At each transition $t$, the defense produces a verdict $V(t) \in \{\text{BENIGN}, \text{SUSPICIOUS}, \text{MALICIOUS}, \text{PARSE\_ERROR}\}$. We evaluate three pre-registered decision rules:
+At each transition $t$, the defense produces a verdict $V(t) \in \{\text{BENIGN}, \text{SUSPICIOUS}, \text{MALICIOUS}, \text{PARSE\_ERROR}\}$. We evaluate two pre-registered decision rules:
 - **Rule (a) Strict MALICIOUS**: An alert is raised at step $t$ if $V(t) = \text{MALICIOUS}$.
-- **Rule (b) Primary BALANCED**: An alert is raised at step $t$ if $V(t) \in \{\text{MALICIOUS}, \text{SUSPICIOUS}\}$ or if an unhandled parse failure occurs (fail-safe policy).
-- **Rule (c) Diagnostic / Parsed-Only**: An alert is raised at step $t$ if $V(t) \in \{\text{MALICIOUS}, \text{SUSPICIOUS}\}$, ignoring unhandled parse fallbacks.
+- **Rule (b) Primary BALANCED**: An alert is raised at step $t$ if $V(t) \in \{\text{MALICIOUS}, \text{SUSPICIOUS}\}$ or if an unhandled parse failure occurs (fail-safe policy). *(Because JSON Schema constrained decoding achieved a 100.0% valid parse rate across all 645 transitions, fail-safe fallbacks were never triggered).*
 
 #### Early-Alarm Flag ($k \ge m$):
 Let $k_c$ denote the index of the first transition where an alert is triggered:
@@ -181,7 +182,7 @@ The mean exposure window across malicious chains is defined as $\bar{W}_e = \fra
 
 ### 6.1 Benchmark Setup & Single-Step Baseline Matrix ($N=56$)
 
-Table 2 evaluates single-step detector performance on the held-out benchmark split ($N=56$; source: `results/computed_metrics.json`):
+Table 3 evaluates single-step detector performance on the held-out benchmark split ($N=56$; source: `results/computed_metrics.json`):
 
 | Method / Defense Layer | TP | TN | FP | FN | Precision (95% CI) | Recall (95% CI) | F1 Score | Benign FPR (95% CI) | Latency (Mean) | LLM Calls / Upd |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -190,7 +191,7 @@ Table 2 evaluates single-step detector performance on the held-out benchmark spl
 | **TF-IDF Cosine Baseline** | 31 | 6 | 17 | 2 | 64.6% [50.4%, 76.6%] | 93.9% [80.4%, 98.3%] | 76.5% | 73.9% [53.5%, 87.5%] | 0.903 ms | 0.0 |
 | **Deterministic Schema Checks (Tier 1.5)** | 0 | 23 | 0 | 33 | n/a | 0.0% [0.0%, 10.4%] | 0.0% | 0.0% [0.0%, 14.3%] | 0.005 ms | 0.0 |
 
-*Table 2: Held-Out Benchmark Results ($N=56$).*
+*Table 3: Single-Step Held-Out Benchmark Results ($N=56$).*
 
 ---
 
@@ -221,7 +222,7 @@ Across the dataset, all 370 benchmark items across train, dev, and test partitio
 | **TF-IDF Cosine Baseline** | 64.6% [50.4%, 76.6%] | 93.9% [80.4%, 98.3%] | 76.5% | 73.9% [53.5%, 87.5%] | 6.1% [1.7%, 19.6%] | 0.903 ms | 0.0 |
 | **Deterministic Schema (Tier 1.5)** | n/a | 0.0% [0.0%, 10.4%] | 0.0% | **0.0%** [0.0%, 14.3%] | 100.0% [89.6%, 100.0%] | 0.005 ms | 0.0 |
 
-*Table 3: Master Evaluation Comparison Matrix.*
+*Table 4: Master Evaluation Comparison Matrix.*
 
 ---
 
@@ -232,7 +233,7 @@ The pre-registered **Salami Drift Benchmark V4** (`data/salami_drift_benchmark_v
 - **Frozen Held-Out Test Split ($N=58$ Chains)**: 26 Salami, 7 Fast-Jump, 25 Benign across disjoint server namespaces.
 
 ### Benchmark Provenance & Trivial-Separator Audit
-Chains were synthesized by taking real tool schema templates from open-source MCP repositories and generating multi-step mutation sequences via Python scripts. Evaluation is conducted using local `gemma3:4b` at temperature $T=0$.
+Chains were synthesized by taking real tool schema templates from open-source MCP repositories and generating multi-step mutation sequences via Python scripts. Primary evaluation is conducted using local open-weight `gemma3:4b` ($T=0$), complemented by cross-architecture replication on lite-tier cloud judge Google `gemini-3.1-flash-lite` ($T=0$).
 
 All chains were audited against trivial heuristic separators:
 
@@ -242,7 +243,7 @@ All chains were audited against trivial heuristic separators:
 | **Normalized Levenshtein Edit Distance** | $< 0.65$ | **0.3489** | **BORDERLINE / REPORTED** ($\max(\text{AUC}, 1-\text{AUC}) = 0.6511$; inverse lexical correlation reported) |
 | **Docstring Length Delta ($|\Delta L|$)** | $< 0.65$ | **0.7228** | **FAIL / REPORTED** (Modest length shift correlation in select categories; reported honestly) |
 
-*Table 7b: Benchmark V4 Trivial-Separator Audit.*
+*Table 5: Benchmark V4 Trivial-Separator Audit.*
 
 ---
 
@@ -250,7 +251,7 @@ All chains were audited against trivial heuristic separators:
 
 ### 10.1 Live Model Trajectory Outcomes ($N=116$ Chains)
 
-Table 7 reports trajectory-level outcomes across splits under Primary Rule (b) BALANCED and Sensitivity Rule (a):
+Table 6 reports trajectory-level outcomes across splits under Primary Rule (b) BALANCED and Sensitivity Rule (a):
 
 | Partition Split | Decision Rule | Anchor Strategy | Salami-Only Recall (95% Wilson CI) | Fast-Jump Recall (95% Wilson CI) | Overall Malicious Recall (95% Wilson CI) | Benign Chain FPR (95% Wilson CI) | Salami Mean Exposure $\bar{W}_e$ |
 |---|---|---|:---:|:---:|:---:|:---:|:---:|
@@ -273,11 +274,11 @@ Table 7 reports trajectory-level outcomes across splits under Primary Rule (b) B
 | | | **Cumulative** | 50.0% (30/60) [37.7%, 62.3%] | 83.3% (10/12) [55.2%, 95.3%] | 55.6% (40/72) [44.1%, 66.5%] | 0.0% (0/44) [0.0%, 8.0%] | 1.417 steps |
 | | | *Comparison* | *Post-Hoc Pooled McNemar p=1.0000 (b=7, c=6)* | - | - | - | *Adj-Cum Diff: +1.7% [-10.0%, +13.3%]* |
 
-*Table 7: Benchmark V4 Live Model Evaluation Outcomes ($N=116$ Chains, `gemma3:4b` Constrained).*
+*Table 6: Benchmark V4 Live Model Evaluation Outcomes ($N=116$ Chains, `gemma3:4b` Constrained).*
 
 ### 10.2 Matched-FPR Baseline Evaluation ($N=58$ Held-Out Test Chains)
 
-Table 8 reports deterministic and semantic baselines on the held-out test split. Thresholds for parameterized baselines were tuned strictly on Calibration Benign chains ($N=19$) and evaluated blindly on the Held-Out Test split ($N=25$ Benign, $N=26$ Salami, $N=7$ Fast-Jump):
+Table 7 reports deterministic and semantic baselines on the held-out test split. Thresholds for parameterized baselines were tuned strictly on Calibration Benign chains ($N=19$) and evaluated blindly on the Held-Out Test split ($N=25$ Benign, $N=26$ Salami, $N=7$ Fast-Jump):
 
 | Baseline / Defense Paradigm | Salami-Only Recall ($N=26$) (95% Wilson CI) | Fast-Jump Recall ($N=7$) (95% Wilson CI) | Overall Malicious Recall ($N=33$) (95% Wilson CI) | Benign Chain FPR ($N=25$) (95% Wilson CI) | Salami Mean Exposure $\bar{W}_e$ | LLM Calls / Upd |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -287,21 +288,19 @@ Table 8 reports deterministic and semantic baselines on the held-out test split.
 | **TF-IDF Distance (Calibrated Dev Target=25.0%, Thresh >= 0.6000, Achieved Test FPR=28.0%)** | 11.5% (3/26) [4.0%, 29.0%] | 0.0% (0/7) [0.0%, 35.4%] | 9.1% (3/33) [3.1%, 23.6%] | 28.0% (7/25) [14.3%, 47.6%] | 1.885 steps | 0.0 |
 | **TF-IDF Distance (Calibrated Dev Target=12.5%, Thresh >= 0.6073, Achieved Test FPR=28.0%)** | 7.7% (2/26) [2.1%, 24.1%] | 0.0% (0/7) [0.0%, 35.4%] | 6.1% (2/33) [1.7%, 19.6%] | 28.0% (7/25) [14.3%, 47.6%] | 1.923 steps | 0.0 |
 | **TF-IDF Distance (Calibrated Dev Target=0.0%, Thresh >= 0.6569, Achieved Test FPR=4.0%)** | 3.9% (1/26) [0.7%, 18.9%] | 0.0% (0/7) [0.0%, 35.4%] | 3.0% (1/33) [0.5%, 15.3%] | 4.0% (1/25) [0.7%, 19.5%] | 1.962 steps | 0.0 |
-| **Normalized Edit Distance (Calibrated Dev Target=50.0%, Thresh >= 0.6571, Achieved Test FPR=44.0%)** | 23.1% (6/26) [11.0%, 42.1%] | 0.0% (0/7) [0.0%, 35.4%] | 18.2% (6/33) [8.6%, 34.4%] | 44.0% (11/25) [26.7%, 62.9%] | 1.769 steps | 0.0 |
-| **Normalized Edit Distance (Calibrated Dev Target=25.0%, Thresh >= 0.6571, Achieved Test FPR=44.0%)** | 23.1% (6/26) [11.0%, 42.1%] | 0.0% (0/7) [0.0%, 35.4%] | 18.2% (6/33) [8.6%, 34.4%] | 44.0% (11/25) [26.7%, 62.9%] | 1.769 steps | 0.0 |
+| **Normalized Edit Distance (Calibrated Dev Target=25.0%–50.0%, Thresh >= 0.6571, Achieved Test FPR=44.0%)** | 23.1% (6/26) [11.0%, 42.1%] | 0.0% (0/7) [0.0%, 35.4%] | 18.2% (6/33) [8.6%, 34.4%] | 44.0% (11/25) [26.7%, 62.9%] | 1.769 steps | 0.0 |
 | **Normalized Edit Distance (Calibrated Dev Target=12.5%, Thresh >= 0.7052, Achieved Test FPR=12.0%)** | 0.0% (0/26) [0.0%, 12.9%] | 0.0% (0/7) [0.0%, 35.4%] | 0.0% (0/33) [0.0%, 10.4%] | 12.0% (3/25) [4.2%, 30.0%] | 2.000 steps | 0.0 |
 | **Normalized Edit Distance (Calibrated Dev Target=0.0%, Thresh >= 0.7369, Achieved Test FPR=0.0%)** | 0.0% (0/26) [0.0%, 12.9%] | 0.0% (0/7) [0.0%, 35.4%] | 0.0% (0/33) [0.0%, 10.4%] | 0.0% (0/25) [0.0%, 13.3%] | 2.000 steps | 0.0 |
-| **Parameter Count Delta (Calibrated Dev Target=50.0%, Thresh >= 4, Achieved Test FPR=44.0%)** | 76.9% (20/26) [57.9%, 89.0%] | 42.9% (3/7) [15.8%, 75.0%] | 69.7% (23/33) [52.7%, 82.6%] | 44.0% (11/25) [26.7%, 62.9%] | 1.231 steps | 0.0 |
-| **Parameter Count Delta (Calibrated Dev Target=25.0%, Thresh >= 4, Achieved Test FPR=44.0%)** | 76.9% (20/26) [57.9%, 89.0%] | 42.9% (3/7) [15.8%, 75.0%] | 69.7% (23/33) [52.7%, 82.6%] | 44.0% (11/25) [26.7%, 62.9%] | 1.231 steps | 0.0 |
+| **Parameter Count Delta (Calibrated Dev Target=25.0%–50.0%, Thresh >= 4, Achieved Test FPR=44.0%)** | 76.9% (20/26) [57.9%, 89.0%] | 42.9% (3/7) [15.8%, 75.0%] | 69.7% (23/33) [52.7%, 82.6%] | 44.0% (11/25) [26.7%, 62.9%] | 1.231 steps | 0.0 |
 | **Parameter Count Delta (Calibrated Dev Target=0.0%, Thresh >= 6, Achieved Test FPR=0.0%)** | 0.0% (0/26) [0.0%, 12.9%] | 0.0% (0/7) [0.0%, 35.4%] | 0.0% (0/33) [0.0%, 10.4%] | 0.0% (0/25) [0.0%, 13.3%] | 2.000 steps | 0.0 |
 | **MCP Semantic Guard (Adjacent, Rule (b) Primary BALANCED)** | **96.2%** (25/26) [81.1%, 99.3%] | **100.0%** (7/7) [64.6%, 100.0%] | **97.0%** (32/33) [84.7%, 99.5%] | **4.0%** (1/25) [0.7%, 19.5%] | 0.192 steps | 1.0 |
 | **MCP Semantic Guard (Cumulative, Rule (b) Primary BALANCED)** | **76.9%** (20/26) [57.9%, 89.0%] | **100.0%** (7/7) [64.6%, 100.0%] | **81.8%** (27/33) [65.6%, 91.4%] | **0.0%** (0/25) [0.0%, 13.3%] | 0.731 steps | 1.0 |
 | **MCP Semantic Guard (Adjacent, Rule (a) Strict MALICIOUS)** | **46.2%** (12/26) [28.8%, 64.5%] | **100.0%** (7/7) [64.6%, 100.0%] | **57.6%** (19/33) [40.8%, 72.8%] | **0.0%** (0/25) [0.0%, 13.3%] | 1.346 steps | 1.0 |
 | **MCP Semantic Guard (Cumulative, Rule (a) Strict MALICIOUS)** | **57.7%** (15/26) [38.9%, 74.5%] | **85.7%** (6/7) [48.7%, 97.4%] | **63.6%** (21/33) [46.6%, 77.8%] | **0.0%** (0/25) [0.0%, 13.3%] | 1.269 steps | 1.0 |
 
-*Table 8: Benchmark V4 Matched-FPR Baseline Evaluation on Frozen Held-Out Test Split ($N=58$ Chains).*
+*Table 7: Benchmark V4 Matched-FPR Baseline Evaluation on Frozen Held-Out Test Split ($N=58$ Chains).*
 
-*Note on Table 8 operating points: Duplicated or unmatched operating points (such as the 50% and 25% dev targets yielding identical thresholds for edit distance and parameter delta, or the 12.5% target yielding 28.0% test FPR) arise directly from the small size of the calibration benign set ($N=19$ benign chains), where discrete quantile step sizes limit the resolution of empirical threshold calibration. Figure 3 illustrates the recall vs. benign chain false positive rate trade-off frontier on the held-out test split across defense paradigms, while Figure 4 shows the mean exposure window $\bar{W}_e$ across defense strategies.*
+*Note on Table 7 operating points: Each row corresponds to a distinct calibrated operating threshold. Identical thresholds produced by adjacent quantile targets on the calibration benign set ($N=19$), such as the 50% and 25% dev targets yielding identical thresholds for edit distance ($\ge 0.6571$) and parameter delta ($\ge 4$), are merged into unified rows. Figure 3 illustrates the recall vs. benign chain false positive rate trade-off across defense paradigms, while Figure 4 shows the mean exposure window $\bar{W}_e$ across defense strategies.*
 
 ### 10.3 Adjacent vs. Cumulative Reversal Analysis & Hypotheses
 In earlier Benchmark V3 unconstrained evaluations ($N=40$), Cumulative root-anchored comparison outperformed Adjacent comparison (87.5% vs. 50.0% Salami recall). However, under Benchmark V4 ($N=116$) with Draft-07 JSON Schema constrained decoding, the direction flipped: Adjacent comparison achieved 96.2% (25/26) Salami recall vs. Cumulative 76.9% (20/26) on the frozen held-out test split (test split difference: +19.2% [95% bootstrap CI: +0.0%, +38.5%], exact McNemar $p = 0.1250$; calibration split difference: +26.5% [94.1% vs 67.6%], exact McNemar $p = 0.0225$; post-hoc pooled difference across all $N=116$ chains: +23.3% [95% bootstrap CI: +10.0%, +36.7%], exact McNemar $p = 0.0026$).
@@ -319,12 +318,12 @@ Trace analysis across the 436 transitions ($N=120$ malicious Salami transitions 
    - On the confirmatory frozen held-out test split ($N=58$), Combined Prompt achieved **96.2% (25/26)** Salami recall and **0.0% (0/25)** Benign Chain FPR (mean exposure $\bar{W}_e = 0.154$ steps). This matches Adjacent recall; one fewer false-alarm chain (0/25 vs 1/25), not significant (exact McNemar vs Adjacent $p = 1.0000$; vs Cumulative $p = 0.1250$).
    - On the calibration split ($N=58$), Combined Prompt achieved 94.1% (32/34) Salami recall and 0.0% (0/19) Benign Chain FPR (McNemar vs Cumulative $p = 0.0225$).
    - Across the post-hoc pooled full benchmark ($N=116$), Combined Prompt achieved 95.0% (57/60) Salami recall and 0.0% (0/44) Benign Chain FPR (post-hoc pooled McNemar vs Cumulative $p = 0.0026$). Note that the held-out test split ($p = 0.1250$) serves as the primary confirmatory result, with full-benchmark numbers strictly designated post hoc.
-   - Combined's advantage holds under Rule (b) only; under Rule (a) strict sensitivity (`MALICIOUS` only), Combined exhibits the lowest strict recall (42.3%, 11/26 vs Adjacent 46.2%, 12/26 and Cumulative 57.7%, 15/26 on Test; 47.1%, 16/34 vs Adjacent 55.9%, 19/34 on Calibration) because `gemma3:4b` assigns `SUSPICIOUS` rather than `MALICIOUS` to incremental semantic shifts and parameter additions during evasive drift.
+   - Combined's advantage is observed under Rule (b) only; under Rule (a) strict sensitivity (`MALICIOUS` only), Combined exhibits the lowest strict recall (42.3%, 11/26 vs Adjacent 46.2%, 12/26 and Cumulative 57.7%, 15/26 on Test; 47.1%, 16/34 vs Adjacent 55.9%, 19/34 on Calibration) because `gemma3:4b` assigns `SUSPICIOUS` rather than `MALICIOUS` to incremental semantic shifts and parameter additions during evasive drift.
    - Token totals are reported as empirical projections from $N$ measured transitions (Combined expands input context by +47.0%, measuring 508.2 vs 345.6 mean prompt tokens on gemma), and wall-clock latency was not comparatively evaluated across differing system load environments.
 
 ### 10.4 Cross-Architecture Replication & Multi-Judge Evaluation
 
-To evaluate whether the empirical divergence between Adjacent and Cumulative comparison is an artifact of the local open-weight judge (`gemma3:4b`), we evaluated the frozen held-out test split ($N=58$ chains, 215 transitions per strategy) on a pinned lite-tier cloud model, Google **`gemini-3.1-flash-lite`** (execution date: 2026-10-11/12, pinned temperature $T=0.0$, native Draft-07 JSON Schema constrained decoding). Table 12 reports the side-by-side multi-judge comparison across all strategies and rules:
+To evaluate whether the empirical divergence between Adjacent and Cumulative comparison is an artifact of the local open-weight judge (`gemma3:4b`), we evaluated the frozen held-out test split ($N=58$ chains, 215 transitions per strategy) on a pinned lite-tier cloud model, Google **`gemini-3.1-flash-lite`** (execution date: 2026-10-11/12, pinned temperature $T=0.0$, native Draft-07 JSON Schema constrained decoding). Table 8 reports the side-by-side multi-judge comparison across all strategies and rules:
 
 | Model & Judge Tier | Decision Rule | Anchor Strategy | Parse Rate | Strict Salami Recall (95% Wilson CI) | Any-After-Onset Sensitivity (95% Wilson CI) | Fast-Jump Recall (95% Wilson CI) | Benign Chain FPR (95% Wilson CI) | Salami Mean Exposure $\bar{W}_e$ |
 |---|---|---|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -337,11 +336,11 @@ To evaluate whether the empirical divergence between Adjacent and Cumulative com
 | **gemini-3.1-flash-lite** (Lite-tier Cloud) | **Rule (b) Primary BALANCED** | **Adjacent** | 100.0% (0 fail) | 88.5% (23/26) [71.0%, 96.0%] | 100.0% (26/26) [87.1%, 100.0%] | 100.0% (7/7) [64.6%, 100.0%] | 0.0% (0/25) [0.0%, 13.3%] | 0.808 |
 | **gemini-3.1-flash-lite** (Lite-tier Cloud) | **Rule (b) Primary BALANCED** | **Cumulative** | 100.0% (0 fail) | 84.6% (22/26) [66.5%, 93.8%] | 100.0% (26/26) [87.1%, 100.0%] | 100.0% (7/7) [64.6%, 100.0%] | 0.0% (0/25) [0.0%, 13.3%] | 0.769 |
 | **gemini-3.1-flash-lite** (Lite-tier Cloud) | **Rule (b) Primary BALANCED** | **Combined Prompt** | 100.0% (0 fail) | 84.6% (22/26) [66.5%, 93.8%] | 100.0% (26/26) [87.1%, 100.0%] | 100.0% (7/7) [64.6%, 100.0%] | 0.0% (0/25) [0.0%, 13.3%] | 0.846 |
-| **gemini-3.1-flash-lite** (Lite-tier Cloud) | **Rule (a) Strict MALICIOUS** | **Adjacent** | 100.0% (0 fail) | 84.6% (22/26) [71.0%, 96.0%] | 100.0% (26/26) [87.1%, 100.0%] | 100.0% (7/7) [64.6%, 100.0%] | 0.0% (0/25) [0.0%, 13.3%] | 0.231 |
-| **gemini-3.1-flash-lite** (Lite-tier Cloud) | **Rule (a) Strict MALICIOUS** | **Cumulative** | 100.0% (0 fail) | 96.2% (25/26) [81.1%, 99.3%] | 100.0% (26/26) [87.1%, 100.0%] | 100.0% (7/7) [64.6%, 100.0%] | 0.0% (0/25) [0.0%, 13.3%] | 0.269 |
-| **gemini-3.1-flash-lite** (Lite-tier Cloud) | **Rule (a) Strict MALICIOUS** | **Combined Prompt** | 100.0% (0 fail) | 88.5% (23/26) [71.0%, 96.0%] | 100.0% (26/26) [87.1%, 100.0%] | 100.0% (7/7) [64.6%, 100.0%] | 0.0% (0/25) [0.0%, 13.3%] | 0.308 |
+| **gemini-3.1-flash-lite** (Lite-tier Cloud) | **Rule (a) Strict MALICIOUS** | **Adjacent** | 100.0% (0 fail) | 84.6% (22/26) [66.5%, 93.8%] | 84.6% (22/26) [66.5%, 93.8%] | 100.0% (7/7) [64.6%, 100.0%] | 0.0% (0/25) [0.0%, 13.3%] | 0.231 |
+| **gemini-3.1-flash-lite** (Lite-tier Cloud) | **Rule (a) Strict MALICIOUS** | **Cumulative** | 100.0% (0 fail) | 96.2% (25/26) [81.1%, 99.3%] | 96.2% (25/26) [81.1%, 99.3%] | 100.0% (7/7) [64.6%, 100.0%] | 0.0% (0/25) [0.0%, 13.3%] | 0.269 |
+| **gemini-3.1-flash-lite** (Lite-tier Cloud) | **Rule (a) Strict MALICIOUS** | **Combined Prompt** | 100.0% (0 fail) | 88.5% (23/26) [71.0%, 96.0%] | 88.5% (23/26) [71.0%, 96.0%] | 100.0% (7/7) [64.6%, 100.0%] | 0.0% (0/25) [0.0%, 13.3%] | 0.308 |
 
-*Table 12: Multi-Judge Evaluation & Replicability on Frozen Held-Out Test Split ($N=58$ Chains, `gemma3:4b` vs. `gemini-3.1-flash-lite`).*
+*Table 8: Multi-Judge Evaluation & Replicability on Frozen Held-Out Test Split ($N=58$ Chains, `gemma3:4b` vs. `gemini-3.1-flash-lite`).*
 
 #### 1. Empirical Outcomes on Adjacent and Cumulative Strategies ($H_1$):
 - **Parse Rate:** 100.0% valid Draft-07 JSON compliance (0/215 parse failures on Adjacent; 0/215 on Cumulative; 0/215 on Combined).
@@ -349,37 +348,37 @@ To evaluate whether the empirical divergence between Adjacent and Cumulative com
   - **Adjacent Strategy:** Achieved **88.5% (23/26)** strict Salami recall [95% Wilson CI: 71.0%, 96.0%], **100.0% (26/26)** Any-After-Onset sensitivity, **100.0% (7/7)** Fast-Jump recall, and **0.0% (0/25)** Benign Chain FPR ($\bar{W}_e = 0.808$).
   - **Cumulative Strategy:** Achieved **84.6% (22/26)** strict Salami recall [95% Wilson CI: 66.5%, 93.8%], **100.0% (26/26)** Any-After-Onset sensitivity, **100.0% (7/7)** Fast-Jump recall, and **0.0% (0/25)** Benign Chain FPR ($\bar{W}_e = 0.769$).
 - **Rule (a) Strict MALICIOUS:**
-  - **Adjacent Strategy:** 84.6% (22/26) Salami recall, 100.0% (7/7) Fast-Jump recall, 0.0% (0/25) Benign FPR ($\bar{W}_e = 0.231$).
-  - **Cumulative Strategy:** 96.2% (25/26) Salami recall, 100.0% (7/7) Fast-Jump recall, 0.0% (0/25) Benign FPR ($\bar{W}_e = 0.269$).
+  - **Adjacent Strategy:** 84.6% (22/26) Salami recall [95% Wilson CI: 66.5%, 93.8%], 84.6% (22/26) Any-After-Onset sensitivity [66.5%, 93.8%], 100.0% (7/7) Fast-Jump recall, 0.0% (0/25) Benign FPR ($\bar{W}_e = 0.231$).
+  - **Cumulative Strategy:** 96.2% (25/26) Salami recall [95% Wilson CI: 81.1%, 99.3%], 96.2% (25/26) Any-After-Onset sensitivity [81.1%, 99.3%], 100.0% (7/7) Fast-Jump recall, 0.0% (0/25) Benign FPR ($\bar{W}_e = 0.269$).
+  - **Combined Strategy:** 88.5% (23/26) Salami recall [95% Wilson CI: 71.0%, 96.0%], 88.5% (23/26) Any-After-Onset sensitivity [71.0%, 96.0%], 100.0% (7/7) Fast-Jump recall, 0.0% (0/25) Benign FPR ($\bar{W}_e = 0.308$).
 - **Replication Hypothesis 1 ($H_1$ — Adjacent $\ge$ Cumulative Salami Recall):** On `gemma3:4b`, Adjacent significantly outperformed Cumulative across pooled transitions (+23.3%, McNemar $p = 0.0026$; test split difference: +19.2%, $p = 0.1250$; calibration split difference: +26.5%, $p = 0.0225$). On `gemini-3.1-flash-lite`, however, there is **no statistically significant difference** between Adjacent and Cumulative Salami recall (Adjacent 88.5% vs. Cumulative 84.6%, exact McNemar $p = 1.0000$). Furthermore, the direction of difference depends on the decision rule: Cumulative is higher under Rule (a) (96.2% [25/26] vs. 84.6% [22/26]), whereas Adjacent is higher under Rule (b) (88.5% [23/26] vs. 84.6% [22/26]). Therefore, the Adjacent vs. Cumulative gap is judge-dependent, and the attention dilution explanation remains an untested hypothesis that the Gemini result does not support.
-- **Strict vs. Any-After-Onset Gap Analysis:** On Gemini Flash Lite, both Adjacent (88.5% strict vs. 100.0% any-after-onset) and Cumulative (84.6% strict vs. 100.0% any-after-onset) achieve 100.0% sensitivity when evaluated for any alarm triggered at or after attack onset. The gap under the strict metric arises entirely in Category E (Instruction Erosion, where gold-label attack onset occurs at step 3 of $L=4$):
+- **Strict vs. Any-After-Onset Gap Analysis:** On Gemini Flash Lite, both Adjacent (88.5% strict vs. 100.0% any-after-onset) and Cumulative (84.6% strict vs. 100.0% any-after-onset) achieve 100.0% sensitivity when evaluated for any alarm triggered at or after attack onset under Rule (b). The gap under the strict metric arises entirely in Category E (Instruction Erosion, where gold-label attack onset occurs at step 3 of $L=4$):
   - For **Adjacent**, exactly 3 chains (`v4_chain_cat_e_01_parse_pdf_invoice`, `v4_chain_cat_e_02_store_user_preference`, `v4_chain_cat_e_03_transcribe_meeting_audio`) triggered an alarm early at step 2. We verified against the benchmark dataset ground truth that the gold label at step 2 for all three chains is strictly **`BENIGN`** (attack onset is at step 3, $m=3$). Because the pre-registered strict metric requires that the first alarm step $d \ge m$, an alert at step 2 ($d=2 < 3$) forfeits strict recall credit, despite detecting malicious drift at steps 3–4.
   - For **Cumulative**, exactly 4 chains (`v4_chain_cat_e_01_parse_pdf_invoice`, `v4_chain_cat_e_02_store_user_preference`, `v4_chain_cat_e_03_transcribe_meeting_audio`, `v4_chain_cat_e_04_search_knowledge_base`) similarly alerted at step 2 where the gold label is confirmed **`BENIGN`** (as well as alerting at steps 3 and 4), explaining the 4-chain strict gap.
-  - For **Combined**, the exact same 4 Category E chains alerted at step 2 (gold label: **`BENIGN`**), accounting for its 84.6% strict vs. 100.0% any-after-onset result.
+  - For **Combined**, the exact same 4 Category E chains alerted at step 2 (gold label: **`BENIGN`**), accounting for its 84.6% strict vs. 100.0% any-after-onset result under Rule (b).
 
 #### 2. Operational Quota Event, Day-Boundary Split, & Resumed Combined Evaluation ($H_2$):
 During execution of the third strategy (**Combined Prompt**), the API provider's daily Free-Tier quota ceiling was encountered on 2026-10-11 (`GenerateRequestsPerDayPerProjectPerModel-FreeTier`, 500 requests per day limit). Exactly 21 valid transitions were completed before the 500 requests/day cutoff, after which 20 attempts were throttled with `HTTP Error 429: Too Many Requests`.
 - **Integrity Safeguard & Day-Boundary Split:** All 20 failed records were isolated into a dedicated audit archive (`predictions_combined_failed_audit.jsonl`). Zero valid verdict labels were modified or fabricated. Following provider quota reset (~05:00 IST on 2026-10-12), evaluation resumed for the remaining 194 transitions across the frozen held-out test split, completing all 215 records across the day boundary (21 transitions on 2026-10-11; 194 transitions on 2026-10-12) with zero parse errors (100.0% valid Draft-07 JSON compliance).
 - **Combined Strategy Outcomes on Gemini Flash Lite:**
   - **Rule (b) Primary BALANCED:** Achieved **84.6% (22/26)** strict Salami recall [95% Wilson CI: 66.5%, 93.8%], **100.0% (26/26)** Any-After-Onset sensitivity, **100.0% (7/7)** Fast-Jump recall, and **0.0% (0/25)** Benign Chain FPR ($\bar{W}_e = 0.846$).
-  - **Rule (a) Strict MALICIOUS:** Achieved **88.5% (23/26)** Salami recall [95% Wilson CI: 71.0%, 96.0%], **100.0% (7/7)** Fast-Jump recall, and **0.0% (0/25)** Benign Chain FPR ($\bar{W}_e = 0.308$).
+  - **Rule (a) Strict MALICIOUS:** Achieved **88.5% (23/26)** Salami recall [95% Wilson CI: 71.0%, 96.0%], **88.5% (23/26)** Any-After-Onset sensitivity [71.0%, 96.0%], **100.0% (7/7)** Fast-Jump recall, and **0.0% (0/25)** Benign Chain FPR ($\bar{W}_e = 0.308$).
 - **Statistical Comparisons (Combined vs. Baselines on Rule b):**
   - **Combined vs. Adjacent:** Salami recall difference is **-3.8%** [95% bootstrap CI: -11.5%, +0.0%], exact McNemar $p = 1.0000$ (discordant $b=0, c=1$).
   - **Combined vs. Cumulative:** Salami recall difference is **+0.0%** [95% bootstrap CI: +0.0%, +0.0%], exact McNemar $p = 1.0000$ (discordant $b=0, c=0$).
-- **Replication Hypothesis 2 ($H_2$ — Combined Pareto Efficiency):** **FAILS / REJECTED**. On `gemma3:4b`, Combined matched Adjacent recall (96.2%, 25/26) with one fewer benign false alarm chain (0/25 vs 1/25, $p = 1.0000$). On `gemini-3.1-flash-lite`, however, Combined Prompt does not improve upon Adjacent recall ($84.6\% < 88.5\%$, a 1-chain deficit; exact McNemar $p = 1.0000$) while matching Benign FPR ($0.0\% = 0.0\%$). Combined Prompt expands input context by +47.0% tokens (508.2 vs 345.6 mean prompt tokens on gemma) without providing a Pareto advantage on lightweight cloud reasoning models.
+- **Replication Hypothesis 2 ($H_2$ — Combined Pareto Efficiency):** **Not supported on Gemini, weakly supported on gemma (one fewer false-alarm chain, p=1.0), judge-dependent**. On `gemma3:4b`, Combined matched Adjacent recall (96.2%, 25/26) with one fewer benign false alarm chain (0/25 vs 1/25, $p = 1.0000$). On `gemini-3.1-flash-lite`, however, Combined Prompt does not improve upon Adjacent recall ($84.6\% < 88.5\%$, a 1-chain deficit; exact McNemar $p = 1.0000$) while matching Benign FPR ($0.0\% = 0.0\%$). Combined Prompt expands input context by +47.0% tokens (508.2 vs 345.6 mean prompt tokens on gemma) without providing a Pareto advantage on lite-tier cloud reasoning models.
 
 #### 3. Candidate Model Qualification, Pilots, and Exclusions:
 1. **Google AI Studio API (`gemini-3.1-flash-lite`):**
    - Qualified under Gate 1 on a 50-call calibration pilot (100.0% parse rate, 50/50 calls, 0 retries, mean latency 3.99s).
    - Fully evaluated across all 3 strategies on the frozen held-out test split (215 transitions per strategy; 645 transitions total).
 2. **Local `qwen3:8b` (Ollama):**
-   - Evaluated on a 5-call CPU pilot; disqualified after achieving only a 40.0% parse rate (2/5) with 190s/call CPU latency, failing Gate 1 ($\ge 99.0\%$). Note that internal thinking tokens were explicitly disabled and stripped during this pilot.
+   - Evaluated on a 5-call CPU pilot; disqualified after achieving only a 40.0% parse rate (2/5) with 190s/call CPU latency, failing Gate 1 ($\ge 99.0\%$). Request options specified temperature=0, seed=42, and num_predict=256; thinking mode not controlled.
 3. **Hugging Face Serverless Inference Providers:**
    - Disqualified during provider connectivity screening as serverless router endpoints required pre-paid account credits (`HTTP 402 Payment Required`).
 4. **DeepSeek API (`deepseek-flash` / `deepseek-v4-pro`):**
-   - Evaluated on 2026-10-12. The `DEEPSEEK_API_KEY` authenticated successfully (`HTTP 200 OK` on `https://api.deepseek.com/models` and `https://api.deepseek.com/user/balance`).
-   - Live account balance check returned `total_balance: $0.00` and `is_available: false`. A test chat completion probe was immediately rejected with `HTTP 402 Insufficient Balance`.
-   - Zero calls were executed beyond connectivity/balance checks and the single rejected chat probe; zero model results were produced. Formally excluded due to zero account balance and payment requirements. The empirical study remains frozen at two verified judges (`gemma3:4b` and `gemini-3.1-flash-lite`).
+   - Evaluated on 2026-10-12. Exactly 4 HTTP requests were made to `api.deepseek.com`: 2 GET metadata and balance queries (`HTTP 200 OK`, total balance $0.00), and 2 rejected POST chat completion probes (one `HTTP 401` unauthenticated probe, one `HTTP 402 Insufficient Balance` probe); none billed (0 calls completed or billed). DeepSeek was formally excluded due to zero available balance ($0.00) and payment requirements. No model outputs, traces, or predictions were produced.
+   - Across the study, empirical evaluation remains frozen at two verified judges: `gemma3:4b` (local open-weight 4B) and `gemini-3.1-flash-lite` (lite-tier cloud).
 
 ---
 
@@ -451,7 +450,7 @@ For historical reference, the earlier Benchmark V3 ($N=144$ transitions across 4
 
 ## 14. Limitations & Methodological Boundaries
 
-1. **Judge Architecture Scope & Multi-Judge Replication**: Primary evaluations utilize local `gemma3:4b` under Q4_K_M quantization. Cross-architecture replication on Google `gemini-3.1-flash-lite` found no significant difference between Adjacent and Cumulative comparison on the frozen test split (McNemar $p = 1.0000$; Adjacent 88.5% vs. Cumulative 84.6% under Rule (b), with Cumulative higher under Rule (a): 25/26 vs. 22/26), showing that attention dilution is an architecture-specific hypothesis that the Gemini result does not support. Combined Prompt evaluation on `gemini-3.1-flash-lite` completed across all 215 transitions following provider quota reset, rejecting $H_2$ (Combined Pareto efficiency: 84.6% vs. Adjacent 88.5%, McNemar $p = 1.0000$). An additional frontier candidate (DeepSeek API, evaluating `deepseek-flash`) authenticated successfully with a valid key on 2026-10-12 but was formally excluded due to zero account balance and payment requirement (account balance $0.00, HTTP 402 Insufficient Balance, zero completed calls), maintaining the empirical study at two verified judges. Evaluations on larger frontier models (e.g., GPT-4o, Claude 3.5 Sonnet) and multi-model consensus judges are listed under Future Work.
+1. **Judge Architecture Scope & Multi-Judge Replication**: Primary evaluations utilize local `gemma3:4b` under Q4_K_M quantization. Cross-architecture replication on Google `gemini-3.1-flash-lite` found no significant difference between Adjacent and Cumulative comparison on the frozen test split (McNemar $p = 1.0000$; Adjacent 88.5% vs. Cumulative 84.6% under Rule (b), with Cumulative higher under Rule (a): 25/26 vs. 22/26), showing that attention dilution is an architecture-specific hypothesis that the Gemini result does not support. Combined Prompt evaluation on `gemini-3.1-flash-lite` completed across all 215 transitions following provider quota reset, finding $H_2$ not supported on Gemini, weakly supported on gemma (one fewer false-alarm chain, p=1.0), and judge-dependent (Combined Pareto efficiency: 84.6% vs. Adjacent 88.5%, McNemar $p = 1.0000$). An additional candidate judge (DeepSeek API, evaluating `deepseek-flash`) authenticated successfully with a valid key on 2026-10-12 but was formally excluded due to zero account balance and payment requirement (account balance $0.00, HTTP 402 Insufficient Balance, zero completed calls), maintaining the empirical study at two verified judges. Evaluations on larger models and multi-model consensus judges are listed under Future Work.
 2. **Synthetic Benchmark Dataset**: Benchmark V4 ($N=116$ chains) consists of scripted, synthetic evolutions built upon real MCP tool schemas. While structurally realistic, synthetic trajectories from a single automated generator may not fully reflect the natural release dynamics of enterprise environments.
 3. **Trivial Separator Audit Findings**: Benchmark V4 exhibits docstring length shift correlation (ROC-AUC = 0.7228, failing the $<0.65$ audit threshold) and borderline edit distance ($\max(\text{AUC}, 1-\text{AUC}) = 0.6511$), reflecting natural documentation expansion in attack chains.
 4. **Generator Provenance**: Benchmark chains were generated via automated schema modification scripts rather than human red-teamers, though the generation scripts operate independently from the evaluation judge.
@@ -459,16 +458,16 @@ For historical reference, the earlier Benchmark V3 ($N=144$ transitions across 4
 6. **Threat Model Scope**: The defense monitors single-server tool contract drift ($V_0 \rightarrow V_K$). Cross-server distributed collusion and runtime tool-output data injections remain outside the middleware's current scope.
 7. **Serialization vs. Live Transport Scope**: Live transport testing was conducted across 5 scripted integration failure modes on a localhost mock harness rather than high-concurrency production deployments. The mitigations are implemented as architectural proposals in the simulation harness rather than standalone client middleware.
 8. **Unmeasured Production Operator Burden**: The 4.0% false alarm rate is measured on synthetic benchmark chains; production review burden across real enterprise workloads remains an unmeasured qualitative factor.
-9. **Single-Step LLM Judge Sweeps on Held-Out Benchmark ($N=56$)**: Standalone full-definition Judge Mode A, structured-diff Judge Mode B, and full multi-tier integrated middleware pipeline evaluations on the single-step held-out benchmark ($N=56$) are deferred to Future Work; Table 2 and Table 3 report the complete, verified measurements for exact hash pinning, static regex heuristics, deterministic schema checks, and TF-IDF lexical baselines.
+9. **Single-Step LLM Judge Sweeps on Held-Out Benchmark ($N=56$)**: Standalone full-definition Judge Mode A, structured-diff Judge Mode B, and full multi-tier integrated middleware pipeline evaluations on the single-step held-out benchmark ($N=56$) are deferred to Future Work; Table 3 and Table 4 report the complete, verified measurements for exact hash pinning, static regex heuristics, deterministic schema checks, and TF-IDF lexical baselines.
 
 ### 14.1 Empirical Evaluation Status & Verification Matrix
 
-Table 13 formalizes the completed experimental dimensions and explicitly documents unexecuted or deferred evaluations:
+Table 12 formalizes the completed experimental dimensions and explicitly documents unexecuted or deferred evaluations:
 
 | Evaluation Dimension | Status | Methodology & Operational Boundaries |
 |---|:---:|---|
 | **External Proprietary Scanner (`mcp-scan`)** | **Not Done** | The Tier 2 static baseline evaluates author-defined regex patterns; full offline execution of external proprietary `mcp-scan` binaries across all 436 transitions is not run. |
-| **Single-Step LLM Sweeps ($N=56$)** | **Not Done (Future Work)** | Standalone full-definition Judge Mode A, structured-diff Mode B, integrated guard sweeps, component ablations, cross-validation, and interactive red-team sweeps on the single-step held-out benchmark ($N=56$) were not run; deferred to future work. Verified results in Table 2/3 cover exact hash, static regex, deterministic schema, and TF-IDF. |
+| **Single-Step LLM Sweeps ($N=56$)** | **Not Done (Future Work)** | Standalone full-definition Judge Mode A, structured-diff Mode B, integrated guard sweeps, component ablations, cross-validation, and interactive red-team sweeps on the single-step held-out benchmark ($N=56$) were not run; deferred to future work. Verified results in Table 3/4 cover exact hash, static regex, deterministic schema, and TF-IDF. |
 | **Adaptive Attacker Evaluation ($N=24$)** | **Done (Simulation-level)** | Evaluates automated black-box template mutation search ($Q \le 5$, avg 8.12 queries/chain) on a simulation testbed; attacker model is unnamed; evaluates heuristic evasion rather than dynamic interactive human red-teaming. |
 | **Delivery-Layer Failure Mitigations** | **Done (Simulation Harness)** | Design proposals and mitigations verified on a localhost mock simulation harness across 5 scripted failure modes (5/5 $\rightarrow$ 0/5); mitigations are architectural proposals in the harness rather than integrated into production MCP client runtimes. |
 | **Benchmark Trivial-Separator Screening** | **Reported Limitation** | Benchmark V4 natural docstring length shift correlation (ROC-AUC = 0.7228) fails the pre-registered $<0.65$ gate; edit distance is borderline ($\max(\text{AUC}, 1-\text{AUC}) = 0.6511$). |
@@ -477,7 +476,7 @@ Table 13 formalizes the completed experimental dimensions and explicitly documen
 | **Wall-Clock Latency Comparison** | **Not Done** | Input/output token metrics are reported from empirical traces (Combined adds +47.0% prompt tokens on gemma); wall-clock latency was not comparatively benchmarked across heterogeneous local CPU/GPU and cloud network environments. |
 | **Third-Party Model Exclusions** | **Excluded (Documented)** | `qwen3:8b` disqualified on 5-call CPU pilot (40.0% parse rate, Gate 1 failed); Hugging Face disqualified due to pre-paid credit requirements (`HTTP 402`); DeepSeek API (`deepseek-flash`) authenticated with valid key but excluded due to zero balance ($0.00, `HTTP 402 Insufficient Balance`, zero completed calls). |
 
-*Table 13: Empirical Evaluation Status & Verification Matrix (Done / Not Done).*
+*Table 12: Empirical Evaluation Status & Verification Matrix (Done / Not Done).*
 
 ---
 
@@ -487,7 +486,7 @@ All code, datasets, and scripts are open-source:
 - **Benchmark V4 Dataset**: `data/salami_drift_benchmark_v4.jsonl` (SHA-256: `91f1d0de...`)
 - **Table Generator**: `python scripts/make_tables.py`
 - **Figure Generator**: `python scripts/make_figures.py`
-- **Unit Test Suite**: 111 passed, 4 intentionally xfailed (`tests/test_old_paper_numbers_fail.py` asserting regression failure against obsolete legacy numbers).
+- **Unit Test Suite**: 107 passed, 4 expected failures (111 tests total; `tests/test_old_paper_numbers_fail.py` asserting regression failure against obsolete legacy numbers).
 
 ---
 
@@ -503,13 +502,13 @@ This research formalizes Salami Drift attacks to evaluate defensive middleware a
 In the preparation of this paper, experimental codebase, and benchmark analysis, large language models were employed as drafting and editing aids under human researcher direction. Specifically, AI assistance was used for generating boilerplate code, drafting script scaffolds, and language editing. All experimental protocols, pre-registration hypotheses, statistical calculations, execution traces, and analytical conclusions were verified by human authors.
 
 ### 16.3 Third-Party Benchmark License & Attribution
-Tool definitions adapted for baseline comparisons and single-step vulnerability analyses from the MCPTox benchmark (Wang et al., 2025; arXiv:2508.14925) are utilized under academic research fair use with full provenance attribution.
+Tool definitions adapted for baseline comparisons and single-step vulnerability analyses from the MCPTox benchmark (Wang et al., 2025; arXiv:2508.14925) were inspected in the source repository (upstream README contains only `# AAAI26`; license not verified), and are adapted under academic research attribution.
 
 ---
 
 ## 17. Conclusion
 
-This paper formalizes Salami Drift attacks against the Model Context Protocol and evaluates multi-tier semantic drift vetting across 116 pre-registered benchmark chains and 621 real-world release transitions. Our empirical findings demonstrate that exact cryptographic hash pinning achieves 100.0% (26/26) recall but incurs a 100.0% (25/25) benign false alarm rate. On held-out test chains, Adjacent semantic vetting achieves 96.2% (25/26) Salami recall at 4.0% (1/25) Benign FPR on local `gemma3:4b`, compared to 76.9% (20/26) for Cumulative vetting (McNemar $p = 0.1250$, pooled post hoc $p = 0.0026$). However, cross-architecture replication on Google `gemini-3.1-flash-lite` reveals no statistically significant difference between Adjacent (88.5%, 23/26) and Cumulative (84.6%, 22/26) comparison (exact McNemar $p = 1.0000$), with the direction reversing under strict Rule (a) (Cumulative 96.2% vs Adjacent 84.6%), showing that the Adjacent vs. Cumulative gap is judge-dependent and that attention dilution is an untested hypothesis that the Gemini result does not support. Combined Prompt vetting matches Adjacent recall on `gemma3:4b` with one fewer false alarm, but fails to hold on Gemini (84.6% vs 88.5%, $p = 1.0000$), rejecting $H_2$. An additional candidate judge (DeepSeek API, `deepseek-flash`) authenticated with a valid key on 2026-10-12 but was formally excluded due to zero account balance ($0.00, HTTP 402 Insufficient Balance, zero completed calls), keeping the study at two verified judges. Under simulation-level black-box adaptive mutation search ($Q \le 5$), Adjacent vetting maintains 91.7% post-adaptive recall (8.3% evasion) whereas Cumulative vetting suffers 41.7% evasion. Finally, delivery-layer mitigations prevented unvetted tool delivery across 5 scripted transport failure conditions on a localhost mock harness (5/5 $\rightarrow$ 0/5).
+This paper formalizes Salami Drift attacks against the Model Context Protocol and demonstrates the necessity of multi-tier semantic drift vetting over exact cryptographic pinning. While cryptographic hash pinning reliably halts tampering, it flags legitimate contract evolution as malicious, imposing severe operational review burdens. Across frozen held-out benchmark evaluations, structured semantic drift vetting distinguishes benign refactorings from incremental capability creep, with strategy performance (Adjacent vs. Cumulative) proving architecture- and judge-dependent between local open-weight and cloud reasoning models. Complementing semantic vetting with atomic cache forwarding and state-monotonic barriers closes delivery-layer desynchronization vectors, establishing an empirical foundation for secure runtime tool evolution in agent ecosystems.
 
 ---
 
