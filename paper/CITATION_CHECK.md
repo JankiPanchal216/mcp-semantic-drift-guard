@@ -4,7 +4,7 @@ This document records the verification provenance for every bibliographic entry 
 
 ---
 
-## Primary Verified Citations ($N=11$)
+## Primary Verified Citations ($N=13$)
 
 ### 1. `mas2026trustworthy` (Trustworthy MCP Registry)
 - **Exact Title:** *The Trustworthy Model Context Protocol (MCP) Registry: An Architectural Blueprint for Cryptographic Provenance and Runtime Integrity*
@@ -111,3 +111,22 @@ This document records the verification provenance for every bibliographic entry 
 - **Verified URL Checked:** `https://api.crossref.org/works/10.1002/smr.328`
 - **Fetch Date:** 2026-10-13
 - **Verification Status:** **PASS (VERIFIED)**
+
+### 12. `anthropic2024mcp` (Model Context Protocol Specification)
+- **Exact Title:** *Model Context Protocol Specification*
+- **Author:** Anthropic and Model Context Protocol Working Group
+- **Year:** 2024 (Published 2024-11-05)
+- **Venue / URL:** `https://modelcontextprotocol.io/specification/2024-11-05`
+- **Verified URL Checked:** `https://modelcontextprotocol.io/specification/2024-11-05`
+- **Fetch Date:** 2026-10-13
+- **Verification Status:** **PASS (VERIFIED: Official specification page fetched and confirmed)**
+
+### 13. `hou2025mcpsurvey` (MCP Security Survey)
+- **Exact Title:** *Model Context Protocol (MCP): Landscape, Security Threats, and Future Research Directions*
+- **Full Author List:** Xinyi Hou, Yanjie Zhao, Shenao Wang, Haoyu Wang
+- **Year:** 2025 (Submitted March 28, 2025)
+- **Venue / Identifier:** arXiv:2503.23278 [cs.CR, cs.AI]
+- **DOI:** `10.48550/arXiv.2503.23278`
+- **Verified URL Checked:** `https://arxiv.org/abs/2503.23278`
+- **Fetch Date:** 2026-10-13
+- **Verification Status:** **PASS (VERIFIED: Title, authors, venue and year confirmed via arXiv landing page)**

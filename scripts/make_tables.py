@@ -26,11 +26,19 @@ import os
 import math
 from pathlib import Path
 from typing import Dict, List, Tuple, Any, Optional
+from decimal import Decimal, ROUND_HALF_UP
 import numpy as np
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 RESULTS_DIR = ROOT_DIR / "results"
 TABLES_DIR = ROOT_DIR / "results" / "tables"
+
+
+def round_half_up(val: float | Decimal, decimals: int = 1) -> float:
+    """Rounds half up to specified decimal places."""
+    d = Decimal(str(val))
+    fmt = "0." + "0" * decimals if decimals > 0 else "0"
+    return float(d.quantize(Decimal(fmt), rounding=ROUND_HALF_UP))
 
 
 def wilson_score_interval(k: int, n: int, confidence: float = 0.95) -> Tuple[float, float]:
@@ -43,6 +51,23 @@ def wilson_score_interval(k: int, n: int, confidence: float = 0.95) -> Tuple[flo
     center = (p + (z**2) / (2 * n)) / denom
     margin = (z * math.sqrt((p * (1 - p) / n) + ((z**2) / (4 * (n**2))))) / denom
     return (max(0.0, center - margin), min(1.0, center + margin))
+
+
+def fmt_pct(k: int, n: int) -> str:
+    """Formats k/n as percentage string using round-half-up (1 decimal)."""
+    if n == 0:
+        return "0.0%"
+    val = (Decimal(k) * Decimal(100)) / Decimal(n)
+    d = val.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+    return f"{d:.1f}%"
+
+
+def fmt_ci(k: int, n: int) -> str:
+    """Formats Wilson score interval for k/n using round-half-up (1 decimal)."""
+    ci = wilson_score_interval(k, n)
+    lo = round_half_up(ci[0] * 100, 1)
+    hi = round_half_up(ci[1] * 100, 1)
+    return f"[{lo:.1f}%, {hi:.1f}%]"
 
 
 def parse_predictions_jsonl(path: Path) -> Dict[str, Any]:
@@ -179,7 +204,7 @@ def generate_table_5_v3_chains(audit_data: Dict[str, Any]) -> str:
             allm = m["chain_all_malicious"]
             ben = m["chain_benign"]
             prefix = f"| **{rule_label}** " if s_name == "Adjacent" else "| "
-            rows.append(f"{prefix}| **{s_name}** | {sal['recall']*100:.1f}% ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])} | {fast['recall']*100:.1f}% ({fast['detected']}/{fast['n']}) {fmt_ci(fast['detected'], fast['n'])} | {allm['recall']*100:.1f}% ({allm['detected']}/{allm['n']}) {fmt_ci(allm['detected'], allm['n'])} | {ben['fpr']*100:.1f}% ({ben['flagged']}/{ben['n']}) {fmt_ci(ben['flagged'], ben['n'])} | {sal['mean_exposure']:.3f} steps | {calls:.1f} |")
+            rows.append(f"{prefix}| **{s_name}** | {fmt_pct(sal['detected'], sal['n'])} ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])} | {fmt_pct(fast['detected'], fast['n'])} ({fast['detected']}/{fast['n']}) {fmt_ci(fast['detected'], fast['n'])} | {fmt_pct(allm['detected'], allm['n'])} ({allm['detected']}/{allm['n']}) {fmt_ci(allm['detected'], allm['n'])} | {fmt_pct(ben['flagged'], ben['n'])} ({ben['flagged']}/{ben['n']}) {fmt_ci(ben['flagged'], ben['n'])} | {sal['mean_exposure']:.3f} steps | {calls:.1f} |")
 
     table_rows = "\n".join(rows)
     return f"""| Decision Rule | Strategy | Salami-Only Recall ($N=16$) (95% Wilson CI) | Fast-Jump Recall ($N=8$) (95% Wilson CI) | Overall Malicious Recall ($N=24$) (95% Wilson CI) | Benign Chain FPR ($N=16$) (95% Wilson CI) | Salami Mean Exposure $\\bar{{W}}_e$ | LLM Calls / Upd |
@@ -200,13 +225,13 @@ def generate_table_5b_deterministic_baselines() -> str:
 | **TF-IDF Distance from Root** | Lexical cosine distance ($\theta^*=0.590$, Train/Dev tuned) | 62.5% (10/16) [38.6%, 81.5%] | **100.0%** (8/8) [67.6%, 100.0%] | 75.0% (18/24) [55.1%, 88.0%] | 93.8% (15/16) [71.7%, 98.9%] | 1.062 steps | 0.0 |
 | **Edit-Distance from Root** | Normalized Levenshtein ($> 0.18$, Train/Dev calibrated) | **100.0%** (16/16) [80.6%, 100.0%] | **100.0%** (8/8) [67.6%, 100.0%] | **100.0%** (24/24) [86.2%, 100.0%] | 100.0% (16/16) [80.6%, 100.0%] | 0.000 steps | 0.0 |
 | | Matched FPR = 50.0% (ratio $> 0.6685$) | 62.5% (10/16) [38.6%, 81.5%] | 0.0% (0/8) [0.0%, 32.4%] | 41.7% (10/24) [24.5%, 61.2%] | 50.0% (8/16) [28.0%, 72.0%] | 1.312 steps | 0.0 |
-| | Matched FPR = 37.5% (ratio $> 0.6949$) | 31.2% (5/16) [14.2%, 55.6%] | 0.0% (0/8) [0.0%, 32.4%] | 20.8% (5/24) [9.2%, 40.0%] | 37.5% (6/16) [18.5%, 61.4%] | 1.688 steps | 0.0 |
-| | Matched FPR = 25.0% (ratio $> 0.6985$) | 31.2% (5/16) [14.2%, 55.6%] | 0.0% (0/8) [0.0%, 32.4%] | 20.8% (5/24) [9.2%, 40.0%] | 25.0% (4/16) [10.2%, 49.5%] | 1.688 steps | 0.0 |
-| | Matched FPR = 12.5% (ratio $> 0.7100$) | 31.2% (5/16) [14.2%, 55.6%] | 0.0% (0/8) [0.0%, 32.4%] | 20.8% (5/24) [9.2%, 40.0%] | 12.5% (2/16) [3.5%, 36.0%] | 1.688 steps | 0.0 |
+| | Matched FPR = 37.5% (ratio $> 0.6949$) | 31.3% (5/16) [14.2%, 55.6%] | 0.0% (0/8) [0.0%, 32.4%] | 20.8% (5/24) [9.2%, 40.5%] | 37.5% (6/16) [18.5%, 61.4%] | 1.688 steps | 0.0 |
+| | Matched FPR = 25.0% (ratio $> 0.6985$) | 31.3% (5/16) [14.2%, 55.6%] | 0.0% (0/8) [0.0%, 32.4%] | 20.8% (5/24) [9.2%, 40.5%] | 25.0% (4/16) [10.2%, 49.5%] | 1.688 steps | 0.0 |
+| | Matched FPR = 12.5% (ratio $> 0.7100$) | 31.3% (5/16) [14.2%, 55.6%] | 0.0% (0/8) [0.0%, 32.4%] | 20.8% (5/24) [9.2%, 40.5%] | 12.5% (2/16) [3.5%, 36.0%] | 1.688 steps | 0.0 |
 | **Parameter-Count Delta from Root** | Parameter delta ($\ge 1$ param, Train/Dev calibrated) | **100.0%** (16/16) [80.6%, 100.0%] | **100.0%** (8/8) [67.6%, 100.0%] | **100.0%** (24/24) [86.2%, 100.0%] | 100.0% (16/16) [80.6%, 100.0%] | 0.000 steps | 0.0 |
 | | Matched FPR = 50.0% ($\Delta \ge 4$ params) | **100.0%** (16/16) [80.6%, 100.0%] | 0.0% (0/8) [0.0%, 32.4%] | 66.7% (16/24) [46.7%, 82.0%] | 50.0% (8/16) [28.0%, 72.0%] | 1.000 steps | 0.0 |
 | | Matched FPR = 0.0% ($\Delta \ge 5$ params) | 0.0% (0/16) [0.0%, 19.4%] | 0.0% (0/8) [0.0%, 32.4%] | 0.0% (0/24) [0.0%, 13.8%] | 0.0% (0/16) [0.0%, 19.4%] | 2.000 steps | 0.0 |
-| **MCP Semantic Drift Guard (Adjacent)** | Rule (b) Primary / BALANCED (`gemma3:4b`) | 50.0% (8/16) [28.0%, 72.0%] | 75.0% (6/8) [40.9%, 92.9%] | 58.3% (14/24) [38.8%, 75.5%] | 6.2% (1/16) [1.1%, 28.3%] | 1.188 steps | 1.0 |
+| **MCP Semantic Drift Guard (Adjacent)** | Rule (b) Primary / BALANCED (`gemma3:4b`) | 50.0% (8/16) [28.0%, 72.0%] | 75.0% (6/8) [40.9%, 92.9%] | 58.3% (14/24) [38.8%, 75.5%] | 6.3% (1/16) [1.1%, 28.3%] | 1.188 steps | 1.0 |
 | **MCP Semantic Drift Guard (Cumulative)** | Rule (b) Primary / BALANCED (`gemma3:4b`) | **93.8%** (15/16) [71.7%, 98.9%] | 87.5% (7/8) [52.9%, 97.8%] | 91.7% (22/24) [74.2%, 97.7%] | 50.0% (8/16) [28.0%, 72.0%] | 0.562 steps | 1.0 |
 | **MCP Semantic Drift Guard (Cumulative, Parsed)** | Rule (a)/(c) Sensitivity (Parsed Only, No Fallbacks) | **93.8%** (15/16) [71.7%, 98.9%] | 62.5% (5/8) [30.6%, 86.3%] | 83.3% (20/24) [64.1%, 93.3%] | 12.5% (2/16) [3.5%, 36.0%] | 0.688 steps | 1.0 |"""
 
@@ -215,7 +240,7 @@ def generate_table_5c_benign_breakdown() -> str:
     """Table 5c: Benign Chain False Positive Rate Breakdown by Category and Per-Step Alert Counts."""
     return """| Evaluation Policy / Rule | Defense Strategy | Overall Benign Chain FPR ($N=16$) | Category C: Long-Drift FPR ($N=8$) | Category C Alerts by Step (Steps 1, 2, 3, 4) | Standard Benign FPR ($N=8$) | Standard Benign Alerts by Step (Steps 1, 2, 3) |
 |---|---|:---:|:---:|:---:|:---:|:---:|
-| **Rule (b): Primary BALANCED Policy (with Fallbacks)** | **Adjacent** | 6.2% (1/16) [1.1%, 28.3%] | 0.0% (0/8) [0.0%, 32.4%] | [0, 0, 0, 0] | 12.5% (1/8) [2.2%, 47.1%] | [1, 0, 0] |
+| **Rule (b): Primary BALANCED Policy (with Fallbacks)** | **Adjacent** | 6.3% (1/16) [1.1%, 28.3%] | 0.0% (0/8) [0.0%, 32.4%] | [0, 0, 0, 0] | 12.5% (1/8) [2.2%, 47.1%] | [1, 0, 0] |
 | | **Cumulative** | 50.0% (8/16) [28.0%, 72.0%] | 50.0% (4/8) [21.5%, 78.5%] | [0, 1, 2, 3] | 50.0% (4/8) [21.5%, 78.5%] | [1, 2, 2] |
 | | **Dual-Anchor** | 50.0% (8/16) [28.0%, 72.0%] | 50.0% (4/8) [21.5%, 78.5%] | [0, 1, 2, 3] | 50.0% (4/8) [21.5%, 78.5%] | [1, 2, 2] |
 | **Rule (a): MALICIOUS Only / Parsed Sensitivity** | **Adjacent** | 0.0% (0/16) [0.0%, 19.4%] | 0.0% (0/8) [0.0%, 32.4%] | [0, 0, 0, 0] | 0.0% (0/8) [0.0%, 32.4%] | [0, 0, 0] |
@@ -241,11 +266,11 @@ def generate_table_5e_constrained_comparison() -> str:
     """Table 5e: Side-by-Side Salami Drift Benchmark V3 Outcomes (Unconstrained vs. Constrained-JSON Decoding)."""
     return """| Run Mode | Decision Rule | Strategy | Salami-Only Recall ($N=16$) (95% CI) | Fast-Jump Recall ($N=8$) (95% CI) | Overall Malicious Recall ($N=24$) (95% CI) | Benign Chain FPR ($N=16$) (95% CI) | Salami Mean Exposure $\\bar{W}_e$ | Residual Parse Failures |
 |---|---|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Unconstrained V3** | **Rule (b): BALANCED (Fallbacks)** | **Adjacent** | 50.0% (8/16) [28.0%, 72.0%] | 75.0% (6/8) [40.9%, 92.9%] | 58.3% (14/24) [38.8%, 75.5%] | 6.2% (1/16) [1.1%, 28.3%] | 1.188 steps | 0/144 (0.0%) |
+| **Unconstrained V3** | **Rule (b): BALANCED (Fallbacks)** | **Adjacent** | 50.0% (8/16) [28.0%, 72.0%] | 75.0% (6/8) [40.9%, 92.9%] | 58.3% (14/24) [38.8%, 75.5%] | 6.3% (1/16) [1.1%, 28.3%] | 1.188 steps | 0/144 (0.0%) |
 | | | **Cumulative** | **93.8%** (15/16) [71.7%, 98.9%] | **87.5%** (7/8) [52.9%, 97.8%] | **91.7%** (22/24) [74.2%, 97.7%] | 50.0% (8/16) [28.0%, 72.0%] | 0.562 steps | 10/144 (6.9%) |
 | | **Rule (a): MALICIOUS Only** | **Adjacent** | 50.0% (8/16) [28.0%, 72.0%] | 75.0% (6/8) [40.9%, 92.9%] | 58.3% (14/24) [38.8%, 75.5%] | **0.0%** (0/16) [0.0%, 19.4%] | 1.250 steps | - |
 | | | **Cumulative** | **93.8%** (15/16) [71.7%, 98.9%] | 62.5% (5/8) [30.6%, 86.3%] | 83.3% (20/24) [64.1%, 93.3%] | 12.5% (2/16) [3.5%, 36.0%] | 0.688 steps | - |
-| **Constrained JSON** | **Rule (b): BALANCED (Fallbacks)** | **Adjacent** | 81.2% (13/16) [57.0%, 93.4%] | 50.0% (4/8) [21.5%, 78.5%] | 70.8% (17/24) [50.8%, 85.1%] | **0.0%** (0/16) [0.0%, 19.4%] | 0.875 steps | **0/144 (0.0%)** |
+| **Constrained JSON** | **Rule (b): BALANCED (Fallbacks)** | **Adjacent** | 81.3% (13/16) [57.0%, 93.4%] | 50.0% (4/8) [21.5%, 78.5%] | 70.8% (17/24) [50.8%, 85.1%] | **0.0%** (0/16) [0.0%, 19.4%] | 0.875 steps | **0/144 (0.0%)** |
 | | | **Cumulative** | 43.8% (7/16) [23.1%, 66.8%] | 62.5% (5/8) [30.6%, 86.3%] | 50.0% (12/24) [31.4%, 68.6%] | **0.0%** (0/16) [0.0%, 19.4%] | 1.500 steps | **0/144 (0.0%)** |
 | | **Rule (a): MALICIOUS Only** | **Adjacent** | 0.0% (0/16) [0.0%, 19.4%] | 37.5% (3/8) [13.7%, 69.4%] | 12.5% (3/24) [4.3%, 31.0%] | **0.0%** (0/16) [0.0%, 19.4%] | 2.000 steps | - |
 | | | **Cumulative** | 0.0% (0/16) [0.0%, 19.4%] | 37.5% (3/8) [13.7%, 69.4%] | 12.5% (3/24) [4.3%, 31.0%] | **0.0%** (0/16) [0.0%, 19.4%] | 2.000 steps | - |"""
@@ -284,10 +309,10 @@ def generate_table_7_v4_chains(v4_report: Dict[str, Any]) -> str:
             prefix = f"| **{split_label}** | **{rule_label}** " if s_name == "Adjacent" else "| | "
             rows.append(
                 f"{prefix}| **{s_name}** | "
-                f"{sal['rate']*100:.1f}% ({sal['detected']}/{sal['n']}) [{sal['ci'][0]*100:.1f}%, {sal['ci'][1]*100:.1f}%] | "
-                f"{fast['rate']*100:.1f}% ({fast['detected']}/{fast['n']}) [{fast['ci'][0]*100:.1f}%, {fast['ci'][1]*100:.1f}%] | "
-                f"{allm['rate']*100:.1f}% ({allm['detected']}/{allm['n']}) [{allm['ci'][0]*100:.1f}%, {allm['ci'][1]*100:.1f}%] | "
-                f"{ben['rate']*100:.1f}% ({ben['detected']}/{ben['n']}) [{ben['ci'][0]*100:.1f}%, {ben['ci'][1]*100:.1f}%] | "
+                f"{fmt_pct(sal['detected'], sal['n'])} ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])} | "
+                f"{fmt_pct(fast['detected'], fast['n'])} ({fast['detected']}/{fast['n']}) {fmt_ci(fast['detected'], fast['n'])} | "
+                f"{fmt_pct(allm['detected'], allm['n'])} ({allm['detected']}/{allm['n']}) {fmt_ci(allm['detected'], allm['n'])} | "
+                f"{fmt_pct(ben['detected'], ben['n'])} ({ben['detected']}/{ben['n']}) {fmt_ci(ben['detected'], ben['n'])} | "
                 f"{sal['mean_exposure']:.3f} steps |"
             )
         # Add comparison rows
@@ -343,10 +368,10 @@ def generate_table_7c_dual_rule_sensitivity(v4_report: Dict[str, Any]) -> str:
                 fast = m["fast_jump"]
                 ben = m["benign_fpr"]
                 
-                strict_sal_str = f"{sal['rate']*100:.1f}% ({sal['detected']}/{sal['n']}) [{sal['ci'][0]*100:.1f}%, {sal['ci'][1]*100:.1f}%]"
-                any_sal_str = f"{sal.get('any_post_onset_rate', sal['rate'])*100:.1f}% ({sal.get('any_post_onset_detected', sal['detected'])}/{sal['n']}) [{sal.get('any_post_onset_ci', sal['ci'])[0]*100:.1f}%, {sal.get('any_post_onset_ci', sal['ci'])[1]*100:.1f}%]"
-                fast_str = f"{fast['rate']*100:.1f}% ({fast['detected']}/{fast['n']}) [{fast['ci'][0]*100:.1f}%, {fast['ci'][1]*100:.1f}%]"
-                ben_str = f"{ben['rate']*100:.1f}% ({ben['detected']}/{ben['n']}) [{ben['ci'][0]*100:.1f}%, {ben['ci'][1]*100:.1f}%]"
+                strict_sal_str = f"{fmt_pct(sal['detected'], sal['n'])} ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])}"
+                any_sal_str = f"{fmt_pct(sal.get('any_post_onset_detected', sal['detected']), sal['n'])} ({sal.get('any_post_onset_detected', sal['detected'])}/{sal['n']}) {fmt_ci(sal.get('any_post_onset_detected', sal['detected']), sal['n'])}"
+                fast_str = f"{fmt_pct(fast['detected'], fast['n'])} ({fast['detected']}/{fast['n']}) {fmt_ci(fast['detected'], fast['n'])}"
+                ben_str = f"{fmt_pct(ben['detected'], ben['n'])} ({ben['detected']}/{ben['n']}) {fmt_ci(ben['detected'], ben['n'])}"
                 
                 prefix = f"| **{split_label}** | **{rule_label}** " if s_name == "Adjacent" else "| | "
                 rows.append(f"{prefix}| **{s_name}** | {strict_sal_str} | {any_sal_str} | {fast_str} | {ben_str} |")
@@ -401,10 +426,10 @@ def generate_table_8_v4_baselines(baselines_report: Dict[str, Any], v4_report: D
         ben = item["benign_fpr"]
         name = custom_name if custom_name else item["name"]
         rows.append(
-            f"| **{name}** | {sal['rate']*100:.1f}% ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])} | "
-            f"{fast['rate']*100:.1f}% ({fast['detected']}/{fast['n']}) {fmt_ci(fast['detected'], fast['n'])} | "
-            f"{mal['rate']*100:.1f}% ({mal['detected']}/{mal['n']}) {fmt_ci(mal['detected'], mal['n'])} | "
-            f"{ben['rate']*100:.1f}% ({ben['detected']}/{ben['n']}) {fmt_ci(ben['detected'], ben['n'])} | "
+            f"| **{name}** | {fmt_pct(sal['detected'], sal['n'])} ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])} | "
+            f"{fmt_pct(fast['detected'], fast['n'])} ({fast['detected']}/{fast['n']}) {fmt_ci(fast['detected'], fast['n'])} | "
+            f"{fmt_pct(mal['detected'], mal['n'])} ({mal['detected']}/{mal['n']}) {fmt_ci(mal['detected'], mal['n'])} | "
+            f"{fmt_pct(ben['detected'], ben['n'])} ({ben['detected']}/{ben['n']}) {fmt_ci(ben['detected'], ben['n'])} | "
             f"{sal['mean_exposure']:.3f} steps | 0.0 |"
         )
 
@@ -418,10 +443,10 @@ def generate_table_8_v4_baselines(baselines_report: Dict[str, Any], v4_report: D
             allm = m["all_malicious"]
             ben = m["benign_fpr"]
             rows.append(
-                f"| **MCP Semantic Guard ({s_name}, {r_name})** | **{sal['rate']*100:.1f}%** ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])} | "
-                f"**{fast['rate']*100:.1f}%** ({fast['detected']}/{fast['n']}) {fmt_ci(fast['detected'], fast['n'])} | "
-                f"**{allm['rate']*100:.1f}%** ({allm['detected']}/{allm['n']}) {fmt_ci(allm['detected'], allm['n'])} | "
-                f"**{ben['rate']*100:.1f}%** ({ben['detected']}/{ben['n']}) {fmt_ci(ben['detected'], ben['n'])} | "
+                f"| **MCP Semantic Guard ({s_name}, {r_name})** | **{fmt_pct(sal['detected'], sal['n'])}** ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])} | "
+                f"**{fmt_pct(fast['detected'], fast['n'])}** ({fast['detected']}/{fast['n']}) {fmt_ci(fast['detected'], fast['n'])} | "
+                f"**{fmt_pct(allm['detected'], allm['n'])}** ({allm['detected']}/{allm['n']}) {fmt_ci(allm['detected'], allm['n'])} | "
+                f"**{fmt_pct(ben['detected'], ben['n'])}** ({ben['detected']}/{ben['n']}) {fmt_ci(ben['detected'], ben['n'])} | "
                 f"{sal['mean_exposure']:.3f} steps | 1.0 |"
             )
 
@@ -431,21 +456,9 @@ def generate_table_8_v4_baselines(baselines_report: Dict[str, Any], v4_report: D
 {body}"""
 
 
-def main():
-    os.makedirs(TABLES_DIR, exist_ok=True)
-    
-    # 1. Parse prediction traces
-    hash_p = parse_predictions_jsonl(RESULTS_DIR / "main_test_hash" / "predictions.jsonl")
-    static_p = parse_predictions_jsonl(RESULTS_DIR / "main_test_static" / "predictions.jsonl")
-    tfidf_p = parse_predictions_jsonl(RESULTS_DIR / "main_test_tfidf" / "predictions.jsonl")
-    
 def generate_table_9_novel_methods(novel_report: Dict[str, Any]) -> str:
     """Table 9: Novel Methods Comparison on Frozen Held-Out Test Split (N=58 Chains)."""
     rows = []
-    def fmt_ci(k, n):
-        ci = wilson_score_interval(k, n)
-        return f"[{ci[0]*100:.1f}%, {ci[1]*100:.1f}%]"
-
     test_res = novel_report["held_out_test_results"]
     for m_name, res in test_res.items():
         sal = res["salami_only"]
@@ -455,11 +468,11 @@ def generate_table_9_novel_methods(novel_report: Dict[str, Any]) -> str:
         ben_long = res["category_c_long_drift_fpr"]
         calls = 1.0 if "Guard" in m_name else 0.0
         rows.append(
-            f"| **{m_name}** | {sal['rate']*100:.1f}% ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])} | "
-            f"{fast['rate']*100:.1f}% ({fast['detected']}/{fast['n']}) {fmt_ci(fast['detected'], fast['n'])} | "
-            f"{mal['rate']*100:.1f}% ({mal['detected']}/{mal['n']}) {fmt_ci(mal['detected'], mal['n'])} | "
-            f"{ben_all['rate']*100:.1f}% ({ben_all['detected']}/{ben_all['n']}) {fmt_ci(ben_all['detected'], ben_all['n'])} | "
-            f"{ben_long['rate']*100:.1f}% ({ben_long['detected']}/{ben_long['n']}) {fmt_ci(ben_long['detected'], ben_long['n'])} | "
+            f"| **{m_name}** | {fmt_pct(sal['detected'], sal['n'])} ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])} | "
+            f"{fmt_pct(fast['detected'], fast['n'])} ({fast['detected']}/{fast['n']}) {fmt_ci(fast['detected'], fast['n'])} | "
+            f"{fmt_pct(mal['detected'], mal['n'])} ({mal['detected']}/{mal['n']}) {fmt_ci(mal['detected'], mal['n'])} | "
+            f"{fmt_pct(ben_all['detected'], ben_all['n'])} ({ben_all['detected']}/{ben_all['n']}) {fmt_ci(ben_all['detected'], ben_all['n'])} | "
+            f"{fmt_pct(ben_long['detected'], ben_long['n'])} ({ben_long['detected']}/{ben_long['n']}) {fmt_ci(ben_long['detected'], ben_long['n'])} | "
             f"{sal['mean_exposure']:.3f} steps | {calls:.1f} |"
         )
     body = "\n".join(rows)
@@ -471,22 +484,17 @@ def generate_table_9_novel_methods(novel_report: Dict[str, Any]) -> str:
 def generate_table_10_adaptive_attacker(adaptive_report: Dict[str, Any]) -> str:
     """Table 10: Adaptive Attacker Evaluation under Black-Box Mutation Feedback (N=24 Chains)."""
     rows = []
-    def fmt_ci(arr):
-        return f"[{arr[0]*100:.1f}%, {arr[1]*100:.1f}%]"
-
     results = adaptive_report.get("results", {})
     for def_name, data in results.items():
         n = data["n_chains"]
         evaded = data["evaded_chains"]
         evasion_rate = data["evasion_success_rate"]
-        evasion_ci = data["evasion_success_ci"]
         recall = data["post_adaptive_recall"]
-        recall_ci = data["post_adaptive_recall_ci"]
         avg_q = data["avg_query_budget_consumed"]
         
         rows.append(
-            f"| **{def_name}** | {evasion_rate*100:.1f}% ({evaded}/{n}) {fmt_ci(evasion_ci)} | "
-            f"{recall*100:.1f}% ({data['detected_chains']}/{n}) {fmt_ci(recall_ci)} | "
+            f"| **{def_name}** | {fmt_pct(evaded, n)} ({evaded}/{n}) {fmt_ci(evaded, n)} | "
+            f"{fmt_pct(data['detected_chains'], n)} ({data['detected_chains']}/{n}) {fmt_ci(data['detected_chains'], n)} | "
             f"{avg_q:.2f} queries |"
         )
     body = "\n".join(rows)
@@ -526,10 +534,10 @@ def generate_table_12_multi_judge(v4_report: Dict[str, Any], gemini_summary: Opt
             ben = m["benign_fpr"]
             we_val = sal.get("mean_exposure", sal.get("avg_we", 0.0))
             
-            strict_sal = f"{sal['rate']*100:.1f}% ({sal['detected']}/{sal['n']}) [{sal['ci'][0]*100:.1f}%, {sal['ci'][1]*100:.1f}%]"
-            any_sal = f"{sal.get('any_post_onset_rate', sal['rate'])*100:.1f}% ({sal.get('any_post_onset_detected', sal['detected'])}/{sal['n']}) [{sal.get('any_post_onset_ci', sal['ci'])[0]*100:.1f}%, {sal.get('any_post_onset_ci', sal['ci'])[1]*100:.1f}%]"
-            fast_str = f"{fast['rate']*100:.1f}% ({fast['detected']}/{fast['n']}) [{fast['ci'][0]*100:.1f}%, {fast['ci'][1]*100:.1f}%]"
-            ben_str = f"{ben['rate']*100:.1f}% ({ben['detected']}/{ben['n']}) [{ben['ci'][0]*100:.1f}%, {ben['ci'][1]*100:.1f}%]"
+            strict_sal = f"{fmt_pct(sal['detected'], sal['n'])} ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])}"
+            any_sal = f"{fmt_pct(sal.get('any_post_onset_detected', sal['detected']), sal['n'])} ({sal.get('any_post_onset_detected', sal['detected'])}/{sal['n']}) {fmt_ci(sal.get('any_post_onset_detected', sal['detected']), sal['n'])}"
+            fast_str = f"{fmt_pct(fast['detected'], fast['n'])} ({fast['detected']}/{fast['n']}) {fmt_ci(fast['detected'], fast['n'])}"
+            ben_str = f"{fmt_pct(ben['detected'], ben['n'])} ({ben['detected']}/{ben['n']}) {fmt_ci(ben['detected'], ben['n'])}"
             
             prefix = f"| **gemma3:4b** (Local 4B) | **{r_name}** | **{s_name}** | {gemma_parse_rate} |"
             rows.append(f"{prefix} {strict_sal} | {any_sal} | {fast_str} | {ben_str} | {we_val:.3f} |")
@@ -551,10 +559,10 @@ def generate_table_12_multi_judge(v4_report: Dict[str, Any], gemini_summary: Opt
                 ben = m["benign_fpr"]
                 we_val = sal.get("mean_exposure", 0.0)
                 
-                strict_sal = f"{sal['rate']*100:.1f}% ({sal['detected']}/{sal['n']}) [{sal['ci'][0]*100:.1f}%, {sal['ci'][1]*100:.1f}%]"
-                any_sal = f"{sal.get('any_post_onset_rate', sal['rate'])*100:.1f}% ({sal.get('any_post_onset_detected', sal['detected'])}/{sal['n']}) [{sal.get('any_post_onset_ci', sal['ci'])[0]*100:.1f}%, {sal.get('any_post_onset_ci', sal['ci'])[1]*100:.1f}%]"
-                fast_str = f"{fast['rate']*100:.1f}% ({fast['detected']}/{fast['n']}) [{fast['ci'][0]*100:.1f}%, {fast['ci'][1]*100:.1f}%]"
-                ben_str = f"{ben['rate']*100:.1f}% ({ben['detected']}/{ben['n']}) [{ben['ci'][0]*100:.1f}%, {ben['ci'][1]*100:.1f}%]"
+                strict_sal = f"{fmt_pct(sal['detected'], sal['n'])} ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])}"
+                any_sal = f"{fmt_pct(sal.get('any_post_onset_detected', sal['detected']), sal['n'])} ({sal.get('any_post_onset_detected', sal['detected'])}/{sal['n']}) {fmt_ci(sal.get('any_post_onset_detected', sal['detected']), sal['n'])}"
+                fast_str = f"{fmt_pct(fast['detected'], fast['n'])} ({fast['detected']}/{fast['n']}) {fmt_ci(fast['detected'], fast['n'])}"
+                ben_str = f"{fmt_pct(ben['detected'], ben['n'])} ({ben['detected']}/{ben['n']}) {fmt_ci(ben['detected'], ben['n'])}"
                 
                 prefix = f"| **gemini-3.1-flash-lite** (Lite-tier Cloud) | **{r_name}** | **{s_name}** | {p_rate_str} |"
                 rows.append(f"{prefix} {strict_sal} | {any_sal} | {fast_str} | {ben_str} | {we_val:.3f} |")
@@ -596,6 +604,20 @@ def generate_table_12_multi_judge(v4_report: Dict[str, Any], gemini_summary: Opt
 {body}
 
 {foot}"""
+
+
+def generate_summary_table() -> str:
+    """Summary Table: Matched-FPR Baselines and Multi-Judge Verification on Frozen Held-Out Test Split (N=58)."""
+    return """| Defense Paradigm / Strategy | Evaluation Tier & Model | Salami Recall ($N=26$) | Benign FPR ($N=25$) | Salami Exposure $\\bar{W}_e$ | Operational Paradigm |
+|---|---|:---:|:---:|:---:|---|
+| **Exact Cryptographic Hash Pinning** | Tier 0 Deterministic | 100.0% (26/26) [87.1%, 100.0%] | 100.0% (25/25) [86.7%, 100.0%] | 0.000 steps | Byte-level strict identity |
+| **Parameter Count Delta ($|\\Delta P| > 0$)** | Tier 1.5 Deterministic | 76.9% (20/26) [57.9%, 89.0%] | 44.0% (11/25) [26.7%, 62.9%] | 0.500 steps | Syntactic schema delta |
+| **Levenshtein Edit Distance (Calibrated FPR $\\le 4.0\%$)** | Tier 1 Lexical | 0.0% (0/26) [0.0%, 12.9%] | 4.0% (1/25) [0.7%, 19.5%] | 2.115 steps | Lexical text edit distance |
+| **TF-IDF Cosine Distance (Calibrated FPR $\\le 4.0\%$)** | Tier 1 Statistical | 3.8% (1/26) [0.7%, 18.9%] | 4.0% (1/25) [0.7%, 19.5%] | 1.962 steps | Statistical n-gram distance |
+| **Semantic Drift Guard: Adjacent (Rule b)** | Tier 3 Local (`gemma3:4b`, 4B) | **96.2% (25/26)** [81.1%, 99.3%] | 4.0% (1/25) [0.7%, 19.5%] | 0.192 steps | Step-wise structured diff |
+| **Semantic Drift Guard: Cumulative (Rule b)** | Tier 3 Local (`gemma3:4b`, 4B) | 76.9% (20/26) [57.9%, 89.0%] | **0.0% (0/25)** [0.0%, 13.3%] | 0.731 steps | Root-anchored diff |
+| **Semantic Drift Guard: Adjacent (Rule b)** | Tier 3 Cloud (`gemini-3.1-flash-lite`) | 88.5% (23/26) [71.0%, 96.0%] | **0.0% (0/25)** [0.0%, 13.3%] | 0.115 steps | Step-wise structured diff |
+| **Semantic Drift Guard: Cumulative (Rule b)** | Tier 3 Cloud (`gemini-3.1-flash-lite`) | 84.6% (22/26) [66.5%, 93.8%] | **0.0% (0/25)** [0.0%, 13.3%] | 0.154 steps | Root-anchored diff |"""
 
 
 def main():
@@ -676,14 +698,15 @@ def main():
     t5d = generate_table_5d_per_category()
     t5e = generate_table_5e_constrained_comparison()
     t6 = generate_table_6_model_comparison()
-    t7 = generate_table_7_v4_chains(v4_report)
+    t6_v4 = generate_table_7_v4_chains(v4_report)
     t7b = generate_table_7b_v4_trivial_separators(v4_report)
     t7c = generate_table_7c_dual_rule_sensitivity(v4_report)
-    t8 = generate_table_8_v4_baselines(baselines_report, v4_report)
+    t_summary = generate_summary_table()
+    t8_full_baselines = generate_table_8_v4_baselines(baselines_report, v4_report)
     t9 = generate_table_9_novel_methods(novel_report)
     t10 = generate_table_10_adaptive_attacker(adaptive_report)
     t11 = generate_table_11_delivery_layer(delivery_report)
-    t12 = generate_table_12_multi_judge(v4_report, gemini_summary)
+    t12_multi_judge = generate_table_12_multi_judge(v4_report, gemini_summary)
 
     md_output = f"""# Master Research Paper Tables
 
@@ -714,32 +737,35 @@ def main():
 ## Table 5e: Side-by-Side Salami Drift Benchmark V3 Outcomes (Unconstrained vs. Constrained JSON)
 {t5e}
 
-## Table 6: Multi-Model Local Judge Comparison (N=56)
-{t6}
+## Table 6: Benchmark V4 Live Model Evaluation Outcomes (N=116 Chains, gemma3:4b Constrained)
+{t6_v4}
 
-## Table 7: Benchmark V4 Live Model Evaluation Outcomes (N=116 Chains, gemma3:4b Constrained)
-{t7}
+## Table 7: Summary of Matched-FPR Baselines and Multi-Judge Verification (N=58 Chains)
+{t_summary}
 
-## Table 7b: Benchmark V4 Trivial-Separator Audit
-{t7b}
-
-## Table 7c: Dual-Rule Chain Detection Summary (Strict Primary vs. Any Alert After Onset Sensitivity)
-{t7c}
-
-## Table 8: Benchmark V4 Matched-FPR Baseline Evaluation on Frozen Held-Out Test Split (N=58 Chains)
-{t8}
-
-## Table 9: Capability-Set Tracking, Drift Budget, and Hybrid Architecture Outcomes on Held-Out Test Split (N=58 Chains)
+## Table 8: Capability-Set Tracking, Drift Budget, and Hybrid Architecture Outcomes on Held-Out Test Split (N=58 Chains)
 {t9}
 
-## Table 10: Adaptive Attacker Evaluation under Black-Box Mutation Feedback (N=24 Chains)
+## Table 9: Template Mutation Search Evaluation under Black-Box Mutation Feedback (N=24 Chains)
 {t10}
 
-## Table 11: Live MCP Transport & Delivery-Layer Failure Condition Test Outcomes
+## Table 10: Live MCP Transport & Delivery-Layer Failure Condition Test Outcomes
 {t11}
 
-## Table 12: Multi-Judge Evaluation & Replicability on Frozen Held-Out Test Split (N=58 Chains, gemma3:4b vs. gemini-3.1-flash-lite)
-{t12}
+## Appendix Table A.1: Full Benchmark V4 Matched-FPR Baseline Evaluation on Frozen Held-Out Test Split (N=58 Chains)
+{t8_full_baselines}
+
+## Appendix Table A.2: Multi-Judge Evaluation & Replicability on Frozen Held-Out Test Split (N=58 Chains)
+{t12_multi_judge}
+
+## Appendix Table A.3: Benchmark V4 Trivial-Separator Audit
+{t7b}
+
+## Appendix Table A.4: Dual-Rule Chain Detection Summary (Strict Primary vs. Any Alert After Onset Sensitivity)
+{t7c}
+
+## Appendix Table A.5: Multi-Model Local Judge Comparison (N=56)
+{t6}
 """
     
     md_path = TABLES_DIR / "tables_markdown.md"
