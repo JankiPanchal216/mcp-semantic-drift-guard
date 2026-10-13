@@ -235,7 +235,7 @@ The pre-registered **Salami Drift Benchmark V4** (`data/salami_drift_benchmark_v
 ### Benchmark Provenance & Trivial-Separator Audit
 Chains were synthesized by taking real tool schema templates from open-source MCP repositories and generating multi-step mutation sequences via Python scripts. Primary evaluation is conducted using local open-weight `gemma3:4b` ($T=0$), complemented by cross-architecture replication on lite-tier cloud judge Google `gemini-3.1-flash-lite` ($T=0$).
 
-All chains were audited against trivial heuristic separators:
+All chains were audited against trivial heuristic separators (Table 5):
 
 | Feature / Trivial Separator | Target AUC Threshold | Measured ROC-AUC on Benchmark V4 | Separation Status & Paper Finding |
 |---|:---:|:---:|---|
@@ -288,10 +288,12 @@ Table 7 reports deterministic and semantic baselines on the held-out test split.
 | **TF-IDF Distance (Calibrated Dev Target=25.0%, Thresh >= 0.6000, Achieved Test FPR=28.0%)** | 11.5% (3/26) [4.0%, 29.0%] | 0.0% (0/7) [0.0%, 35.4%] | 9.1% (3/33) [3.1%, 23.6%] | 28.0% (7/25) [14.3%, 47.6%] | 1.885 steps | 0.0 |
 | **TF-IDF Distance (Calibrated Dev Target=12.5%, Thresh >= 0.6073, Achieved Test FPR=28.0%)** | 7.7% (2/26) [2.1%, 24.1%] | 0.0% (0/7) [0.0%, 35.4%] | 6.1% (2/33) [1.7%, 19.6%] | 28.0% (7/25) [14.3%, 47.6%] | 1.923 steps | 0.0 |
 | **TF-IDF Distance (Calibrated Dev Target=0.0%, Thresh >= 0.6569, Achieved Test FPR=4.0%)** | 3.9% (1/26) [0.7%, 18.9%] | 0.0% (0/7) [0.0%, 35.4%] | 3.0% (1/33) [0.5%, 15.3%] | 4.0% (1/25) [0.7%, 19.5%] | 1.962 steps | 0.0 |
-| **Normalized Edit Distance (Calibrated Dev Target=25.0%–50.0%, Thresh >= 0.6571, Achieved Test FPR=44.0%)** | 23.1% (6/26) [11.0%, 42.1%] | 0.0% (0/7) [0.0%, 35.4%] | 18.2% (6/33) [8.6%, 34.4%] | 44.0% (11/25) [26.7%, 62.9%] | 1.769 steps | 0.0 |
+| **Normalized Edit Distance (Calibrated Dev Target=50.0%, Thresh >= 0.6571, Achieved Test FPR=44.0%)** | 23.1% (6/26) [11.0%, 42.1%] | 0.0% (0/7) [0.0%, 35.4%] | 18.2% (6/33) [8.6%, 34.4%] | 44.0% (11/25) [26.7%, 62.9%] | 1.769 steps | 0.0 |
+| **Normalized Edit Distance (Calibrated Dev Target=25.0%, Thresh >= 0.6571, Achieved Test FPR=44.0%)** | 23.1% (6/26) [11.0%, 42.1%] | 0.0% (0/7) [0.0%, 35.4%] | 18.2% (6/33) [8.6%, 34.4%] | 44.0% (11/25) [26.7%, 62.9%] | 1.769 steps | 0.0 |
 | **Normalized Edit Distance (Calibrated Dev Target=12.5%, Thresh >= 0.7052, Achieved Test FPR=12.0%)** | 0.0% (0/26) [0.0%, 12.9%] | 0.0% (0/7) [0.0%, 35.4%] | 0.0% (0/33) [0.0%, 10.4%] | 12.0% (3/25) [4.2%, 30.0%] | 2.000 steps | 0.0 |
 | **Normalized Edit Distance (Calibrated Dev Target=0.0%, Thresh >= 0.7369, Achieved Test FPR=0.0%)** | 0.0% (0/26) [0.0%, 12.9%] | 0.0% (0/7) [0.0%, 35.4%] | 0.0% (0/33) [0.0%, 10.4%] | 0.0% (0/25) [0.0%, 13.3%] | 2.000 steps | 0.0 |
-| **Parameter Count Delta (Calibrated Dev Target=25.0%–50.0%, Thresh >= 4, Achieved Test FPR=44.0%)** | 76.9% (20/26) [57.9%, 89.0%] | 42.9% (3/7) [15.8%, 75.0%] | 69.7% (23/33) [52.7%, 82.6%] | 44.0% (11/25) [26.7%, 62.9%] | 1.231 steps | 0.0 |
+| **Parameter Count Delta (Calibrated Dev Target=50.0%, Thresh >= 4, Achieved Test FPR=44.0%)** | 76.9% (20/26) [57.9%, 89.0%] | 42.9% (3/7) [15.8%, 75.0%] | 69.7% (23/33) [52.7%, 82.6%] | 44.0% (11/25) [26.7%, 62.9%] | 1.231 steps | 0.0 |
+| **Parameter Count Delta (Calibrated Dev Target=25.0%, Thresh >= 4, Achieved Test FPR=44.0%)** | 76.9% (20/26) [57.9%, 89.0%] | 42.9% (3/7) [15.8%, 75.0%] | 69.7% (23/33) [52.7%, 82.6%] | 44.0% (11/25) [26.7%, 62.9%] | 1.231 steps | 0.0 |
 | **Parameter Count Delta (Calibrated Dev Target=0.0%, Thresh >= 6, Achieved Test FPR=0.0%)** | 0.0% (0/26) [0.0%, 12.9%] | 0.0% (0/7) [0.0%, 35.4%] | 0.0% (0/33) [0.0%, 10.4%] | 0.0% (0/25) [0.0%, 13.3%] | 2.000 steps | 0.0 |
 | **MCP Semantic Guard (Adjacent, Rule (b) Primary BALANCED)** | **96.2%** (25/26) [81.1%, 99.3%] | **100.0%** (7/7) [64.6%, 100.0%] | **97.0%** (32/33) [84.7%, 99.5%] | **4.0%** (1/25) [0.7%, 19.5%] | 0.192 steps | 1.0 |
 | **MCP Semantic Guard (Cumulative, Rule (b) Primary BALANCED)** | **76.9%** (20/26) [57.9%, 89.0%] | **100.0%** (7/7) [64.6%, 100.0%] | **81.8%** (27/33) [65.6%, 91.4%] | **0.0%** (0/25) [0.0%, 13.3%] | 0.731 steps | 1.0 |
@@ -300,7 +302,7 @@ Table 7 reports deterministic and semantic baselines on the held-out test split.
 
 *Table 7: Benchmark V4 Matched-FPR Baseline Evaluation on Frozen Held-Out Test Split ($N=58$ Chains).*
 
-*Note on Table 7 operating points: Each row corresponds to a distinct calibrated operating threshold. Identical thresholds produced by adjacent quantile targets on the calibration benign set ($N=19$), such as the 50% and 25% dev targets yielding identical thresholds for edit distance ($\ge 0.6571$) and parameter delta ($\ge 4$), are merged into unified rows. Figure 3 illustrates the recall vs. benign chain false positive rate trade-off across defense paradigms, while Figure 4 shows the mean exposure window $\bar{W}_e$ across defense strategies.*
+*Note on Table 7 operating points: Each row corresponds to a calibrated operating threshold. While the 50% and 25% calibration dev targets yield identical empirical thresholds for edit distance ($\ge 0.6571$) and parameter delta ($\ge 4$) on the calibration split ($N=19$), both underlying calibrated targets are displayed with their respective achieved test FPRs (44.0%) and thresholds to preserve evaluation transparency. Figure 3 illustrates the recall vs. benign chain false positive rate trade-off across defense paradigms, while Figure 4 shows the mean exposure window $\bar{W}_e$ across defense strategies.*
 
 ### 10.3 Adjacent vs. Cumulative Reversal Analysis & Hypotheses
 In earlier Benchmark V3 unconstrained evaluations ($N=40$), Cumulative root-anchored comparison outperformed Adjacent comparison (87.5% vs. 50.0% Salami recall). However, under Benchmark V4 ($N=116$) with Draft-07 JSON Schema constrained decoding, the direction flipped: Adjacent comparison achieved 96.2% (25/26) Salami recall vs. Cumulative 76.9% (20/26) on the frozen held-out test split (test split difference: +19.2% [95% bootstrap CI: +0.0%, +38.5%], exact McNemar $p = 0.1250$; calibration split difference: +26.5% [94.1% vs 67.6%], exact McNemar $p = 0.0225$; post-hoc pooled difference across all $N=116$ chains: +23.3% [95% bootstrap CI: +10.0%, +36.7%], exact McNemar $p = 0.0026$).
@@ -373,7 +375,7 @@ During execution of the third strategy (**Combined Prompt**), the API provider's
    - Qualified under Gate 1 on a 50-call calibration pilot (100.0% parse rate, 50/50 calls, 0 retries, mean latency 3.99s).
    - Fully evaluated across all 3 strategies on the frozen held-out test split (215 transitions per strategy; 645 transitions total).
 2. **Local `qwen3:8b` (Ollama):**
-   - Evaluated on a 5-call CPU pilot; disqualified after achieving only a 40.0% parse rate (2/5) with 190s/call CPU latency, failing Gate 1 ($\ge 99.0\%$). Request options specified temperature=0, seed=42, and num_predict=256; thinking mode not controlled.
+   - Evaluated on a 5-call CPU pilot; disqualified under Gate 1 ($\ge 99.0\%$) after achieving a 40.0% parse rate (2/5) with 190s/call CPU latency. The pilot used `num_predict=256` with no thinking control, so the 40% parse rate may reflect truncated reasoning output rather than an inability to produce JSON; this is not characterized as a general model failure.
 3. **Hugging Face Serverless Inference Providers:**
    - Disqualified during provider connectivity screening as serverless router endpoints required pre-paid account credits (`HTTP 402 Payment Required`).
 4. **DeepSeek API (`deepseek-flash` / `deepseek-v4-pro`):**
@@ -405,7 +407,7 @@ Table 9 evaluates alternative defense architectures on the held-out test split (
 ## 12. Adaptive Attacker & Live Transport Failure Analysis
 
 ### 12.1 Adaptive Attacker Evaluation under Black-Box Mutation ($N=24$ Chains)
-We evaluated an adaptive attacker executing black-box template-based mutation search with semantic synonym replacement, parameter smuggling, and prompt obfuscation against the defenses. The attacker is allocated a query budget of $Q \le 5$ queries per step (averaging 8.12 queries per chain across $N=24$ malicious chains; Figure 6):
+We evaluated an adaptive attacker executing black-box template-based mutation search with semantic synonym replacement, parameter smuggling, and prompt obfuscation against the defenses. The attacker is allocated a query budget of $Q \le 5$ queries per step (averaging 8.12 queries per chain across $N=24$ malicious chains; Figure 6, Table 10):
 
 | Target Defense Mechanism | Evasion Success Rate ($N=24$) (95% Wilson CI) | Post-Adaptive Chain Recall (95% Wilson CI) | Avg Query Budget Consumed / Chain |
 |---|:---:|:---:|:---:|
@@ -421,7 +423,7 @@ We evaluated an adaptive attacker executing black-box template-based mutation se
 The empirical results show that Cumulative Guard suffered 41.7% evasion compared to 8.3% for Adjacent Guard. As an empirical hypothesis, cumulative root anchoring allows template mutations to distribute alterations across multiple fields such that the model judge fails to trigger on the cumulative diff, whereas adjacent diffs preserve sharp step-wise contrast.
 
 ### 12.2 Live Transport Delivery-Layer Failure Condition Test Outcomes
-We evaluated 5 scripted failure conditions in live MCP client-server communication using a localhost mock harness (`experiments/evaluate_delivery_layer.py`, Figure 7):
+We evaluated 5 scripted failure conditions in live MCP client-server communication using a localhost mock harness (`experiments/evaluate_delivery_layer.py`, Figure 7, Table 11):
 
 | Failure Mode ID | Failure Condition & Attack Vector | Unmitigated Delivery Behavior | Mitigated Architectural Fix (Harness Implementation) | Unvetted Tool Delivered (Before $\rightarrow$ After) | Certification Status |
 |:---:|---|---|---|:---:|:---:|
@@ -474,7 +476,7 @@ Table 12 formalizes the completed experimental dimensions and explicitly documen
 | **Benchmark Synthesis & Scale** | **Reported Limitation** | Small sample size ($N=58$ held-out test chains: 26 Salami, 7 Fast-Jump, 25 Benign); trajectories generated via automated schema modification scripts from a single generator rather than organic multi-team enterprise release histories. |
 | **Frontier-Tier Judge Evaluation** | **Not Done (Future Work)** | Evaluation covers a local open-weight judge (`gemma3:4b`) and a lite-tier cloud model (`gemini-3.1-flash-lite`); evaluations on large frontier models (e.g., GPT-4o, Claude 3.5 Sonnet) are not run and deferred to Future Work. |
 | **Wall-Clock Latency Comparison** | **Not Done** | Input/output token metrics are reported from empirical traces (Combined adds +47.0% prompt tokens on gemma); wall-clock latency was not comparatively benchmarked across heterogeneous local CPU/GPU and cloud network environments. |
-| **Third-Party Model Exclusions** | **Excluded (Documented)** | `qwen3:8b` disqualified on 5-call CPU pilot (40.0% parse rate, Gate 1 failed); Hugging Face disqualified due to pre-paid credit requirements (`HTTP 402`); DeepSeek API (`deepseek-flash`) authenticated with valid key but excluded due to zero balance ($0.00, `HTTP 402 Insufficient Balance`, zero completed calls). |
+| **Third-Party Model Exclusions** | **Excluded (Documented)** | `qwen3:8b` disqualified on 5-call CPU pilot (40.0% parse rate with `num_predict=256` and no thinking control, which may reflect truncated reasoning rather than a general model failure to produce JSON; Gate 1 failed); Hugging Face disqualified due to pre-paid credit requirements (`HTTP 402`); DeepSeek API (`deepseek-flash`) authenticated with valid key but excluded due to zero balance ($0.00, `HTTP 402 Insufficient Balance`, zero completed calls). |
 
 *Table 12: Empirical Evaluation Status & Verification Matrix (Done / Not Done).*
 

@@ -376,7 +376,7 @@ def generate_table_8_v4_baselines(baselines_report: Dict[str, Any], v4_report: D
 
     b_res = baselines_report["baselines_test_results"]
     
-    # 1. Deterministic & Calibrated baselines (one row per distinct threshold; merged identical dev targets)
+    # 1. Deterministic & Calibrated baselines (each underlying calibrated row shown individually)
     distinct_baselines = [
         ("exact_hash_pinning", None),
         ("static_keyword_regex", None),
@@ -384,10 +384,12 @@ def generate_table_8_v4_baselines(baselines_report: Dict[str, Any], v4_report: D
         ("tfidf_matched_fpr_25", None),
         ("tfidf_matched_fpr_12", None),
         ("tfidf_matched_fpr_0", None),
-        ("edit_dist_matched_fpr_50", "Normalized Edit Distance (Calibrated Dev Target=25.0%–50.0%, Thresh >= 0.6571, Achieved Test FPR=44.0%)"),
+        ("edit_dist_matched_fpr_50", None),
+        ("edit_dist_matched_fpr_25", None),
         ("edit_dist_matched_fpr_12", None),
         ("edit_dist_matched_fpr_0", None),
-        ("param_delta_matched_fpr_50", "Parameter Count Delta (Calibrated Dev Target=25.0%–50.0%, Thresh >= 4, Achieved Test FPR=44.0%)"),
+        ("param_delta_matched_fpr_50", None),
+        ("param_delta_matched_fpr_25", None),
         ("param_delta_matched_fpr_0", None)
     ]
     for b_key, custom_name in distinct_baselines:
