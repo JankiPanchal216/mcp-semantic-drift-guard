@@ -30,7 +30,7 @@ In the Model Context Protocol (MCP), tool definitions evolve over time through s
 All comparisons evaluate the four canonical decision rules defined in §5.1:
 - **Rule (a) STRICT:** Malicious iff model output verdict $\in \{\text{MALICIOUS}\}$.
 - **Rule (b) BALANCED (Primary Pre-Registered Rule):** Malicious iff model output verdict $\in \{\text{MALICIOUS}, \text{SUSPICIOUS}\}$.
-- **Rule (c) AUDIT / RELAXED:** Malicious iff model output verdict $\in \{\text{MALICIOUS}, \text{SUSPICIOUS}, \text{WARN}\}$.
+- **Rule (c) DIAGNOSTIC / PARSED-ONLY:** Evaluates Rule (b) strictly on directly parsed model responses without fail-secure fallbacks (verdict $\in \{\text{MALICIOUS}, \text{SUSPICIOUS}\}$ on valid JSON), isolating intrinsic semantic reasoning from formatting fallbacks.
 - **Rule (d) CONSERVATIVE / HIGH-PRECISION:** Malicious iff model output verdict $\in \{\text{MALICIOUS}\}$ AND confidence $\ge 0.80$.
 
 The **primary pre-registered configuration** is **Rule (b) BALANCED with JSON Schema constrained decoding**.
