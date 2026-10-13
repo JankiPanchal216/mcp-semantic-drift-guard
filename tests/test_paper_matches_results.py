@@ -16,7 +16,9 @@ from typing import Dict, List, Any, Optional
 
 def parse_ci_cell(cell: str) -> Optional[Dict[str, float]]:
     """Parses '58.9% [45.9%, 70.8%]' or '100.0% [89.6%, 100.0%]' or 'n/a'."""
-    cell = cell.strip()
+    if not cell:
+        return None
+    cell = re.sub(r"\*+", "", cell).strip()
     if cell == "n/a" or "[PENDING" in cell or "-" in cell:
         return None
     m = re.search(r"([\d\.]+)%\s*\[\s*([\d\.]+)%,\s*([\d\.]+)%\s*\]", cell)
@@ -90,7 +92,7 @@ class TestPaperMatchesResults(unittest.TestCase):
         self.assertEqual(int(hash_row["FP"]), self.computed_metrics["main_test_hash"]["fp"])
         self.assertEqual(int(hash_row["FN"]), self.computed_metrics["main_test_hash"]["fn"])
 
-        hash_p = parse_ci_cell(hash_row["Precision (95% CI)"])
+        hash_p = parse_ci_cell(hash_row.get("Precision (95% CI)") or hash_row.get("Observed Precision (95% CI)"))
         self.assertAlmostEqual(hash_p["val"], self.computed_metrics["main_test_hash"]["precision"] * 100, places=1)
         self.assertAlmostEqual(hash_p["lo"], self.computed_metrics["main_test_hash"]["precision_ci95"][0] * 100, places=1)
         self.assertAlmostEqual(hash_p["hi"], self.computed_metrics["main_test_hash"]["precision_ci95"][1] * 100, places=1)
@@ -103,7 +105,7 @@ class TestPaperMatchesResults(unittest.TestCase):
         self.assertEqual(int(static_row["FP"]), self.computed_metrics["main_test_static"]["fp"])
         self.assertEqual(int(static_row["FN"]), self.computed_metrics["main_test_static"]["fn"])
 
-        static_p = parse_ci_cell(static_row["Precision (95% CI)"])
+        static_p = parse_ci_cell(static_row.get("Precision (95% CI)") or static_row.get("Observed Precision (95% CI)"))
         self.assertAlmostEqual(static_p["val"], self.computed_metrics["main_test_static"]["precision"] * 100, places=1)
         self.assertAlmostEqual(static_p["lo"], self.computed_metrics["main_test_static"]["precision_ci95"][0] * 100, places=1)
         self.assertAlmostEqual(static_p["hi"], self.computed_metrics["main_test_static"]["precision_ci95"][1] * 100, places=1)
@@ -116,7 +118,7 @@ class TestPaperMatchesResults(unittest.TestCase):
         self.assertEqual(int(tfidf_row["FP"]), self.computed_metrics["main_test_tfidf"]["fp"])
         self.assertEqual(int(tfidf_row["FN"]), self.computed_metrics["main_test_tfidf"]["fn"])
 
-        tfidf_p = parse_ci_cell(tfidf_row["Precision (95% CI)"])
+        tfidf_p = parse_ci_cell(tfidf_row.get("Precision (95% CI)") or tfidf_row.get("Observed Precision (95% CI)"))
         self.assertAlmostEqual(tfidf_p["val"], self.computed_metrics["main_test_tfidf"]["precision"] * 100, places=1)
         self.assertAlmostEqual(tfidf_p["lo"], self.computed_metrics["main_test_tfidf"]["precision_ci95"][0] * 100, places=1)
         self.assertAlmostEqual(tfidf_p["hi"], self.computed_metrics["main_test_tfidf"]["precision_ci95"][1] * 100, places=1)
@@ -181,7 +183,10 @@ class TestCorruptedPaperMustFail(unittest.TestCase):
         t = TestPaperMatchesResults()
         t.setUp()
         # Corrupt Static precision CI
-        t.paper_text = t.paper_text.replace("100.0% [86.7%, 100.0%]", "80.0% [60.0%, 90.0%]")
+        if "**100.0%** [86.7%, 100.0%]" in t.paper_text:
+            t.paper_text = t.paper_text.replace("**100.0%** [86.7%, 100.0%]", "80.0% [60.0%, 90.0%]")
+        else:
+            t.paper_text = t.paper_text.replace("100.0% [86.7%, 100.0%]", "80.0% [60.0%, 90.0%]")
         t.tables = parse_markdown_tables(t.paper_text)
         with self.assertRaises(AssertionError):
             t.test_parsed_table_6_2_confusion_and_metrics()

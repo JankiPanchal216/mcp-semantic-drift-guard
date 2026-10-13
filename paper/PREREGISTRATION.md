@@ -14,7 +14,8 @@ In the Model Context Protocol (MCP), tool definitions evolve over time through s
 
 ### 1.2 Hypotheses
 - **$H_1$ (Cumulative Advantage on Semantic Composition):** On multi-step semantic composition chains (where individual steps appear benign in isolation but compose into an attack), Cumulative comparison will achieve higher chain-level recall than Adjacent comparison under matched benign false positive rates.
-- **$H_2$ (Adjacent Sensitivity on Local Leaps):** On localized parameter erosion or direct capability additions, Adjacent comparison will detect malicious drift earlier ($W_e$) with lower context overhead.
+- **$H_{2a}$ (Adjacent Exposure on Local Leaps):** On localized parameter erosion or direct capability additions, Adjacent comparison will detect malicious drift earlier ($W_e$).
+- **$H_{2b}$ (Combined Prompt Pareto Efficiency & Context Overhead):** Presenting both adjacent and cumulative diffs simultaneously achieves Pareto-superior detection (matching or exceeding Adjacent recall at $\le$ Cumulative FPR) with acceptable context overhead.
 - **$H_3$ (Deterministic Baseline Insufficiency):** Calibrated deterministic heuristics (Levenshtein edit distance, parameter delta count) cannot simultaneously maintain $\ge 80\%$ recall on multi-step salami drift and $\le 15\%$ FPR on benign evolution when tested on docstring-only and diverse-length chains.
 
 ---

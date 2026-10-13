@@ -53,7 +53,83 @@ class TestPaperNumbersConsistency(unittest.TestCase):
             msg_lines = [f"Found {len(mismatches)} cross-table inconsistencies:"]
             for m in mismatches:
                 msg_lines.append(f"  {m}")
-            self.fail("\n".join(msg_lines))
+    def test_table_order_and_references(self):
+        """Verifies that all tables appear in sequential order and all referenced tables exist."""
+        from scripts.check_numbers import check_table_order_and_references
+        self.assertTrue(self.paper_path.exists(), f"paper.md missing at {self.paper_path}")
+        total_checked, errors = check_table_order_and_references(self.paper_path)
+        self.assertGreater(total_checked, 0, "No table order/references checked")
+        if errors:
+            msg = "\n".join([f"  {e['type']} error: {e['error']}" for e in errors])
+            self.fail(f"Found {len(errors)} table ordering/reference errors in paper.md:\n{msg}")
+
+    def test_paper_tables_match_generated_tables(self):
+        """For every table in results/tables/tables_markdown.md that also appears in paper.md,
+        the whitespace-normalised markdown block must be identical.
+        Fails with the table name and first differing row.
+        """
+        import re
+        tables_md_path = self.root / "results" / "tables" / "tables_markdown.md"
+        self.assertTrue(tables_md_path.exists(), f"tables_markdown.md missing at {tables_md_path}")
+        self.assertTrue(self.paper_path.exists(), f"paper.md missing at {self.paper_path}")
+
+        def parse_tables(text):
+            tables = {}
+            lines = text.splitlines()
+            i = 0
+            while i < len(lines):
+                line = lines[i].strip()
+                m = re.search(r'(?:^##+\s*|^\*\s*|\b)(Table\s+(?:[0-9]+[a-z]?|A\.[0-9]+))\b', line)
+                if m and (line.startswith('#') or line.startswith('*Table')):
+                    t_id = m.group(1).replace('  ', ' ')
+                    table_lines = []
+                    j = i + 1
+                    while j < len(lines) and not lines[j].strip().startswith('|'):
+                        if lines[j].strip().startswith('#'):
+                            break
+                        j += 1
+                    if j < len(lines) and lines[j].strip().startswith('|'):
+                        while j < len(lines) and lines[j].strip().startswith('|'):
+                            table_lines.append(lines[j].strip())
+                            j += 1
+                    else:
+                        k = i - 1
+                        while k >= 0 and not lines[k].strip().startswith('|'):
+                            if lines[k].strip().startswith('#'):
+                                break
+                            k -= 1
+                        if k >= 0 and lines[k].strip().startswith('|'):
+                            while k >= 0 and lines[k].strip().startswith('|'):
+                                table_lines.insert(0, lines[k].strip())
+                                k -= 1
+                    if table_lines:
+                        tables[t_id] = table_lines
+                i += 1
+            return tables
+
+        def norm_row(r):
+            return ' | '.join(c.strip() for c in r.strip().strip('|').split('|'))
+
+        p_tables = parse_tables(self.paper_path.read_text(encoding='utf-8'))
+        g_tables = parse_tables(tables_md_path.read_text(encoding='utf-8'))
+
+        common_ids = sorted(list(set(g_tables.keys()) & set(p_tables.keys())))
+        self.assertGreater(len(common_ids), 0, "No common tables found between tables_markdown.md and paper.md")
+
+        for t_id in common_ids:
+            g_rows = g_tables[t_id]
+            p_rows = p_tables[t_id]
+            if len(g_rows) != len(p_rows):
+                self.fail(f"Table '{t_id}' row count mismatch: generated table has {len(g_rows)} rows, but paper.md has {len(p_rows)} rows.\nFirst differing row: {g_rows[min(len(g_rows), len(p_rows))-1]}")
+            for r_idx, (gr, pr) in enumerate(zip(g_rows, p_rows)):
+                norm_gr = norm_row(gr)
+                norm_pr = norm_row(pr)
+                if norm_gr != norm_pr:
+                    self.fail(
+                        f"Table '{t_id}' differing row at index {r_idx}:\n"
+                        f"Generated: {norm_gr}\n"
+                        f"Paper:     {norm_pr}"
+                    )
 
 
 if __name__ == "__main__":

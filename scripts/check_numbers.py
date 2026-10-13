@@ -156,7 +156,7 @@ def check_cross_table_consistency(file_path: Path) -> Tuple[int, List[Dict[str, 
             "expected_fpr": "4.0% (1/25)",
             "expected_exp": "0.192",
             "table_regexes": [
-                r"^\s*\|\s*\*\*Held-Out Test \(\$N=58\$\)\*\*\s*\|\s*\*\*Rule \(b\) Primary BALANCED\*\*\s*\|\s*\*\*Adjacent\*\*\s*\|.*?$",
+                r"^\s*\|\s*\*\*Held-Out Test \(\$?N=58\$?\)\*\*\s*\|\s*\*\*Rule \(b\) Primary BALANCED\*\*\s*\|\s*\*\*Adjacent\*\*\s*\|.*?$",
                 r"^\s*\|\s*\*\*Semantic Drift Guard: Adjacent \(Rule b\)\*\*\s*\|\s*Tier 3 Local.*?$",
                 r"^\s*\|\s*\*\*Plain Adjacent Guard \(Rule b\)\*\*\s*\|.*?$",
                 r"^\s*\|\s*\*\*MCP Semantic Guard \(Adjacent, Rule \(b\) Primary BALANCED\)\*\*\s*\|.*?$",
@@ -279,6 +279,93 @@ def check_cross_table_consistency(file_path: Path) -> Tuple[int, List[Dict[str, 
     return total_checked, mismatches
 
 
+def check_table_order_and_references(file_path: Path) -> Tuple[int, List[Dict[str, Any]]]:
+    """Validates that:
+    1. All declared tables (captions '*Table N: ...*' or '### Table N: ...') are strictly sequential.
+       Main tables: 1, 2, ..., N (strictly increasing integer sequence).
+       Appendix tables: A.1, A.2, ..., A.M (strictly increasing appendix sequence).
+       No letter suffixes or out-of-order tables.
+    2. Every Table N referenced in prose exists in the declared tables.
+    """
+    with open(file_path, "r", encoding="utf-8") as f:
+        text = f.read()
+
+    errors = []
+    
+    # 1. Declared tables
+    declared = []
+    for line_num, line in enumerate(text.splitlines(), start=1):
+        m = re.search(r'(?:^\*\s*|###\s*)Table\s+([0-9]+[a-z]?|A\.[0-9]+):', line)
+        if m:
+            declared.append((m.group(1), line_num))
+
+    # Validate ordering
+    main_tables = []
+    app_tables = []
+    for tid, line_num in declared:
+        if tid.startswith("A."):
+            app_tables.append((tid, line_num))
+        else:
+            main_tables.append((tid, line_num))
+
+    # Check main tables sequential
+    expected_main = 1
+    for tid, line_num in main_tables:
+        if not tid.isdigit():
+            errors.append({
+                "type": "table_naming",
+                "table": tid,
+                "line": line_num,
+                "error": f"Main table '{tid}' has non-integer suffix (not allowed; tables must be strictly sequential integers)."
+            })
+        else:
+            val = int(tid)
+            if val != expected_main:
+                errors.append({
+                    "type": "table_order",
+                    "table": tid,
+                    "line": line_num,
+                    "error": f"Table order mismatch: expected Table {expected_main}, but found Table {tid}."
+                })
+            expected_main = val + 1
+
+    # Check appendix tables sequential
+    expected_app = 1
+    for tid, line_num in app_tables:
+        sub = tid.split(".")[1]
+        if not sub.isdigit():
+            errors.append({
+                "type": "appendix_table_naming",
+                "table": tid,
+                "line": line_num,
+                "error": f"Appendix table '{tid}' is invalid."
+            })
+        else:
+            val = int(sub)
+            if val != expected_app:
+                errors.append({
+                    "type": "appendix_table_order",
+                    "table": tid,
+                    "line": line_num,
+                    "error": f"Appendix table order mismatch: expected Table A.{expected_app}, but found Table {tid}."
+                })
+            expected_app = val + 1
+
+    # 2. Check all referenced tables exist
+    declared_set = {tid for tid, _ in declared}
+    refs = set(re.findall(r'Table\s+([0-9]+[a-z]?|A\.[0-9]+)', text))
+    for r in refs:
+        if r not in declared_set:
+            errors.append({
+                "type": "missing_table",
+                "table": r,
+                "error": f"Referenced Table {r} does not exist in declared tables."
+            })
+
+    total_checked = len(declared) + len(refs)
+    return total_checked, errors
+
+
 def main():
     target = Path("paper.md")
     if len(sys.argv) > 1 and sys.argv[1] == "--file" and len(sys.argv) > 2:
@@ -300,7 +387,10 @@ def main():
     cross_checked, cross_mismatches = check_cross_table_consistency(target)
     print(f"Total cross-table checks: {cross_checked}")
 
-    all_errors = mismatches + exp_mismatches + cross_mismatches
+    tbl_checked, tbl_errors = check_table_order_and_references(target)
+    print(f"Total table order and reference checks: {tbl_checked}")
+
+    all_errors = mismatches + exp_mismatches + cross_mismatches + tbl_errors
 
     if all_errors:
         print(f"\n[FAIL] Found {len(all_errors)} consistency errors:")
