@@ -113,7 +113,7 @@ This document records the verification provenance for every bibliographic entry 
 - **Verification Status:** **PASS (VERIFIED)**
 
 ### 12. `anthropic2024mcp` (Model Context Protocol Specification)
-- **Exact Title:** *Model Context Protocol Specification*
+- **Exact Title:** *Model Context Protocol Specification (Version 2024-11-05)*
 - **Author:** Anthropic and Model Context Protocol Working Group
 - **Year:** 2024 (Published 2024-11-05)
 - **Venue / URL:** `https://modelcontextprotocol.io/specification/2024-11-05`

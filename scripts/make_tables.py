@@ -606,18 +606,111 @@ def generate_table_12_multi_judge(v4_report: Dict[str, Any], gemini_summary: Opt
 {foot}"""
 
 
-def generate_summary_table() -> str:
+def generate_summary_table(
+    baselines_report: Dict[str, Any],
+    v4_report: Dict[str, Any],
+    gemini_summary: Optional[Dict[str, Any]]
+) -> str:
     """Summary Table: Matched-FPR Baselines and Multi-Judge Verification on Frozen Held-Out Test Split (N=58)."""
-    return """| Defense Paradigm / Strategy | Evaluation Tier & Model | Salami Recall ($N=26$) | Benign FPR ($N=25$) | Salami Exposure $\\bar{W}_e$ | Operational Paradigm |
+    b_res = baselines_report["baselines_test_results"]
+    test_d = v4_report["splits_analysis"]["held_out_test"]
+    
+    rows = []
+    
+    # 1. Exact Cryptographic Hash Pinning
+    hash_item = b_res["exact_hash_pinning"]
+    sal = hash_item["salami_only"]
+    ben = hash_item["benign_fpr"]
+    rows.append(
+        f"| **Exact Cryptographic Hash Pinning** | Tier 0 Deterministic | "
+        f"{fmt_pct(sal['detected'], sal['n'])} ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])} | "
+        f"{fmt_pct(ben['detected'], ben['n'])} ({ben['detected']}/{ben['n']}) {fmt_ci(ben['detected'], ben['n'])} | "
+        f"{sal['mean_exposure']:.3f} steps | Byte-level strict identity |"
+    )
+    
+    # 2. Parameter Count Delta (Thresh >= 4)
+    param_item = b_res["param_delta_matched_fpr_50"]
+    sal = param_item["salami_only"]
+    ben = param_item["benign_fpr"]
+    rows.append(
+        f"| **Parameter Count Delta (Thresh >= 4)** | Tier 1.5 Deterministic | "
+        f"{fmt_pct(sal['detected'], sal['n'])} ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])} | "
+        f"{fmt_pct(ben['detected'], ben['n'])} ({ben['detected']}/{ben['n']}) {fmt_ci(ben['detected'], ben['n'])} | "
+        f"{sal['mean_exposure']:.3f} steps | Syntactic schema delta |"
+    )
+    
+    # 3. Normalized Edit Distance (Thresh >= 0.7369)
+    edit_item = b_res["edit_dist_matched_fpr_0"]
+    sal = edit_item["salami_only"]
+    ben = edit_item["benign_fpr"]
+    rows.append(
+        f"| **Normalized Edit Distance (Thresh >= 0.7369)** | Tier 1 Lexical | "
+        f"{fmt_pct(sal['detected'], sal['n'])} ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])} | "
+        f"{fmt_pct(ben['detected'], ben['n'])} ({ben['detected']}/{ben['n']}) {fmt_ci(ben['detected'], ben['n'])} | "
+        f"{sal['mean_exposure']:.3f} steps | Lexical text edit distance |"
+    )
+    
+    # 4. TF-IDF Cosine Distance (Thresh >= 0.6569)
+    tfidf_item = b_res["tfidf_matched_fpr_0"]
+    sal = tfidf_item["salami_only"]
+    ben = tfidf_item["benign_fpr"]
+    rows.append(
+        f"| **TF-IDF Cosine Distance (Thresh >= 0.6569)** | Tier 1 Statistical | "
+        f"{fmt_pct(sal['detected'], sal['n'])} ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])} | "
+        f"{fmt_pct(ben['detected'], ben['n'])} ({ben['detected']}/{ben['n']}) {fmt_ci(ben['detected'], ben['n'])} | "
+        f"{sal['mean_exposure']:.3f} steps | Statistical n-gram distance |"
+    )
+    
+    # 5. Semantic Drift Guard: Adjacent (Rule b) Local gemma
+    adj_gemma = test_d["rule_b_balanced"]["adjacent"]
+    sal = adj_gemma["salami_only"]
+    ben = adj_gemma["benign_fpr"]
+    rows.append(
+        f"| **Semantic Drift Guard: Adjacent (Rule b)** | Tier 3 Local (`gemma3:4b`, 4B) | "
+        f"**{fmt_pct(sal['detected'], sal['n'])} ({sal['detected']}/{sal['n']})** {fmt_ci(sal['detected'], sal['n'])} | "
+        f"{fmt_pct(ben['detected'], ben['n'])} ({ben['detected']}/{ben['n']}) {fmt_ci(ben['detected'], ben['n'])} | "
+        f"{sal['mean_exposure']:.3f} steps | Step-wise structured diff |"
+    )
+    
+    # 6. Semantic Drift Guard: Cumulative (Rule b) Local gemma
+    cum_gemma = test_d["rule_b_balanced"]["cumulative"]
+    sal = cum_gemma["salami_only"]
+    ben = cum_gemma["benign_fpr"]
+    rows.append(
+        f"| **Semantic Drift Guard: Cumulative (Rule b)** | Tier 3 Local (`gemma3:4b`, 4B) | "
+        f"{fmt_pct(sal['detected'], sal['n'])} ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])} | "
+        f"**{fmt_pct(ben['detected'], ben['n'])} ({ben['detected']}/{ben['n']})** {fmt_ci(ben['detected'], ben['n'])} | "
+        f"{sal['mean_exposure']:.3f} steps | Root-anchored diff |"
+    )
+    
+    # 7 & 8. Gemini Replication if present
+    if gemini_summary:
+        gem_res = gemini_summary.get("results", {})
+        if "adjacent" in gem_res and "rule_b_balanced" in gem_res["adjacent"]:
+            adj_gem = gem_res["adjacent"]["rule_b_balanced"]
+            sal = adj_gem["salami_only"]
+            ben = adj_gem["benign_fpr"]
+            rows.append(
+                f"| **Semantic Drift Guard: Adjacent (Rule b)** | Tier 3 Cloud (`gemini-3.1-flash-lite`) | "
+                f"{fmt_pct(sal['detected'], sal['n'])} ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])} | "
+                f"**{fmt_pct(ben['detected'], ben['n'])} ({ben['detected']}/{ben['n']})** {fmt_ci(ben['detected'], ben['n'])} | "
+                f"{sal['mean_exposure']:.3f} steps | Step-wise structured diff |"
+            )
+        if "cumulative" in gem_res and "rule_b_balanced" in gem_res["cumulative"]:
+            cum_gem = gem_res["cumulative"]["rule_b_balanced"]
+            sal = cum_gem["salami_only"]
+            ben = cum_gem["benign_fpr"]
+            rows.append(
+                f"| **Semantic Drift Guard: Cumulative (Rule b)** | Tier 3 Cloud (`gemini-3.1-flash-lite`) | "
+                f"{fmt_pct(sal['detected'], sal['n'])} ({sal['detected']}/{sal['n']}) {fmt_ci(sal['detected'], sal['n'])} | "
+                f"**{fmt_pct(ben['detected'], ben['n'])} ({ben['detected']}/{ben['n']})** {fmt_ci(ben['detected'], ben['n'])} | "
+                f"{sal['mean_exposure']:.3f} steps | Root-anchored diff |"
+            )
+            
+    body = "\n".join(rows)
+    return f"""| Defense Paradigm / Strategy | Evaluation Tier & Model | Salami Recall ($N=26$) | Benign FPR ($N=25$) | Salami Exposure $\\bar{{W}}_e$ | Operational Paradigm |
 |---|---|:---:|:---:|:---:|---|
-| **Exact Cryptographic Hash Pinning** | Tier 0 Deterministic | 100.0% (26/26) [87.1%, 100.0%] | 100.0% (25/25) [86.7%, 100.0%] | 0.000 steps | Byte-level strict identity |
-| **Parameter Count Delta ($|\\Delta P| > 0$)** | Tier 1.5 Deterministic | 76.9% (20/26) [57.9%, 89.0%] | 44.0% (11/25) [26.7%, 62.9%] | 0.500 steps | Syntactic schema delta |
-| **Levenshtein Edit Distance (Calibrated FPR $\\le 4.0\%$)** | Tier 1 Lexical | 0.0% (0/26) [0.0%, 12.9%] | 4.0% (1/25) [0.7%, 19.5%] | 2.115 steps | Lexical text edit distance |
-| **TF-IDF Cosine Distance (Calibrated FPR $\\le 4.0\%$)** | Tier 1 Statistical | 3.8% (1/26) [0.7%, 18.9%] | 4.0% (1/25) [0.7%, 19.5%] | 1.962 steps | Statistical n-gram distance |
-| **Semantic Drift Guard: Adjacent (Rule b)** | Tier 3 Local (`gemma3:4b`, 4B) | **96.2% (25/26)** [81.1%, 99.3%] | 4.0% (1/25) [0.7%, 19.5%] | 0.192 steps | Step-wise structured diff |
-| **Semantic Drift Guard: Cumulative (Rule b)** | Tier 3 Local (`gemma3:4b`, 4B) | 76.9% (20/26) [57.9%, 89.0%] | **0.0% (0/25)** [0.0%, 13.3%] | 0.731 steps | Root-anchored diff |
-| **Semantic Drift Guard: Adjacent (Rule b)** | Tier 3 Cloud (`gemini-3.1-flash-lite`) | 88.5% (23/26) [71.0%, 96.0%] | **0.0% (0/25)** [0.0%, 13.3%] | 0.115 steps | Step-wise structured diff |
-| **Semantic Drift Guard: Cumulative (Rule b)** | Tier 3 Cloud (`gemini-3.1-flash-lite`) | 84.6% (22/26) [66.5%, 93.8%] | **0.0% (0/25)** [0.0%, 13.3%] | 0.154 steps | Root-anchored diff |"""
+{body}"""
 
 
 def main():
@@ -701,7 +794,7 @@ def main():
     t6_v4 = generate_table_7_v4_chains(v4_report)
     t7b = generate_table_7b_v4_trivial_separators(v4_report)
     t7c = generate_table_7c_dual_rule_sensitivity(v4_report)
-    t_summary = generate_summary_table()
+    t_summary = generate_summary_table(baselines_report, v4_report, gemini_summary)
     t8_full_baselines = generate_table_8_v4_baselines(baselines_report, v4_report)
     t9 = generate_table_9_novel_methods(novel_report)
     t10 = generate_table_10_adaptive_attacker(adaptive_report)

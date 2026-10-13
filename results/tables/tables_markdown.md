@@ -144,13 +144,13 @@
 | Defense Paradigm / Strategy | Evaluation Tier & Model | Salami Recall ($N=26$) | Benign FPR ($N=25$) | Salami Exposure $\bar{W}_e$ | Operational Paradigm |
 |---|---|:---:|:---:|:---:|---|
 | **Exact Cryptographic Hash Pinning** | Tier 0 Deterministic | 100.0% (26/26) [87.1%, 100.0%] | 100.0% (25/25) [86.7%, 100.0%] | 0.000 steps | Byte-level strict identity |
-| **Parameter Count Delta ($|\Delta P| > 0$)** | Tier 1.5 Deterministic | 76.9% (20/26) [57.9%, 89.0%] | 44.0% (11/25) [26.7%, 62.9%] | 0.500 steps | Syntactic schema delta |
-| **Levenshtein Edit Distance (Calibrated FPR $\le 4.0\%$)** | Tier 1 Lexical | 0.0% (0/26) [0.0%, 12.9%] | 4.0% (1/25) [0.7%, 19.5%] | 2.115 steps | Lexical text edit distance |
-| **TF-IDF Cosine Distance (Calibrated FPR $\le 4.0\%$)** | Tier 1 Statistical | 3.8% (1/26) [0.7%, 18.9%] | 4.0% (1/25) [0.7%, 19.5%] | 1.962 steps | Statistical n-gram distance |
+| **Parameter Count Delta (Thresh >= 4)** | Tier 1.5 Deterministic | 76.9% (20/26) [57.9%, 89.0%] | 44.0% (11/25) [26.7%, 62.9%] | 1.231 steps | Syntactic schema delta |
+| **Normalized Edit Distance (Thresh >= 0.7369)** | Tier 1 Lexical | 0.0% (0/26) [0.0%, 12.9%] | 0.0% (0/25) [0.0%, 13.3%] | 2.000 steps | Lexical text edit distance |
+| **TF-IDF Cosine Distance (Thresh >= 0.6569)** | Tier 1 Statistical | 3.8% (1/26) [0.7%, 18.9%] | 4.0% (1/25) [0.7%, 19.5%] | 1.962 steps | Statistical n-gram distance |
 | **Semantic Drift Guard: Adjacent (Rule b)** | Tier 3 Local (`gemma3:4b`, 4B) | **96.2% (25/26)** [81.1%, 99.3%] | 4.0% (1/25) [0.7%, 19.5%] | 0.192 steps | Step-wise structured diff |
 | **Semantic Drift Guard: Cumulative (Rule b)** | Tier 3 Local (`gemma3:4b`, 4B) | 76.9% (20/26) [57.9%, 89.0%] | **0.0% (0/25)** [0.0%, 13.3%] | 0.731 steps | Root-anchored diff |
-| **Semantic Drift Guard: Adjacent (Rule b)** | Tier 3 Cloud (`gemini-3.1-flash-lite`) | 88.5% (23/26) [71.0%, 96.0%] | **0.0% (0/25)** [0.0%, 13.3%] | 0.115 steps | Step-wise structured diff |
-| **Semantic Drift Guard: Cumulative (Rule b)** | Tier 3 Cloud (`gemini-3.1-flash-lite`) | 84.6% (22/26) [66.5%, 93.8%] | **0.0% (0/25)** [0.0%, 13.3%] | 0.154 steps | Root-anchored diff |
+| **Semantic Drift Guard: Adjacent (Rule b)** | Tier 3 Cloud (`gemini-3.1-flash-lite`) | 88.5% (23/26) [71.0%, 96.0%] | **0.0% (0/25)** [0.0%, 13.3%] | 0.808 steps | Step-wise structured diff |
+| **Semantic Drift Guard: Cumulative (Rule b)** | Tier 3 Cloud (`gemini-3.1-flash-lite`) | 84.6% (22/26) [66.5%, 93.8%] | **0.0% (0/25)** [0.0%, 13.3%] | 0.769 steps | Root-anchored diff |
 
 ## Table 8: Capability-Set Tracking, Drift Budget, and Hybrid Architecture Outcomes on Held-Out Test Split (N=58 Chains)
 | Defense Architecture / Method | Salami-Only Recall ($N=26$) (95% Wilson CI) | Fast-Jump Recall ($N=7$) (95% Wilson CI) | Overall Malicious Recall ($N=33$) (95% Wilson CI) | Benign Chain FPR ($N=25$) (95% Wilson CI) | Cat C Long-Drift FPR ($N=13$) (95% Wilson CI) | Salami Mean Exposure $\bar{W}_e$ | LLM Calls / Upd |
