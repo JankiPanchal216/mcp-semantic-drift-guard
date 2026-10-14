@@ -2,3 +2,7 @@
 [2026-10-14 09:53:37] Progress: 126/215 transitions (20 new this session, last lat=12807.9ms, verdict=MALICIOUS)
 [2026-10-14 10:07:54] Progress: 146/215 transitions (40 new this session, last lat=21800.5ms, verdict=BENIGN)
 [2026-10-14 10:21:08] Progress: 166/215 transitions (60 new this session, last lat=15327.7ms, verdict=BENIGN)
+[2026-10-14 12:27:51] Harness started/resumed. Already completed: 182/215 transitions.
+[2026-10-14 12:43:32] Progress: 202/215 transitions (20 new this session, last lat=15962.8ms, verdict=BENIGN)
+[2026-10-14 12:47:32] Progress: 215/215 transitions (33 new this session, last lat=14665.2ms, verdict=BENIGN)
+[2026-10-14 12:47:32] Run finished. Total predictions in C:\Users\Janki Panchal\Downloads\New folder\Desktop\Research\APP\results\salami_drift_v4\gemma3_4b_modeA\predictions.jsonl: 215/215

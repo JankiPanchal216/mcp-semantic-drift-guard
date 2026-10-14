@@ -130,11 +130,12 @@ def generate_table_2_taxonomy() -> str:
     """Table 2: Comparative Taxonomy Matrix of Defensive Paradigms."""
     return """| Defense Paradigm | Exemplar Approaches | Threat Model Scope | Primary Detection Target | Operational Blind Spots | Operator Review Burden |
 |---|---|---|---|---|---|
-| **Exact Cryptographic Pinning** | SHA-256 over JSON (W3C SRI, 2016) | Post-deployment tampering | Strict byte-level equality | Blind to semantic intent; flags 100% of benign refactorings | **High** (0.050 alerts/transition on wild corpus) |
-| **Author Provenance Signing** | Mas et al. (2026), Sigstore (2022) | Unauthorized third-party tampering | Signer identity mismatch | Insider maintainer rug-pulls; compromised author keys | **Low** (Zero alerts for validly signed malware; qualitative) |
-| **Static Keyword Scanners** | Regex rules / leakage checks (snyk-agent-scan, mcp-scan) | Overt keyword injections | Known syntactic attack templates | Evasive paraphrasing, semantic drift, parameter toggles | **Zero runtime latency overhead** ($< 0.25$ ms, 75.8% static recall; qualitative) |
-| **Monolithic LLM Vetting** | NeMo Guardrails (Rebedea et al., 2023), Llama Guard (Inan et al., 2023) | Full-context prompt injection | General prompt/tool risk | Context-window saturation, high latency, lacks multi-step context | **Medium** (High per-call latency, length bias; qualitative) |
-| **MCP Semantic Drift Guard (This Work)** | 5-tier pipeline + Multi-Anchor | Single-step & multi-step salami drift | Structured schema & docstring delta ($\Delta T$) | Distributed cross-tool collusion beyond individual tool state | **Not measured** (Synthetic benchmark FPR 4.0%; production burden not measured) |"""
+| **Exact Cryptographic Pinning** | SHA-256 over JSON (W3C SRI, 2016), mcp-scan tool pinning | Post-deployment tampering | Strict byte-level equality | Blind to semantic intent; flags 100% of benign refactorings | **High** (0.050 alerts/transition on wild corpus; 13/13 on real modifications) |
+| **Author Provenance Signing** | Mas et al. (2026), ETDI (Bhatt et al., 2025), Sigstore (2022) | Unauthorized third-party tampering | Signer identity mismatch | Insider maintainer rug-pulls; compromised author keys | **Low** (Zero alerts for validly signed malware; qualitative) |
+| **Static Keyword Scanners** | Regex rules / leakage checks (snyk-agent-scan, mcp-scan) | Overt keyword injections | Known syntactic attack templates | Evasive paraphrasing, semantic drift, parameter toggles (0.0% recall on V4 multi-step drift) | **Zero runtime latency overhead** ($< 0.25$ ms; qualitative) |
+| **Monolithic LLM Vetting** | NeMo Guardrails (Rebedea et al., 2023), Llama Guard (Inan et al., 2023), Mode A standalone | Full-context prompt injection / full tool contract | General prompt/tool risk | Context-window saturation, high latency, lacks multi-step context | **Medium** (High per-call latency, length bias; qualitative) |
+| **MCP Semantic Drift Guard (This Work)** | 5-tier pipeline + Multi-Anchor | Single-step & multi-step salami drift | Structured schema & docstring delta ($\\Delta T$) | Distributed cross-tool collusion beyond individual tool state | **62%–77% alert reduction on real corpus ($N=13$)** (23.1% gemma, 38.5% Gemini under Rule b; 0.0% Rule a; synthetic benchmark FPR 4.0%) |"""
+
 
 
 def generate_table_3_held_out(hash_res: Dict[str, Any], static_res: Dict[str, Any], tfidf_res: Dict[str, Any]) -> str:
@@ -234,9 +235,11 @@ def generate_table_5_hypothesis_outcomes() -> str:
     return """| Pre-Registered Hypothesis | Predicted Direction & Metric Criterion | Outcome on `gemma3:4b` (Local 4B) | Outcome on `gemini-3.1-flash-lite` (Lite-Tier Cloud) | Confirmation Status |
 |---|---|:---:|:---:|---|
 | **$H_1$ (Cumulative Advantage, Confirmatory)** | Cumulative recall > Adjacent recall at matched benign FPR | **Direction Reversed** (Adjacent 96.2% > Cumulative 76.9%; pre-registered one-sided McNemar $p = 0.9922$ [b=6, c=1]; exploratory post-hoc $H_1'$ $p = 0.1250$, pooled $p = 0.0026$) | **Not Supported** (Adjacent 88.5% vs. Cumulative 84.6%, pre-registered one-sided McNemar $p = 1.0000$ [b=1, c=0] Rule b; Cumulative 96.2% vs. 84.6% Rule a) | Confirmatory: not supported; pre-registered direction reversed on local judge (p=0.9922), no significant cumulative advantage on cloud (p=1.0000) |
-| **$H_{2a}$ (Adjacent Local Exposure, Confirmatory)** | Adjacent detects drift earlier ($\\bar{W}_e$) on local steps | **Supported** (Earlier exposure $\\bar{W}_e = 0.192$ vs. $0.731$) | **Not Supported** ($\\bar{W}_e = 0.808$ vs. $0.769$ under Rule b; no earlier detection advantage) | Confirmatory: supported on local judge; not supported on cloud judge (judge-dependent) |
+| **$H_2$ (Original Pre-Registered, Confirmatory)** | Adjacent detects drift earlier ($W_e$) with lower context overhead on local steps | **Not Supported as Written** (Earlier exposure supported: $\\bar{W}_e = 0.192$ vs. $0.731$; but prompt tokens tie: 345.6 vs. 345.6, so overhead is not lower) | **Not Supported** (Neither supported: exposure is not earlier, $\\bar{W}_e = 0.808$ vs. $0.769$; prompt tokens higher: 363.7 vs. 357.6) | Confirmatory: not supported on either judge taken as written |
+| **$H_{2a}$ (Adjacent Local Exposure, Exploratory)** | Adjacent detects drift earlier ($\\bar{W}_e$) on local steps (exposure-only component) | **Supported** (Earlier exposure $\\bar{W}_e = 0.192$ vs. $0.731$) | **Not Supported** ($\\bar{W}_e = 0.808$ vs. $0.769$ under Rule b; no earlier detection advantage) | Exploratory (post-hoc decomposition): supported on local judge; not supported on cloud judge (judge-dependent) |
 | **$H_{2b}$ (Combined Pareto Efficiency, Exploratory)** | Combined recall $\\ge$ Adjacent recall at matched/lower FPR with acceptable context overhead | **Weakly Supported** (Recall 96.2% matches Adjacent, 0/25 vs 1/25 FPR, $p=1.0000$; expands prompt tokens to 508.2 vs 345.6 Adjacent) | **Not Supported** (Recall 84.6% vs Adjacent 88.5%, $p=1.0000$; 0/25 FPR; expands prompt tokens to 503.4 vs 363.7 Adjacent / 357.6 Cumulative) | Exploratory (post-hoc decomposition): weakly supported on local judge; not supported on cloud judge (judge-dependent) |
 | **$H_3$ (Deterministic Insufficiency, Confirmatory)** | Calibrated heuristics fail $\\ge 80\%$ recall and $\\le 15\%$ FPR (evaluated at matched FPR $\\le 4.0\%$) | **Supported** (Parameter Delta: 76.9% recall at 44.0% FPR; Edit Dist / TF-IDF: $\\le 3.8\%$ recall at $\\le 4.0\%$ FPR) | **Judge-Independent** (Deterministic heuristics do not utilize model judges; diverse-length condition untested as all Salami chains have $L=4$) | Confirmatory: supported across benchmark (judge-independent; diverse lengths untested) |"""
+
 
 
 def generate_table_5b_deterministic_baselines() -> str:
@@ -586,7 +589,7 @@ def generate_table_11_status() -> str:
     return r"""| Evaluation Dimension | Status | Methodology & Operational Boundaries |
 |---|:---:|---|
 | **External Proprietary Scanner (`mcp-scan`)** | **Not Done** | The Tier 2 static baseline evaluates author-defined regex patterns; full offline execution of external proprietary `mcp-scan` binaries across all 436 transitions is not run. |
-| **Single-Step LLM Baseline (Mode A, $N=58$)** | **Done (gemma only)** | Mode A (single-step full tool definition, no diff) was implemented in `experiments/evaluate_mode_a_baseline.py` using `gemma3:4b` ($T=0$) via Ollama across the held-out test split. Single-step sweeps on $N=56$ remain deferred. |
+| **Single-Step LLM Baseline (Mode A, $N=58$)** | **Done (gemma only)** | Mode A (single-step full tool definition, no diff) completed across all 215 held-out test transitions on `gemma3:4b` ($T=0$, JSON Schema constrained), achieving 100.0% (26/26) recall under Rule (b) and 92.3% (24/26) under Rule (a) with 0.0% (0/25) FPR (Table 7, Table A.2). Single-step sweeps on legacy $N=56$ remain deferred. |
 | **Real-Corpus Contract Drift Vetting ($N=13$)** | **Done** | Evaluated all 13 historical pre-existing contract modifications mined from 621 open-source release transitions across exact hash pinning, static regex rules, TF-IDF cosine distance, and Adjacent semantic judges (`gemma3:4b` and `gemini-3.1-flash-lite`). |
 | **Template Mutation Search Evaluation ($N=24$)** | **Done (Simulation-level)** | Evaluates automated black-box template-based mutation search with no LLM ($Q \le 5$, avg 8.12 queries/chain) run against `gemma3:4b` only on a simulation testbed; evaluates heuristic evasion rather than dynamic interactive human red-teaming. |
 | **Delivery-Layer Failure Mitigations** | **Done (Simulation Harness)** | Design proposals and mitigations verified on a localhost mock simulation harness across 5 scripted failure modes (5/5 $\rightarrow$ 0/5); mitigations are architectural proposals in the harness rather than integrated into production MCP client runtimes. |
@@ -621,6 +624,12 @@ def generate_table_12_multi_judge(v4_report: Dict[str, Any], gemini_summary: Opt
     # 1. Gemma 3 4B (Local Open-Weight Model)
     test_d = v4_report["splits_analysis"]["held_out_test"]
     gemma_parse_rate = "100.0% (0 fails)"
+    mode_a_summary_file = RESULTS_DIR / "salami_drift_v4" / "gemma3_4b_modeA" / "summary.json"
+    mode_a_data = None
+    if mode_a_summary_file.exists():
+        with open(mode_a_summary_file, "r", encoding="utf-8") as f:
+            mode_a_data = json.load(f)
+
     for r_name, r_key in [("Rule (b) Primary BALANCED", "rule_b_balanced"), ("Rule (a) Strict MALICIOUS", "rule_a_strict")]:
         for s_name, s_key in [("Adjacent", "adjacent"), ("Cumulative", "cumulative"), ("Combined Prompt", "combined")]:
             if s_key not in test_d[r_key]:
@@ -640,6 +649,27 @@ def generate_table_12_multi_judge(v4_report: Dict[str, Any], gemini_summary: Opt
             
             prefix = f"| **gemma3:4b** (Local 4B) | **{r_name}** | **{s_name}** | {gemma_parse_rate} |"
             rows.append(f"{prefix} {strict_sal} | {any_sal} | {fast_str} | {ben_str} | {ben_trans_str} | {we_val:.3f} |")
+        
+        # Append Mode A for this rule
+        ma_k = "rule_b" if "BALANCED" in r_name else "rule_a"
+        if mode_a_data and ma_k in mode_a_data:
+            ma = mode_a_data[ma_k]
+            sal = ma["salami_strict_recall"]
+            any_sal = ma["salami_any_recall"]
+            fast = ma["fast_jump_recall"]
+            ben = ma["benign_chain_fpr"]
+            we_val = ma["mean_exposure"]
+            bt = ma["benign_transition_alert_rate"]
+            
+            strict_sal = f"{fmt_pct(sal['detected'], sal['total'])} ({sal['detected']}/{sal['total']}) {fmt_ci(sal['detected'], sal['total'])}"
+            any_sal = f"{fmt_pct(any_sal['detected'], any_sal['total'])} ({any_sal['detected']}/{any_sal['total']}) {fmt_ci(any_sal['detected'], any_sal['total'])}"
+            fast_str = f"{fmt_pct(fast['detected'], fast['total'])} ({fast['detected']}/{fast['total']}) {fmt_ci(fast['detected'], fast['total'])}"
+            ben_str = f"{fmt_pct(ben['alarms'], ben['total'])} ({ben['alarms']}/{ben['total']}) {fmt_ci(ben['alarms'], ben['total'])}"
+            ben_trans_str = f"{fmt_pct(bt['alarms'], bt['total'])} ({bt['alarms']}/{bt['total']}) {fmt_ci(bt['alarms'], bt['total'])}"
+            
+            prefix = f"| **gemma3:4b** (Local 4B) | **{r_name}** | **Mode A (Full Def, No Diff)** | {gemma_parse_rate} |"
+            rows.append(f"{prefix} {strict_sal} | {any_sal} | {fast_str} | {ben_str} | {ben_trans_str} | {we_val:.3f} |")
+
             
     # 2. Gemini 3.1 Flash Lite (Lite-Tier Cloud Judge)
     if gemini_summary:
@@ -803,6 +833,25 @@ def generate_summary_table(
         f"**{fmt_pct(ben['detected'], ben['n'])} ({ben['detected']}/{ben['n']})** {fmt_ci(ben['detected'], ben['n'])} | "
         f"{sal['mean_exposure']:.3f} steps | Root-anchored diff |"
     )
+    
+    # 6b. Mode A (Single-Step Full Definition, Rule b) Local gemma
+    mode_a_file = RESULTS_DIR / "salami_drift_v4" / "gemma3_4b_modeA" / "summary.json"
+    if mode_a_file.exists():
+        with open(mode_a_file, "r", encoding="utf-8") as f:
+            mode_a_summary = json.load(f)
+        ma_b = mode_a_summary.get("rule_b", {})
+        sal_ma = ma_b.get("salami_strict_recall", {})
+        any_ma = ma_b.get("salami_any_recall", {})
+        ben_ma = ma_b.get("benign_chain_fpr", {})
+        we_ma = ma_b.get("mean_exposure", 0.500)
+        rows.append(
+            f"| **Mode A (Single-Step Full Definition, Rule b)** | Tier 3 Local (`gemma3:4b`, 4B) | "
+            f"**{fmt_pct(sal_ma['detected'], sal_ma['total'])} ({sal_ma['detected']}/{sal_ma['total']})** {fmt_ci(sal_ma['detected'], sal_ma['total'])} | "
+            f"**{fmt_pct(any_ma['detected'], any_ma['total'])} ({any_ma['detected']}/{any_ma['total']})** {fmt_ci(any_ma['detected'], any_ma['total'])} | "
+            f"**{fmt_pct(ben_ma['alarms'], ben_ma['total'])} ({ben_ma['alarms']}/{ben_ma['total']})** {fmt_ci(ben_ma['alarms'], ben_ma['total'])} | "
+            f"{we_ma:.3f} steps | Standalone single-step full definition (no diff) |"
+        )
+
     
     # 7 & 8. Gemini Replication if present
     if gemini_summary:

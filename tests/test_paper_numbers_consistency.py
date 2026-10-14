@@ -158,6 +158,20 @@ class TestPaperNumbersConsistency(unittest.TestCase):
                 f"{h_tag} mismatch between PREREGISTRATION.md and paper.md:\nPREREG: {h_prereg}\nPAPER:  {h_paper}"
             )
 
+        # Explicit verification of original H1 and H2 pre-registered text (commit 1034af7)
+        expected_h1 = (
+            "On multi-step semantic composition chains (where individual steps appear benign in isolation "
+            "but compose into an attack), Cumulative comparison will achieve higher chain-level recall than "
+            "Adjacent comparison under matched benign false positive rates."
+        )
+        expected_h2 = (
+            "On localized parameter erosion or direct capability additions, Adjacent comparison will detect "
+            "malicious drift earlier ($W_e$) with lower context overhead."
+        )
+        self.assertEqual(extract_hypothesis(paper_text, "H_1"), expected_h1, "H1 does not match commit 1034af7 text")
+        self.assertEqual(extract_hypothesis(paper_text, "H_2"), expected_h2, "H2 does not match commit 1034af7 text")
+
+
 
 if __name__ == "__main__":
     unittest.main()
