@@ -189,7 +189,7 @@ class MultiJudgeClient:
             "options": {
                 "temperature": self.temperature,
                 "seed": self.seed,
-                "num_predict": 256
+                "num_predict": 512
             },
             "stream": False
         }

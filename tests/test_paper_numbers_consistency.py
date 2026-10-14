@@ -131,31 +131,32 @@ class TestPaperNumbersConsistency(unittest.TestCase):
                         f"Paper:     {norm_pr}"
                     )
 
-    def test_preregistration_h1_matches_paper_h1(self):
-        """Asserts that the H1 sentence in PREREGISTRATION.md and paper.md match character-for-character."""
+    def test_preregistration_hypotheses_match_paper(self):
+        """Asserts that H1, H2, and H3 sentences in PREREGISTRATION.md and paper.md match character-for-character."""
         prereg_path = self.root / "paper" / "PREREGISTRATION.md"
         self.assertTrue(prereg_path.exists(), f"PREREGISTRATION.md missing at {prereg_path}")
         
         prereg_text = prereg_path.read_text(encoding="utf-8")
         paper_text = self.paper_path.read_text(encoding="utf-8")
         
-        def extract_h1(text):
+        def extract_hypothesis(text, h_tag):
             for line in text.splitlines():
-                if "H_1" in line and ":**" in line and line.strip().startswith("-"):
+                if h_tag in line and ":**" in line and line.strip().startswith("-"):
                     return line.split(":**", 1)[1].strip()
             return None
         
-        h1_prereg = extract_h1(prereg_text)
-        self.assertIsNotNone(h1_prereg, "Failed to find H1 in PREREGISTRATION.md")
-        
-        h1_paper = extract_h1(paper_text)
-        self.assertIsNotNone(h1_paper, "Failed to find Hypothesis H1 in paper.md")
-        
-        self.assertEqual(
-            h1_prereg,
-            h1_paper,
-            f"H1 mismatch between PREREGISTRATION.md and paper.md:\nPREREG: {h1_prereg}\nPAPER:  {h1_paper}"
-        )
+        for h_tag in ["H_1", "H_2", "H_3"]:
+            h_prereg = extract_hypothesis(prereg_text, h_tag)
+            self.assertIsNotNone(h_prereg, f"Failed to find {h_tag} in PREREGISTRATION.md")
+            
+            h_paper = extract_hypothesis(paper_text, h_tag)
+            self.assertIsNotNone(h_paper, f"Failed to find Hypothesis {h_tag} in paper.md")
+            
+            self.assertEqual(
+                h_prereg,
+                h_paper,
+                f"{h_tag} mismatch between PREREGISTRATION.md and paper.md:\nPREREG: {h_prereg}\nPAPER:  {h_paper}"
+            )
 
 
 if __name__ == "__main__":

@@ -1,0 +1,4 @@
+[2026-10-14 09:38:13] Harness started/resumed. Already completed: 106/215 transitions.
+[2026-10-14 09:53:37] Progress: 126/215 transitions (20 new this session, last lat=12807.9ms, verdict=MALICIOUS)
+[2026-10-14 10:07:54] Progress: 146/215 transitions (40 new this session, last lat=21800.5ms, verdict=BENIGN)
+[2026-10-14 10:21:08] Progress: 166/215 transitions (60 new this session, last lat=15327.7ms, verdict=BENIGN)

@@ -1,50 +1,142 @@
 {
   "rule_b": {
-    "salami_strict_recall": [
-      26,
-      26
-    ],
-    "salami_any_recall": [
-      26,
-      26
-    ],
-    "fast_jump_recall": [
-      1,
-      7
-    ],
-    "benign_chain_fpr": [
-      0,
-      25
-    ],
+    "salami_strict_recall": {
+      "detected": 26,
+      "total": 26,
+      "pct": 100.0,
+      "ci": [
+        87.1,
+        100.0
+      ]
+    },
+    "salami_any_recall": {
+      "detected": 26,
+      "total": 26,
+      "pct": 100.0,
+      "ci": [
+        87.1,
+        100.0
+      ]
+    },
+    "fast_jump_recall": {
+      "detected": 7,
+      "total": 7,
+      "pct": 100.0,
+      "ci": [
+        64.6,
+        100.0
+      ]
+    },
+    "overall_malicious_recall": {
+      "detected": 33,
+      "total": 33,
+      "pct": 100.0,
+      "ci": [
+        89.6,
+        100.0
+      ]
+    },
+    "benign_chain_fpr": {
+      "alarms": 0,
+      "total": 25,
+      "pct": 0.0,
+      "ci": [
+        0.0,
+        13.3
+      ]
+    },
     "mean_exposure": 0.5,
-    "benign_transition_alert_rate": [
-      0,
-      156
-    ]
+    "benign_transition_alert_rate": {
+      "alarms": 0,
+      "total": 156,
+      "pct": 0.0,
+      "ci": [
+        0.0,
+        2.4
+      ]
+    },
+    "mcnemar_vs_adjacent": {
+      "b": 1,
+      "c": 0,
+      "p_twosided": 1.0,
+      "p_onesided": 0.5
+    },
+    "mcnemar_vs_cumulative": {
+      "b": 6,
+      "c": 0,
+      "p_twosided": 0.0313,
+      "p_onesided": 0.0156
+    }
   },
   "rule_a": {
-    "salami_strict_recall": [
-      24,
-      26
-    ],
-    "salami_any_recall": [
-      24,
-      26
-    ],
-    "fast_jump_recall": [
-      1,
-      7
-    ],
-    "benign_chain_fpr": [
-      0,
-      25
-    ],
-    "mean_exposure": 0.8461538461538461,
-    "benign_transition_alert_rate": [
-      0,
-      156
-    ]
+    "salami_strict_recall": {
+      "detected": 24,
+      "total": 26,
+      "pct": 92.3,
+      "ci": [
+        75.9,
+        97.9
+      ]
+    },
+    "salami_any_recall": {
+      "detected": 24,
+      "total": 26,
+      "pct": 92.3,
+      "ci": [
+        75.9,
+        97.9
+      ]
+    },
+    "fast_jump_recall": {
+      "detected": 7,
+      "total": 7,
+      "pct": 100.0,
+      "ci": [
+        64.6,
+        100.0
+      ]
+    },
+    "overall_malicious_recall": {
+      "detected": 31,
+      "total": 33,
+      "pct": 93.9,
+      "ci": [
+        80.4,
+        98.3
+      ]
+    },
+    "benign_chain_fpr": {
+      "alarms": 0,
+      "total": 25,
+      "pct": 0.0,
+      "ci": [
+        0.0,
+        13.3
+      ]
+    },
+    "mean_exposure": 0.846,
+    "benign_transition_alert_rate": {
+      "alarms": 0,
+      "total": 156,
+      "pct": 0.0,
+      "ci": [
+        0.0,
+        2.4
+      ]
+    },
+    "mcnemar_vs_adjacent": {
+      "b": 12,
+      "c": 0,
+      "p_twosided": 0.0005,
+      "p_onesided": 0.0002
+    },
+    "mcnemar_vs_cumulative": {
+      "b": 9,
+      "c": 0,
+      "p_twosided": 0.0039,
+      "p_onesided": 0.002
+    }
   },
-  "total_predictions": 106,
+  "total_predictions": 169,
   "total_held_out_transitions": 215
 }
