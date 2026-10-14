@@ -82,11 +82,99 @@ def load_v4h_chains() -> Dict[str, List[Dict[str, Any]]]:
     return chains
 
 
+from datetime import datetime, timezone
+try:
+    import zoneinfo
+    PACIFIC_TZ = zoneinfo.ZoneInfo("America/Los_Angeles")
+except Exception:
+    from datetime import timedelta
+    PACIFIC_TZ = timezone(timedelta(hours=-7))
+
+
+def get_current_pacific_quota_date():
+    """Returns current date in Google API quota timezone (America/Los_Angeles)."""
+    return datetime.now(timezone.utc).astimezone(PACIFIC_TZ).date()
+
+
+def count_gemini_calls_current_quota_day() -> int:
+    """Counts total Gemini API calls executed strictly within the current Google quota day (Pacific Time)."""
+    current_pt_date = get_current_pacific_quota_date()
+    total_calls = 0
+
+    results_dir = ROOT_DIR / "results"
+    if not results_dir.exists():
+        return 0
+
+    for p in results_dir.rglob("*"):
+        if not p.is_file() or "gemini" not in str(p).lower():
+            continue
+
+        if p.suffix == ".jsonl":
+            with open(p, "r", encoding="utf-8") as f:
+                for line in f:
+                    if not line.strip():
+                        continue
+                    try:
+                        d = json.loads(line)
+                        ts = d.get("timestamp")
+                        if ts:
+                            dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                            if dt.astimezone(PACIFIC_TZ).date() == current_pt_date:
+                                total_calls += d.get("attempts_used", 1)
+                    except Exception:
+                        pass
+        elif p.suffix == ".json":
+            try:
+                content = json.loads(open(p, "r", encoding="utf-8").read())
+                records = content.get("records", []) or content.get("results", [])
+                for r in records:
+                    ts = r.get("timestamp")
+                    if ts:
+                        dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                        if dt.astimezone(PACIFIC_TZ).date() == current_pt_date:
+                            total_calls += 1
+                    elif "latency_ms" in r and "v4h" in str(p):
+                        mtime_dt = datetime.fromtimestamp(p.stat().st_mtime, tz=timezone.utc)
+                        if mtime_dt.astimezone(PACIFIC_TZ).date() == current_pt_date:
+                            total_calls += 1
+            except Exception:
+                pass
+
+    return total_calls
+
+
+def check_quota_gate(model_name: str, needed_calls: int = 216, hard_cap: int = 450) -> Tuple[bool, int, int]:
+    """
+    Checks whether running Gemini calls would exceed the daily quota hard cap for the current Pacific quota day.
+    Returns: (can_proceed, calls_used_today, remaining_quota)
+    """
+    if "gemini" not in model_name.lower():
+        return True, 0, hard_cap
+
+    calls_today = count_gemini_calls_current_quota_day()
+    remaining = max(0, hard_cap - calls_today)
+    can_proceed = bool(remaining >= needed_calls)
+    return can_proceed, calls_today, remaining
+
+
 def evaluate_model_on_v4h(model_name: str, pacing_sec: float = 0.0) -> Dict[str, Any]:
     chains = load_v4h_chains()
     model_dir_name = model_name.replace(":", "_").replace("/", "_")
     model_out_dir = OUT_BASE_DIR / model_dir_name
     model_out_dir.mkdir(parents=True, exist_ok=True)
+
+    if "gemini" in model_name.lower():
+        can_proceed, used, remaining = check_quota_gate(model_name, needed_calls=216, hard_cap=450)
+        current_pt_date = get_current_pacific_quota_date()
+        print(f"[{model_name}] Quota Gate Check (Pacific Day: {current_pt_date}): {used}/450 calls used today, {remaining} remaining (need ~216).")
+        if not can_proceed:
+            print(f"[{model_name}] STOP: Insufficient quota remaining ({remaining} < 216). Halting run to preserve quota.")
+            return {
+                "status": "STOPPED_QUOTA_GATE",
+                "calls_used_today": used,
+                "remaining_quota": remaining,
+                "quota_day_pacific": str(current_pt_date)
+            }
 
     client = MultiJudgeClient(model_name=model_name, temperature=0.0)
     strategies = ["mode_a", "adjacent", "cumulative", "combined"]

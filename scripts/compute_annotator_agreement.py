@@ -4,7 +4,7 @@ scripts/compute_annotator_agreement.py
 
 Computes inter-annotator agreement metrics (Percent Agreement, Cohen's Kappa,
 Confusion Matrix, and Disagreement Analysis) between an independent annotator sheet
-and author gold labels for Benchmark V4-H.
+and author gold labels for Benchmark V4-H, joined via paper/annotation/_private_key.csv.
 """
 
 import sys
@@ -16,11 +16,33 @@ from typing import Dict, List, Any, Tuple, Optional
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_V4H_PATH = ROOT_DIR / "data" / "history_necessary_v4h.jsonl"
+DEFAULT_KEY_PATH = ROOT_DIR / "paper" / "annotation" / "_private_key.csv"
+
+
+def load_private_key(key_csv_path: Path) -> Dict[str, Dict[str, Any]]:
+    """Loads mapping from anonymous chain ID (C01..C24) to real chain ID and gold label."""
+    key_map = {}
+    if not key_csv_path.exists():
+        return key_map
+    with open(key_csv_path, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            aid = row.get("anon_id", "").strip()
+            if aid:
+                key_map[aid] = {
+                    "anon_id": aid,
+                    "real_chain_id": row.get("real_chain_id", "").strip(),
+                    "gold_label": row.get("gold_label", "").strip().upper(),
+                    "tool_name": row.get("tool_name", "").strip(),
+                }
+    return key_map
 
 
 def load_author_gold_labels(v4h_path: Path) -> Dict[str, Dict[str, Any]]:
-    """Loads author gold labels and tool metadata per chain from V4-H dataset."""
+    """Loads author gold labels and tool metadata per chain directly from V4-H dataset."""
     gold_by_chain = {}
+    if not v4h_path.exists():
+        return gold_by_chain
     with open(v4h_path, "r", encoding="utf-8") as f:
         for line in f:
             if line.strip():
@@ -85,12 +107,17 @@ def math_isclose(a: float, b: float, rel_tol: float = 1e-9) -> bool:
 
 
 def compute_agreement(
-    annotator_csv_path: Path, v4h_dataset_path: Optional[Path] = None
+    annotator_csv_path: Path,
+    key_csv_path: Optional[Path] = None,
+    v4h_dataset_path: Optional[Path] = None,
 ) -> Dict[str, Any]:
-    """Evaluates an annotator CSV against author gold labels."""
+    """Evaluates an annotator CSV against author gold labels (joined via key or direct chain_id)."""
+    if key_csv_path is None:
+        key_csv_path = DEFAULT_KEY_PATH
     if v4h_dataset_path is None:
         v4h_dataset_path = DEFAULT_V4H_PATH
 
+    key_data = load_private_key(key_csv_path)
     gold_data = load_author_gold_labels(v4h_dataset_path)
 
     if not annotator_csv_path.exists():
@@ -117,11 +144,17 @@ def compute_agreement(
                 unlabeled_count += 1
                 continue
 
-            if cid not in gold_data:
+            # Determine gold label via key mapping or fallback to direct chain_id
+            if cid in key_data:
+                gold_lbl = key_data[cid]["gold_label"]
+                tool_name = row.get("tool_name") or key_data[cid]["tool_name"]
+                real_cid = key_data[cid]["real_chain_id"]
+            elif cid in gold_data:
+                gold_lbl = gold_data[cid]["gold_label"]
+                tool_name = row.get("tool_name") or gold_data[cid]["tool_name"]
+                real_cid = cid
+            else:
                 continue
-
-            gold_info = gold_data[cid]
-            gold_lbl = gold_info["gold_label"]
 
             # Normalize annotator label
             if raw_label in ("ATTACK", "MALICIOUS"):
@@ -139,7 +172,8 @@ def compute_agreement(
 
             rec = {
                 "chain_id": cid,
-                "tool_name": row.get("tool_name", gold_info["tool_name"]),
+                "real_chain_id": real_cid,
+                "tool_name": tool_name,
                 "gold_label": gold_lbl,
                 "annotator_label": norm_label,
                 "notes": notes,
@@ -186,14 +220,20 @@ def main():
         help="Path to annotator CSV file",
     )
     parser.add_argument(
+        "--key_csv",
+        type=Path,
+        default=DEFAULT_KEY_PATH,
+        help="Path to _private_key.csv mapping file",
+    )
+    parser.add_argument(
         "--v4h_dataset",
         type=Path,
         default=DEFAULT_V4H_PATH,
-        help="Path to V4-H dataset JSONL",
+        help="Path to V4-H dataset JSONL (fallback)",
     )
     args = parser.parse_args()
 
-    results = compute_agreement(args.annotator_csv, args.v4h_dataset)
+    results = compute_agreement(args.annotator_csv, args.key_csv, args.v4h_dataset)
 
     print("=" * 60)
     print("Benchmark V4-H Annotator Agreement Summary")
@@ -215,7 +255,7 @@ def main():
 
     print(f"\nDisagreements ({results['disagreement_count']}):")
     for d in results["disagreements"]:
-        print(f"  - [{d['chain_id']}] ({d['tool_name']}): Gold={d['gold_label']} vs Annotator={d['annotator_label']}")
+        print(f"  - [{d['chain_id']}] ({d['tool_name']}, real={d.get('real_chain_id')}): Gold={d['gold_label']} vs Annotator={d['annotator_label']}")
         if d.get("notes"):
             print(f"    Note: {d['notes']}")
     print("=" * 60)
