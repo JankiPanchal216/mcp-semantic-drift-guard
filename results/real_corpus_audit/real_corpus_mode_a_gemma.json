@@ -1,0 +1,576 @@
+{
+  "model": "gemma3:4b",
+  "total_modifications": 13,
+  "rule_b_alerts": 2,
+  "rule_b_rate": 15.4,
+  "rule_b_ci": [
+    4.3,
+    42.2
+  ],
+  "rule_a_alerts": 1,
+  "rule_a_rate": 7.7,
+  "rule_a_ci": [
+    1.4,
+    33.3
+  ],
+  "records": [
+    {
+      "index": 1,
+      "change_id": "chg_0004",
+      "tool_name": "git_commit",
+      "repository": "Git Server",
+      "verdict": "BENIGN",
+      "confidence": 0.99,
+      "reason": "This tool simply records changes; it doesn't execute commands or access sensitive data.",
+      "evidence": [
+        "{\"name\":\"git_commit\",\"description\":\"Records changes to the repository\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}\"]"
+      ],
+      "latency_ms": 15946.681261062622,
+      "rule_b_alert": false,
+      "rule_a_alert": false,
+      "tool_definition": {
+        "name": "git_commit",
+        "description": "Records changes to the repository",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      "structured_diff": {
+        "description_changed": true,
+        "description_diff": {
+          "old": "Commits changes to the repository. You can",
+          "new": "Records changes to the repository"
+        },
+        "schema_changed": false,
+        "params_added": [],
+        "params_removed": [],
+        "params_modified": [],
+        "required_changed": false,
+        "change_subtypes": [
+          "wording_refinement"
+        ]
+      }
+    },
+    {
+      "index": 2,
+      "change_id": "chg_0005",
+      "tool_name": "git_log",
+      "repository": "Git Server",
+      "verdict": "BENIGN",
+      "confidence": 0.99,
+      "reason": "This tool simply displays git commit logs, posing no security risk.",
+      "evidence": [
+        "{\"name\":\"git_log\",\"description\":\"Shows the commit logs\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}\"]"
+      ],
+      "latency_ms": 11801.459312438965,
+      "rule_b_alert": false,
+      "rule_a_alert": false,
+      "tool_definition": {
+        "name": "git_log",
+        "description": "Shows the commit logs",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      "structured_diff": {
+        "description_changed": true,
+        "description_diff": {
+          "old": "Retrieves the commit log for the repository, showing the",
+          "new": "Shows the commit logs"
+        },
+        "schema_changed": false,
+        "params_added": [],
+        "params_removed": [],
+        "params_modified": [],
+        "required_changed": false,
+        "change_subtypes": [
+          "wording_refinement"
+        ]
+      }
+    },
+    {
+      "index": 3,
+      "change_id": "chg_0030",
+      "tool_name": "list_allowed_directories",
+      "repository": "Filesystem Server",
+      "verdict": "BENIGN",
+      "confidence": 0.99,
+      "reason": "This tool simply lists allowed directories, posing no immediate security risk.",
+      "evidence": [
+        "{\"name\":\"list_allowed_directories\",\"description\":\"Returns the list of root directories that this server is allowed to access.\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}\"}"
+      ],
+      "latency_ms": 14069.716453552246,
+      "rule_b_alert": false,
+      "rule_a_alert": false,
+      "tool_definition": {
+        "name": "list_allowed_directories",
+        "description": "Returns the list of root directories that this server is allowed to access.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      "structured_diff": {
+        "description_changed": true,
+        "description_diff": {
+          "old": "Returns the list of directories that this server is allowed to access.",
+          "new": "Returns the list of root directories that this server is allowed to access."
+        },
+        "schema_changed": false,
+        "params_added": [],
+        "params_removed": [],
+        "params_modified": [],
+        "required_changed": false,
+        "change_subtypes": [
+          "wording_refinement"
+        ]
+      }
+    },
+    {
+      "index": 4,
+      "change_id": "chg_0031",
+      "tool_name": "read_file",
+      "repository": "Filesystem Server",
+      "verdict": "BENIGN",
+      "confidence": 0.99,
+      "reason": "This tool simply reads a file, marked as deprecated, posing no immediate security risk.",
+      "evidence": [
+        "{\"name\":\"read_file\",\"description\":\"Read the complete contents of a file as text. DEPRECATED: Use read_text_file instead.\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}\"]"
+      ],
+      "latency_ms": 14140.623092651367,
+      "rule_b_alert": false,
+      "rule_a_alert": false,
+      "tool_definition": {
+        "name": "read_file",
+        "description": "Read the complete contents of a file as text. DEPRECATED: Use read_text_file instead.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      "structured_diff": {
+        "description_changed": true,
+        "description_diff": {
+          "old": "Read the complete contents of a file from the file system.",
+          "new": "Read the complete contents of a file as text. DEPRECATED: Use read_text_file instead."
+        },
+        "schema_changed": false,
+        "params_added": [],
+        "params_removed": [],
+        "params_modified": [],
+        "required_changed": false,
+        "change_subtypes": [
+          "additional_instructions_or_clarification"
+        ]
+      }
+    },
+    {
+      "index": 5,
+      "change_id": "chg_0034",
+      "tool_name": "list_allowed_directories",
+      "repository": "Filesystem Server",
+      "verdict": "BENIGN",
+      "confidence": 0.99,
+      "reason": "This tool simply lists allowed directories, posing no immediate security risk.",
+      "evidence": [
+        "{\"name\":\"list_allowed_directories\",\"description\":\"Returns the list of directories that this server is allowed to access.\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}\"}"
+      ],
+      "latency_ms": 13195.327043533325,
+      "rule_b_alert": false,
+      "rule_a_alert": false,
+      "tool_definition": {
+        "name": "list_allowed_directories",
+        "description": "Returns the list of directories that this server is allowed to access.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      "structured_diff": {
+        "description_changed": true,
+        "description_diff": {
+          "old": "Returns the list of root directories that this server is allowed to access.",
+          "new": "Returns the list of directories that this server is allowed to access."
+        },
+        "schema_changed": false,
+        "params_added": [],
+        "params_removed": [],
+        "params_modified": [],
+        "required_changed": false,
+        "change_subtypes": [
+          "wording_refinement"
+        ]
+      }
+    },
+    {
+      "index": 6,
+      "change_id": "chg_0062",
+      "tool_name": "sequential-thinking-server",
+      "repository": "Sequential Thinking Server",
+      "verdict": "BENIGN",
+      "confidence": 0.98,
+      "reason": "The tool describes a reflective problem-solving process, focusing on adaptability and iteration, without malicious intent.",
+      "evidence": [
+        "\"You can question or revise previous thoughts\""
+      ],
+      "latency_ms": 20544.505834579468,
+      "rule_b_alert": false,
+      "rule_a_alert": false,
+      "tool_definition": {
+        "name": "sequential-thinking-server",
+        "description": "A detailed tool for dynamic and reflective problem-solving through thoughts.\nThis tool helps analyze problems through a flexible thinking process that can adapt and evolve.\nEach thought can build on, question, or revise previous insights as understanding deepens.\n\nWhen to use this tool:\n- Breaking down complex problems into steps\n- Planning and design with room for revision\n- Analysis that might need course correction\n- Problems where the full scope might not be clear initially\n- Problems that require a multi-step solution\n- Tasks that need to maintain context over multiple steps\n- Situations where irrelevant information needs to be filtered out\n\nKey features:\n- You can adjust total_thoughts up or down as you progress\n- You can question or revise previous thoughts\n- You can add more thoughts even after reaching what seemed like the end\n- You can express uncertainty and explore alternative approaches\n- Not every thought needs to build linearly - you can branch or backtrack\n- Generates a solution hypothesis\n- Verifies the hypothesis based on the Chain of Thought steps\n- Repeats the process until satisfied\n- Provides a correct answer\n\nParameters explained:\n- thought: Your current thinking step, which can include:\n  * Regular analytical steps\n  * Revisions of previous thoughts\n  * Questions about previous decisions\n  * Realizations about needing more analysis\n  * Changes in approach\n  * Hypothesis generation\n  * Hypothesis verification\n- nextThoughtNeeded: True if you need more thinking, even if at what seemed like the end\n- thoughtNumber: Current number in sequence (can go beyond initial total if needed)\n- totalThoughts: Current estimate of thoughts needed (can be adjusted up/down)\n- isRevision: A boolean indicating if this thought revises previous thinking\n- revisesThought: If is_revision is true, which thought number is being reconsidered\n- branchFromThought: If branching, which thought number is the branching point\n- branchId: Identifier for the current branch (if any)\n- needsMoreThoughts: If reaching end but realizing more thoughts needed\n\nYou should:\n1. Start with an initial estimate of needed thoughts, but be ready to adjust\n2. Feel free to question or revise previous thoughts\n3. Don't hesitate to add more thoughts if needed, even at the \"end\"\n4. Express uncertainty when present\n5. Mark thoughts that revise previous thinking or branch into new paths\n6. Ignore information that is irrelevant to the current step\n7. Generate a solution hypothesis when appropriate\n8. Verify the hypothesis based on the Chain of Thought steps\n9. Repeat the process until satisfied with the solution\n10. Provide a single, ideally correct answer as the final output\n11. Only set nextThoughtNeeded to false when truly done and a satisfactory answer is reached",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      "structured_diff": {
+        "description_changed": true,
+        "description_diff": {
+          "old": "A detailed tool for dynamic and reflective problem-solving through thoughts.\nThis tool helps analyze problems through a flexible thinking process that can adapt and evolve.\nEach thought can build on, question, or revise previous insights as understanding deepens.\n\nWhen to use this tool:\n- Breaking down complex problems into steps\n- Planning and design with room for revision\n- Analysis that might need course correction\n- Problems where the full scope might not be clear initially\n- Problems that require a multi-step solution\n- Tasks that need to maintain context over multiple steps\n- Situations where irrelevant information needs to be filtered out\n\nKey features:\n- You can adjust total_thoughts up or down as you progress\n- You can question or revise previous thoughts\n- You can add more thoughts even after reaching what seemed like the end\n- You can express uncertainty and explore alternative approaches\n- Not every thought needs to build linearly - you can branch or backtrack\n- Generates a solution hypothesis\n- Verifies the hypothesis based on the Chain of Thought steps\n- Repeats the process until satisfied\n- Provides a correct answer\n\nParameters explained:\n- thought: Your current thinking step, which can include:\n  * Regular analytical steps\n  * Revisions of previous thoughts\n  * Questions about previous decisions\n  * Realizations about needing more analysis\n  * Changes in approach\n  * Hypothesis generation\n  * Hypothesis verification\n- nextThoughtNeeded: True if you need more thinking, even if at what seemed like the end\n- thoughtNumber: Current number in sequence (can go beyond initial total if needed)\n- totalThoughts: Current estimate of thoughts needed (can be adjusted up/down)\n- isRevision: A boolean indicating if this thought revises previous thinking\n- revisesThought: If is_revision is true, which thought number is being reconsidered\n- branchFromThought: If branching, which thought number is the branching point\n- branchId: Identifier for the current branch (if any)\n- needsMoreThoughts: If reaching end but realizing more thoughts needed\n\nYou should:\n1. Start with an initial estimate of needed thoughts, but be ready to adjust\n2. Feel free to question or revise previous thoughts\n3. Don't hesitate to add more thoughts if needed, even at the \"end\"\n4. Express uncertainty when present\n5. Mark thoughts that revise previous thinking or branch into new paths\n6. Ignore information that is irrelevant to the current step\n7. Generate a solution hypothesis when appropriate\n8. Verify the hypothesis based on the Chain of Thought steps\n9. Repeat the process until satisfied with the solution\n10. Provide a single, ideally correct answer as the final output\n11. Only set next_thought_needed to false when truly done and a satisfactory answer is reached",
+          "new": "A detailed tool for dynamic and reflective problem-solving through thoughts.\nThis tool helps analyze problems through a flexible thinking process that can adapt and evolve.\nEach thought can build on, question, or revise previous insights as understanding deepens.\n\nWhen to use this tool:\n- Breaking down complex problems into steps\n- Planning and design with room for revision\n- Analysis that might need course correction\n- Problems where the full scope might not be clear initially\n- Problems that require a multi-step solution\n- Tasks that need to maintain context over multiple steps\n- Situations where irrelevant information needs to be filtered out\n\nKey features:\n- You can adjust total_thoughts up or down as you progress\n- You can question or revise previous thoughts\n- You can add more thoughts even after reaching what seemed like the end\n- You can express uncertainty and explore alternative approaches\n- Not every thought needs to build linearly - you can branch or backtrack\n- Generates a solution hypothesis\n- Verifies the hypothesis based on the Chain of Thought steps\n- Repeats the process until satisfied\n- Provides a correct answer\n\nParameters explained:\n- thought: Your current thinking step, which can include:\n  * Regular analytical steps\n  * Revisions of previous thoughts\n  * Questions about previous decisions\n  * Realizations about needing more analysis\n  * Changes in approach\n  * Hypothesis generation\n  * Hypothesis verification\n- nextThoughtNeeded: True if you need more thinking, even if at what seemed like the end\n- thoughtNumber: Current number in sequence (can go beyond initial total if needed)\n- totalThoughts: Current estimate of thoughts needed (can be adjusted up/down)\n- isRevision: A boolean indicating if this thought revises previous thinking\n- revisesThought: If is_revision is true, which thought number is being reconsidered\n- branchFromThought: If branching, which thought number is the branching point\n- branchId: Identifier for the current branch (if any)\n- needsMoreThoughts: If reaching end but realizing more thoughts needed\n\nYou should:\n1. Start with an initial estimate of needed thoughts, but be ready to adjust\n2. Feel free to question or revise previous thoughts\n3. Don't hesitate to add more thoughts if needed, even at the \"end\"\n4. Express uncertainty when present\n5. Mark thoughts that revise previous thinking or branch into new paths\n6. Ignore information that is irrelevant to the current step\n7. Generate a solution hypothesis when appropriate\n8. Verify the hypothesis based on the Chain of Thought steps\n9. Repeat the process until satisfied with the solution\n10. Provide a single, ideally correct answer as the final output\n11. Only set nextThoughtNeeded to false when truly done and a satisfactory answer is reached"
+        },
+        "schema_changed": false,
+        "params_added": [],
+        "params_removed": [],
+        "params_modified": [],
+        "required_changed": false,
+        "change_subtypes": [
+          "wording_refinement"
+        ]
+      }
+    },
+    {
+      "index": 7,
+      "change_id": "chg_0068",
+      "tool_name": "timetools.get_current_time.value",
+      "repository": "Time Server",
+      "verdict": "BENIGN",
+      "confidence": 0.99,
+      "reason": "This tool simply retrieves the current time, posing no security risks or manipulation opportunities.",
+      "evidence": [
+        "{\"name\":\"timetools.get_current_time.value\",\"description\":\"Get current time in a specific timezone\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}\"}"
+      ],
+      "latency_ms": 13227.499723434448,
+      "rule_b_alert": false,
+      "rule_a_alert": false,
+      "tool_definition": {
+        "name": "timetools.get_current_time.value",
+        "description": "Get current time in a specific timezone",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      "structured_diff": {
+        "description_changed": true,
+        "description_diff": {
+          "old": "Get current time in a specific timezones",
+          "new": "Get current time in a specific timezone"
+        },
+        "schema_changed": false,
+        "params_added": [],
+        "params_removed": [],
+        "params_modified": [],
+        "required_changed": false,
+        "change_subtypes": [
+          "wording_refinement"
+        ]
+      }
+    },
+    {
+      "index": 8,
+      "change_id": "chg_0113",
+      "tool_name": "puppeteer_navigate",
+      "repository": "Puppeteer Server",
+      "verdict": "SUSPICIOUS",
+      "confidence": 0.75,
+      "reason": "The 'allowDangerous' flag introduces a potential for bypassing security measures and restarting the browser with arbitrary arguments.",
+      "evidence": [
+        "\"allowDangerous\": true, \"launchOptions\": {\"headless\": true, \"args\": [...]}"
+      ],
+      "latency_ms": 13420.801877975464,
+      "rule_b_alert": true,
+      "rule_a_alert": false,
+      "tool_definition": {
+        "name": "puppeteer_navigate",
+        "description": "Navigate to a URL",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "allowDangerous": {
+              "type": "boolean",
+              "description": "Allow dangerous LaunchOptions that reduce security. When false, dangerous args like --no-sandbox will throw errors. Default false."
+            },
+            "launchOptions": {
+              "type": "object",
+              "description": "PuppeteerJS LaunchOptions. Default null. If changed and not null, browser restarts. Example: { headless: true, args: ["
+            },
+            "url": {
+              "type": "string",
+              "description": "URL to navigate to"
+            }
+          },
+          "required": []
+        }
+      },
+      "structured_diff": {
+        "description_changed": false,
+        "description_diff": null,
+        "schema_changed": true,
+        "params_added": [
+          "allowDangerous",
+          "launchOptions"
+        ],
+        "params_removed": [],
+        "params_modified": [
+          {
+            "param": "url",
+            "old": {
+              "type": "string",
+              "description": ""
+            },
+            "new": {
+              "type": "string",
+              "description": "URL to navigate to"
+            }
+          }
+        ],
+        "required_changed": false,
+        "change_subtypes": [
+          "param_added",
+          "param_modified"
+        ]
+      }
+    },
+    {
+      "index": 9,
+      "change_id": "chg_0114",
+      "tool_name": "puppeteer_screenshot",
+      "repository": "Puppeteer Server",
+      "verdict": "BENIGN",
+      "confidence": 0.99,
+      "reason": "The tool definition describes a standard screenshot utility with configurable parameters, posing no immediate security risks.",
+      "evidence": [
+        "{\"name\":\"puppeteer_screenshot\",\"description\":\"Take a screenshot of the current page or a specific element\",\"inputSchema\":{\"type\":\"object\",\"properties\":{\"encoded\":{\"type\":\"boolean\",\"description\":\"If true, capture the screenshot as a base64-encoded data URI (as text) instead of binary image content. Default false.\"},\"height\":{\"type\":\"number\",\"description\":\"Height in pixels (default: 600)\"},\"name\":{\"type\":\"string\",\"description\":\"Name for the screenshot\"},\"selector\":{\"type\":\"string\",\"description\":\"CSS selector for element to screenshot\"},\"width\":{\"type\":\"number\",\"description\":\"Width in pixels (default: 800)\"}},\"required\":[]}"
+      ],
+      "latency_ms": 24946.818828582764,
+      "rule_b_alert": false,
+      "rule_a_alert": false,
+      "tool_definition": {
+        "name": "puppeteer_screenshot",
+        "description": "Take a screenshot of the current page or a specific element",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "encoded": {
+              "type": "boolean",
+              "description": "If true, capture the screenshot as a base64-encoded data URI (as text) instead of binary image content. Default false."
+            },
+            "height": {
+              "type": "number",
+              "description": "Height in pixels (default: 600)"
+            },
+            "name": {
+              "type": "string",
+              "description": "Name for the screenshot"
+            },
+            "selector": {
+              "type": "string",
+              "description": "CSS selector for element to screenshot"
+            },
+            "width": {
+              "type": "number",
+              "description": "Width in pixels (default: 800)"
+            }
+          },
+          "required": []
+        }
+      },
+      "structured_diff": {
+        "description_changed": false,
+        "description_diff": null,
+        "schema_changed": true,
+        "params_added": [
+          "encoded"
+        ],
+        "params_removed": [],
+        "params_modified": [],
+        "required_changed": false,
+        "change_subtypes": [
+          "param_added"
+        ]
+      }
+    },
+    {
+      "index": 10,
+      "change_id": "chg_0118",
+      "tool_name": "slack_list_channels",
+      "repository": "Slack Server",
+      "verdict": "BENIGN",
+      "confidence": 0.99,
+      "reason": "This tool simply lists Slack channels, posing no security risks or malicious intent.",
+      "evidence": [
+        "{\"name\":\"slack_list_channels\",\"description\":\"List public or pre-defined channels in the workspace with pagination\",\"inputSchema\":{\"type\":\"object\",\"properties\":{\"limit\":{\"type\":\"number\",\"description\":\"Maximum number of channels to return (default 100, max 200)\"},\"required\":[]}}"
+      ],
+      "latency_ms": 15656.819105148315,
+      "rule_b_alert": false,
+      "rule_a_alert": false,
+      "tool_definition": {
+        "name": "slack_list_channels",
+        "description": "List public or pre-defined channels in the workspace with pagination",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "number",
+              "description": "Maximum number of channels to return (default 100, max 200)"
+            }
+          },
+          "required": []
+        }
+      },
+      "structured_diff": {
+        "description_changed": true,
+        "description_diff": {
+          "old": "List public channels in the workspace with pagination",
+          "new": "List public or pre-defined channels in the workspace with pagination"
+        },
+        "schema_changed": false,
+        "params_added": [],
+        "params_removed": [],
+        "params_modified": [],
+        "required_changed": false,
+        "change_subtypes": [
+          "wording_refinement"
+        ]
+      }
+    },
+    {
+      "index": 11,
+      "change_id": "chg_0121",
+      "tool_name": "get_table_sample",
+      "repository": "MySQL Server",
+      "verdict": "BENIGN",
+      "confidence": 0.99,
+      "reason": "The tool definition simply describes a function to retrieve a table sample, posing no security risks.",
+      "evidence": [
+        "{\"name\":\"get_table_sample\",\"description\":\"\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}"
+      ],
+      "latency_ms": 12122.15518951416,
+      "rule_b_alert": false,
+      "rule_a_alert": false,
+      "tool_definition": {
+        "name": "get_table_sample",
+        "description": "",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      "structured_diff": {
+        "description_changed": true,
+        "description_diff": {
+          "old": "Get a sample of data from a table (Contributed by GeorgeLeex)",
+          "new": ""
+        },
+        "schema_changed": false,
+        "params_added": [],
+        "params_removed": [],
+        "params_modified": [],
+        "required_changed": false,
+        "change_subtypes": [
+          "description_removed"
+        ]
+      }
+    },
+    {
+      "index": 12,
+      "change_id": "chg_0122",
+      "tool_name": "execute_sql",
+      "repository": "MySQL Server",
+      "verdict": "MALICIOUS",
+      "confidence": 0.98,
+      "reason": "The `execute_sql` tool, with no description and an empty input schema, strongly suggests potential SQL injection vulnerabilities.",
+      "evidence": [
+        "`execute_sql`"
+      ],
+      "latency_ms": 10678.31540107727,
+      "rule_b_alert": true,
+      "rule_a_alert": true,
+      "tool_definition": {
+        "name": "execute_sql",
+        "description": "",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      "structured_diff": {
+        "description_changed": true,
+        "description_diff": {
+          "old": "Execute an SQL query on the MySQL server",
+          "new": ""
+        },
+        "schema_changed": false,
+        "params_added": [],
+        "params_removed": [],
+        "params_modified": [],
+        "required_changed": false,
+        "change_subtypes": [
+          "description_removed"
+        ]
+      }
+    },
+    {
+      "index": 13,
+      "change_id": "chg_0123",
+      "tool_name": "get_schema_info",
+      "repository": "MySQL Server",
+      "verdict": "BENIGN",
+      "confidence": 0.99,
+      "reason": "This tool simply describes a schema, posing no immediate security risk.",
+      "evidence": [
+        "{\"name\":\"get_schema_info\",\"description\":\"\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}"
+      ],
+      "latency_ms": 11619.055271148682,
+      "rule_b_alert": false,
+      "rule_a_alert": false,
+      "tool_definition": {
+        "name": "get_schema_info",
+        "description": "",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      "structured_diff": {
+        "description_changed": true,
+        "description_diff": {
+          "old": "Get comprehensive schema information (Contributed by GeorgeLeex)",
+          "new": ""
+        },
+        "schema_changed": false,
+        "params_added": [],
+        "params_removed": [],
+        "params_modified": [],
+        "required_changed": false,
+        "change_subtypes": [
+          "description_removed"
+        ]
+      }
+    }
+  ]
+}

@@ -128,13 +128,13 @@ def generate_table_1_scope() -> str:
 
 def generate_table_2_taxonomy() -> str:
     """Table 2: Comparative Taxonomy Matrix of Defensive Paradigms."""
-    return """| Defense Paradigm | Exemplar Approaches | Threat Model Scope | Primary Detection Target | Operational Blind Spots | Operator Review Burden |
+    return r"""| Defense Paradigm | Exemplar Approaches | Threat Model Scope | Primary Detection Target | Operational Blind Spots | Operator Review Burden |
 |---|---|---|---|---|---|
 | **Exact Cryptographic Pinning** | SHA-256 over JSON (W3C SRI, 2016), mcp-scan tool pinning | Post-deployment tampering | Strict byte-level equality | Blind to semantic intent; flags 100% of benign refactorings | **High** (0.050 alerts/transition on wild corpus; 13/13 on real modifications) |
 | **Author Provenance Signing** | Mas et al. (2026), ETDI (Bhatt et al., 2025), Sigstore (2022) | Unauthorized third-party tampering | Signer identity mismatch | Insider maintainer rug-pulls; compromised author keys | **Low** (Zero alerts for validly signed malware; qualitative) |
-| **Static Keyword Scanners** | Regex rules / leakage checks (snyk-agent-scan, mcp-scan) | Overt keyword injections | Known syntactic attack templates | Evasive paraphrasing, semantic drift, parameter toggles (0.0% recall on V4 multi-step drift) | **Zero runtime latency overhead** ($< 0.25$ ms; qualitative) |
-| **Monolithic LLM Vetting** | NeMo Guardrails (Rebedea et al., 2023), Llama Guard (Inan et al., 2023), Mode A standalone | Full-context prompt injection / full tool contract | General prompt/tool risk | Context-window saturation, high latency, lacks multi-step context | **Medium** (High per-call latency, length bias; qualitative) |
-| **MCP Semantic Drift Guard (This Work)** | 5-tier pipeline + Multi-Anchor | Single-step & multi-step salami drift | Structured schema & docstring delta ($\\Delta T$) | Distributed cross-tool collusion beyond individual tool state | **62%–77% alert reduction on real corpus ($N=13$)** (23.1% gemma, 38.5% Gemini under Rule b; 0.0% Rule a; synthetic benchmark FPR 4.0%) |"""
+| **Static Configuration Scanners** | Snyk Agent Scan / mcp-scan (Invariant Labs & Snyk, Oct 2026) | Static configuration / connected server risks | 14–15 risk categories via Snyk API rules and schema checks | Semantic drift across release sequences, subtle parameter creep (0.0% recall on V4 multi-step drift) | **Low / Fast** ($< 0.25$ ms local rule check, or API scan; qualitative) |
+| **Monolithic LLM Vetting** | NeMo Guardrails (Rebedea et al., 2023), Llama Guard (Inan et al., 2023), Mode A standalone | Standalone tool definition / single-step injection | Overtly dangerous capabilities in isolated schema | Delayed detection of incremental drift ($\bar{W}_e = 0.500$ vs $0.192$, $p=0.0117$), +9.7% prompt token overhead, blind to capability creep with plausible steps | **Medium** (+9.7% prompt tokens vs diffs, 34 s/call local CPU latency; 0.0% synthetic FPR) |
+| **MCP Semantic Drift Guard (This Work)** | 5-tier pipeline + Multi-Anchor | Single-step & multi-step salami drift | Structured schema & docstring delta ($\Delta T$) | Distributed cross-tool collusion beyond individual tool state | **62%–77% alert reduction on real corpus ($N=13$)** (23.1% gemma, 38.5% Gemini under Rule b; 0.0% Rule a; synthetic benchmark FPR 4.0%) |"""
 
 
 
@@ -589,8 +589,9 @@ def generate_table_11_status() -> str:
     return r"""| Evaluation Dimension | Status | Methodology & Operational Boundaries |
 |---|:---:|---|
 | **External Proprietary Scanner (`mcp-scan`)** | **Not Done** | The Tier 2 static baseline evaluates author-defined regex patterns; full offline execution of external proprietary `mcp-scan` binaries across all 436 transitions is not run. |
-| **Single-Step LLM Baseline (Mode A, $N=58$)** | **Done (gemma only)** | Mode A (single-step full tool definition, no diff) completed across all 215 held-out test transitions on `gemma3:4b` ($T=0$, JSON Schema constrained), achieving 100.0% (26/26) recall under Rule (b) and 92.3% (24/26) under Rule (a) with 0.0% (0/25) FPR (Table 7, Table A.2). Single-step sweeps on legacy $N=56$ remain deferred. |
-| **Real-Corpus Contract Drift Vetting ($N=13$)** | **Done** | Evaluated all 13 historical pre-existing contract modifications mined from 621 open-source release transitions across exact hash pinning, static regex rules, TF-IDF cosine distance, and Adjacent semantic judges (`gemma3:4b` and `gemini-3.1-flash-lite`). |
+| **Single-Step LLM Baseline (Mode A, $N=58$)** | **Done (gemma and Gemini)** | Mode A (single-step full tool definition, no diff) completed across all 215 held-out test transitions on `gemma3:4b` (100.0% Rule b, 92.3% Rule a, 0.0% FPR) and `gemini-3.1-flash-lite` (84.6% Rule b, 88.5% Rule a, 0.0% FPR). Demonstrates that synthetic Benchmark V4 can be solved without history by a single-step judge; single-step sweeps on legacy single-step $N=56$ remain deferred. |
+| **History-Necessary Benchmark Pilot (V4-H, $N=24$)** | **Done (Pilot, exploratory)** | Evaluated 24 hand-written 3-step chains (12 attack, 12 benign) where final definitions appear plausible in isolation. Mode A flags only 33.3% on Gemma (4/12) and 66.7% on Gemini (8/12). Diff-based guards on Gemma achieve 16.7% (2/12) on Adjacent and Combined, and 8.3% (1/12) on Cumulative (0.0% on Mode-A-blind subset). Limited by small pilot sample size ($N=12$ attacks). |
+| **Real-Corpus Contract Drift Vetting ($N=13$)** | **Done** | Evaluated all 13 historical pre-existing contract modifications mined from 621 open-source release transitions across exact hash pinning, static regex rules, TF-IDF cosine distance, Adjacent semantic judges, and Mode A standalone judges (`gemma3:4b` and `gemini-3.1-flash-lite`). |
 | **Template Mutation Search Evaluation ($N=24$)** | **Done (Simulation-level)** | Evaluates automated black-box template-based mutation search with no LLM ($Q \le 5$, avg 8.12 queries/chain) run against `gemma3:4b` only on a simulation testbed; evaluates heuristic evasion rather than dynamic interactive human red-teaming. |
 | **Delivery-Layer Failure Mitigations** | **Done (Simulation Harness)** | Design proposals and mitigations verified on a localhost mock simulation harness across 5 scripted failure modes (5/5 $\rightarrow$ 0/5); mitigations are architectural proposals in the harness rather than integrated into production MCP client runtimes. |
 | **Benchmark Trivial-Separator Screening** | **Reported Limitation** | Benchmark V4 natural docstring length shift correlation (ROC-AUC = 0.7228) fails the pre-registered $<0.65$ gate; edit distance fails the two-sided criterion ($\max(\text{AUC}, 1-\text{AUC}) = 0.6511 > 0.65$, FAIL). |
@@ -697,6 +698,31 @@ def generate_table_12_multi_judge(v4_report: Dict[str, Any], gemini_summary: Opt
                 
                 prefix = f"| **gemini-3.1-flash-lite** (Lite-tier Cloud) | **{r_name}** | **{s_name}** | {p_rate_str} |"
                 rows.append(f"{prefix} {strict_sal} | {any_sal} | {fast_str} | {ben_str} | {ben_trans_str} | {we_val:.3f} |")
+
+        # Mode A Gemini Replication if present
+        gem_mode_a_file = RESULTS_DIR / "salami_drift_v4" / "google_gemini-3.1-flash-lite_modeA" / "summary.json"
+        if gem_mode_a_file.exists():
+            with open(gem_mode_a_file, "r", encoding="utf-8") as f:
+                gem_ma_sum = json.load(f)
+            gem_ma_parse = gem_ma_sum.get("parse_statistics", {})
+            gem_p_rate_str = f"{gem_ma_parse.get('success_rate', 1.0)*100:.1f}% ({gem_ma_parse.get('failures', 0)} fail)"
+            for r_name, r_key in [("Rule (b) Primary BALANCED", "rule_b"), ("Rule (a) Strict MALICIOUS", "rule_a")]:
+                m = gem_ma_sum.get(r_key, {})
+                sal = m.get("salami_strict_recall", {})
+                any_sal = m.get("salami_any_recall", {})
+                fast = m.get("fast_jump_recall", {})
+                ben = m.get("benign_chain_fpr", {})
+                bt = m.get("benign_transition_alert_rate", {})
+                we_val = m.get("mean_exposure", 0.0)
+
+                strict_sal = f"{fmt_pct(sal['detected'], sal['total'])} ({sal['detected']}/{sal['total']}) {fmt_ci(sal['detected'], sal['total'])}"
+                any_sal_str = f"{fmt_pct(any_sal['detected'], any_sal['total'])} ({any_sal['detected']}/{any_sal['total']}) {fmt_ci(any_sal['detected'], any_sal['total'])}"
+                fast_str = f"{fmt_pct(fast['detected'], fast['total'])} ({fast['detected']}/{fast['total']}) {fmt_ci(fast['detected'], fast['total'])}"
+                ben_str = f"{fmt_pct(ben['alarms'], ben['total'])} ({ben['alarms']}/{ben['total']}) {fmt_ci(ben['alarms'], ben['total'])}"
+                ben_trans_str = f"{fmt_pct(bt['alarms'], bt['total'])} ({bt['alarms']}/{bt['total']}) {fmt_ci(bt['alarms'], bt['total'])}"
+
+                prefix = f"| **gemini-3.1-flash-lite** (Lite-tier Cloud) | **{r_name}** | **Mode A (Full Def, No Diff)** | {gem_p_rate_str} |"
+                rows.append(f"{prefix} {strict_sal} | {any_sal_str} | {fast_str} | {ben_str} | {ben_trans_str} | {we_val:.3f} |")
                 
     # Comparisons & Hypothesis Status footer
     footer = []
@@ -879,6 +905,24 @@ def generate_summary_table(
                 f"**{fmt_pct(any_det, sal['n'])} ({any_det}/{sal['n']})** {fmt_ci(any_det, sal['n'])} | "
                 f"**{fmt_pct(ben['detected'], ben['n'])} ({ben['detected']}/{ben['n']})** {fmt_ci(ben['detected'], ben['n'])} | "
                 f"{sal['mean_exposure']:.3f} steps | Root-anchored diff |"
+            )
+
+        # Mode A Gemini Replication if present
+        gem_mode_a_file = RESULTS_DIR / "salami_drift_v4" / "google_gemini-3.1-flash-lite_modeA" / "summary.json"
+        if gem_mode_a_file.exists():
+            with open(gem_mode_a_file, "r", encoding="utf-8") as f:
+                gem_mode_a_summary = json.load(f)
+            gem_ma_b = gem_mode_a_summary.get("rule_b", {})
+            sal_ma = gem_ma_b.get("salami_strict_recall", {})
+            any_ma = gem_ma_b.get("salami_any_recall", {})
+            ben_ma = gem_ma_b.get("benign_chain_fpr", {})
+            we_ma = gem_ma_b.get("mean_exposure", 0.0)
+            rows.append(
+                f"| **Mode A (Single-Step Full Definition, Rule b)** | Tier 3 Cloud (`gemini-3.1-flash-lite`) | "
+                f"**{fmt_pct(sal_ma['detected'], sal_ma['total'])} ({sal_ma['detected']}/{sal_ma['total']})** {fmt_ci(sal_ma['detected'], sal_ma['total'])} | "
+                f"**{fmt_pct(any_ma['detected'], any_ma['total'])} ({any_ma['detected']}/{any_ma['total']})** {fmt_ci(any_ma['detected'], any_ma['total'])} | "
+                f"**{fmt_pct(ben_ma['alarms'], ben_ma['total'])} ({ben_ma['alarms']}/{ben_ma['total']})** {fmt_ci(ben_ma['alarms'], ben_ma['total'])} | "
+                f"{we_ma:.3f} steps | Standalone single-step full definition (no diff) |"
             )
             
     body = "\n".join(rows)
