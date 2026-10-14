@@ -1,0 +1,50 @@
+{
+  "rule_b": {
+    "salami_strict_recall": [
+      26,
+      26
+    ],
+    "salami_any_recall": [
+      26,
+      26
+    ],
+    "fast_jump_recall": [
+      1,
+      7
+    ],
+    "benign_chain_fpr": [
+      0,
+      25
+    ],
+    "mean_exposure": 0.5,
+    "benign_transition_alert_rate": [
+      0,
+      156
+    ]
+  },
+  "rule_a": {
+    "salami_strict_recall": [
+      24,
+      26
+    ],
+    "salami_any_recall": [
+      24,
+      26
+    ],
+    "fast_jump_recall": [
+      1,
+      7
+    ],
+    "benign_chain_fpr": [
+      0,
+      25
+    ],
+    "mean_exposure": 0.8461538461538461,
+    "benign_transition_alert_rate": [
+      0,
+      156
+    ]
+  },
+  "total_predictions": 106,
+  "total_held_out_transitions": 215
+}

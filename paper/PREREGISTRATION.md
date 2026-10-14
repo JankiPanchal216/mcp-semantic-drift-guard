@@ -14,8 +14,7 @@ In the Model Context Protocol (MCP), tool definitions evolve over time through s
 
 ### 1.2 Hypotheses
 - **$H_1$ (Cumulative Advantage on Semantic Composition):** On multi-step semantic composition chains (where individual steps appear benign in isolation but compose into an attack), Cumulative comparison will achieve higher chain-level recall than Adjacent comparison under matched benign false positive rates.
-- **$H_{2a}$ (Adjacent Exposure on Local Leaps):** On localized parameter erosion or direct capability additions, Adjacent comparison will detect malicious drift earlier ($W_e$).
-- **$H_{2b}$ (Combined Prompt Pareto Efficiency & Context Overhead):** Presenting both adjacent and cumulative diffs simultaneously achieves Pareto-superior detection (matching or exceeding Adjacent recall at $\le$ Cumulative FPR) with acceptable context overhead.
+- **$H_2$ (Adjacent Sensitivity on Local Leaps):** On localized parameter erosion or direct capability additions, Adjacent comparison will detect malicious drift earlier ($W_e$) with lower context overhead.
 - **$H_3$ (Deterministic Baseline Insufficiency):** Calibrated deterministic heuristics (Levenshtein edit distance, parameter delta count) cannot simultaneously maintain $\ge 80\%$ recall on multi-step salami drift and $\le 15\%$ FPR on benign evolution when tested on docstring-only and diverse-length chains.
 
 ---
@@ -170,6 +169,12 @@ All empirical outcomes (recall, FPR, exposure window $\bar{W}_e$, McNemar exact 
   2. *Hugging Face Inference Providers*: Disqualified during connectivity check (`HTTP 402 Payment Required`).
   3. *DeepSeek API*: Excluded due to zero balance ($0.00, `HTTP 402 Insufficient Balance`, 4 requests made, none billed).
 - **Benchmark Scope:** In strict accordance with the pre-registered protocol, the empirical study remains frozen at two verified judges: `gemma3:4b` (local open-weight 4B) and `gemini-3.1-flash-lite` (lite-tier cloud).
+
+### 8.8 Protocol Amendments
+- **Amendment 1 (Post-Hoc Decomposition of $H_2$, Date: 2026-10-13, Commit: `6d79948`):**
+  The original pre-registered $H_2$ hypothesis combined two distinct operational claims: (1) earlier detection ($W_e$) by Adjacent comparison, and (2) lower context overhead. Following empirical observation of attention dilution on local models and differential prompt lengths, $H_2$ was decomposed into:
+  - **$H_{2a}$ (Adjacent Local Exposure, Confirmatory):** Focused strictly on the pre-registered exposure metric ($W_e$).
+  - **$H_{2b}$ (Combined Prompt Pareto Efficiency & Context Overhead, Exploratory):** Evaluated whether a dual-anchor combined prompt dominates single-anchor strategies under matched FPR and prompt length expansion.
 
 
 

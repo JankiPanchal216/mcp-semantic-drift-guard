@@ -131,6 +131,32 @@ class TestPaperNumbersConsistency(unittest.TestCase):
                         f"Paper:     {norm_pr}"
                     )
 
+    def test_preregistration_h1_matches_paper_h1(self):
+        """Asserts that the H1 sentence in PREREGISTRATION.md and paper.md match character-for-character."""
+        prereg_path = self.root / "paper" / "PREREGISTRATION.md"
+        self.assertTrue(prereg_path.exists(), f"PREREGISTRATION.md missing at {prereg_path}")
+        
+        prereg_text = prereg_path.read_text(encoding="utf-8")
+        paper_text = self.paper_path.read_text(encoding="utf-8")
+        
+        def extract_h1(text):
+            for line in text.splitlines():
+                if "H_1" in line and ":**" in line and line.strip().startswith("-"):
+                    return line.split(":**", 1)[1].strip()
+            return None
+        
+        h1_prereg = extract_h1(prereg_text)
+        self.assertIsNotNone(h1_prereg, "Failed to find H1 in PREREGISTRATION.md")
+        
+        h1_paper = extract_h1(paper_text)
+        self.assertIsNotNone(h1_paper, "Failed to find Hypothesis H1 in paper.md")
+        
+        self.assertEqual(
+            h1_prereg,
+            h1_paper,
+            f"H1 mismatch between PREREGISTRATION.md and paper.md:\nPREREG: {h1_prereg}\nPAPER:  {h1_paper}"
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
