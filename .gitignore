@@ -17,3 +17,6 @@ credentials*.json
 results/phase4_audit_log.jsonl
 scratch/
 
+
+data/repos/
+*.zip
